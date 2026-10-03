@@ -4,12 +4,14 @@ import {
   createBoard,
   createItem,
   getItemIssues,
+  itemMatchesQuery,
   removeItem,
   reorderItems,
   setView,
   toSummary,
   updateItem,
   updateItemFields,
+  validateFields,
   validateItem,
   type PrimitiveDef,
 } from './index'
@@ -121,5 +123,23 @@ describe('board', () => {
       updatedAt: board.updatedAt,
       itemCount: 3,
     })
+  })
+})
+
+describe('validateFields', () => {
+  it('validates a draft without an item', () => {
+    expect(validateFields({}, LISTING)).toEqual([{ fieldKey: 'title', kind: 'missing_required' }])
+  })
+})
+
+describe('itemMatchesQuery', () => {
+  const item = createItem('note', { title: 'Ramen spots', body: 'Tokyo' })
+  it('matches any string field, case-insensitive', () => {
+    expect(itemMatchesQuery(item, 'tokyo')).toBe(true)
+    expect(itemMatchesQuery(item, 'RAMEN')).toBe(true)
+    expect(itemMatchesQuery(item, 'pizza')).toBe(false)
+  })
+  it('empty query matches all', () => {
+    expect(itemMatchesQuery(item, '  ')).toBe(true)
   })
 })
