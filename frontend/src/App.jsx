@@ -3,6 +3,7 @@ import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import WidgetCreationMenu from './components/WidgetCreationMenu';
 import ProfileSettingsMenu from './components/ProfileSettingsMenu';
+import RecommendationListWidget from './components/RecommendationListWidget';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -175,10 +176,9 @@ export default function App() {
             <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-2</span>
           </div>
           
-          {/* Placeholder: 1x1 Square */}
-          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1x1 Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
+          {/* Recommendation List Widget */}
+          <div className="md:col-span-1 md:row-span-1 h-full w-full">
+            <RecommendationListWidget />
           </div>
           
           {/* Placeholder: 1x2 Tall Rectangle */}
