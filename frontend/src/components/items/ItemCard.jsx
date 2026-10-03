@@ -25,11 +25,17 @@ export default function ItemCard({
   const Card = CARD_COMPONENTS[primitive.id] ?? GenericCard;
   const issues = getItemIssues(item);
 
+  const isFullBleed = primitive.id === 'recommendation_list';
+
   return (
     <div
       {...dragProps}
       onClick={onOpen}
-      className={`apple-glass ${SIZE_CLASSES[size] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative rounded-[2rem] p-6 overflow-hidden shadow-2xl transition-transform hover:scale-[1.02] cursor-pointer ${
+      className={`${SIZE_CLASSES[size] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative transition-transform hover:scale-[1.02] cursor-pointer ${
+        isFullBleed
+          ? 'flex'
+          : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'
+      } ${
         editMode ? 'ring-2 ring-black/10 dark:ring-white/20 cursor-grab' : ''
       }`}
     >
