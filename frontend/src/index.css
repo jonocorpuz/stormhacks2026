@@ -4,13 +4,16 @@
 
 @layer base {
   html, body {
-    @apply bg-black text-white overscroll-none;
+    @apply bg-white text-black dark:bg-black dark:text-white overscroll-none transition-colors duration-500;
   }
 }
 
 @layer components {
   .apple-glass {
-    @apply backdrop-blur-2xl bg-white/10 border border-white/20 shadow-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)];
+    @apply backdrop-blur-2xl 
+           bg-black/5 border border-black/10 shadow-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] text-black
+           dark:bg-white/10 dark:border-white/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] dark:text-white
+           transition-colors duration-500;
   }
 }
 

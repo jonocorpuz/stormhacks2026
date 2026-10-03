@@ -8,7 +8,17 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
-  
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Apply dark mode globally to the html document
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   // Use a ref and state to strictly enforce mathematically perfect grid rows
   const gridRef = useRef(null);
   const [rowHeight, setRowHeight] = useState('200px');
@@ -36,7 +46,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-black font-sans relative overscroll-none">
+    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-black font-sans relative overscroll-none transition-colors duration-500">
       
       {/* Click-Outside Overlay */}
       {(isMenuOpen || isProfileMenuOpen) && (
@@ -83,11 +93,15 @@ export default function App() {
               setIsMenuOpen(false);
               setIsProfileMenuOpen(!isProfileMenuOpen);
             }}
-            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/20 transition-colors"
           >
-            <span className="text-white font-bold text-lg">U</span>
+            <span className="text-black dark:text-white font-bold text-lg transition-colors">U</span>
           </div>
-          <ProfileSettingsMenu isOpen={isProfileMenuOpen} />
+          <ProfileSettingsMenu 
+            isOpen={isProfileMenuOpen} 
+            isDarkMode={isDarkMode} 
+            onToggleTheme={() => setIsDarkMode(!isDarkMode)} 
+          />
         </div>
 
       </div>
@@ -101,31 +115,31 @@ export default function App() {
         >
           
           {/* Placeholder: 2x2 Large Square */}
-          <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+          <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">2x2 Widget</span>
             <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-2</span>
           </div>
           
           {/* Placeholder: 1x1 Square */}
-          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">1x1 Widget</span>
             <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
           </div>
           
           {/* Placeholder: 1x2 Tall Rectangle */}
-          <div className="apple-glass md:col-span-1 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+          <div className="apple-glass md:col-span-1 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">1x2 Widget</span>
             <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-2</span>
           </div>
 
           {/* Placeholder: 2x1 Wide Rectangle */}
-          <div className="apple-glass md:col-span-2 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+          <div className="apple-glass md:col-span-2 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">2x1 Widget</span>
             <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-1</span>
           </div>
 
           {/* Placeholder: 3x1 Wide Banner */}
-          <div className="apple-glass md:col-span-3 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+          <div className="apple-glass md:col-span-3 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">3x1 Widget</span>
             <span className="text-xs font-normal opacity-70 mt-2">col-span-3 | row-span-1</span>
           </div>
