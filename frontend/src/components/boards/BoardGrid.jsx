@@ -22,7 +22,21 @@ export default function BoardGrid({ query, editMode }) {
   useEffect(() => {
     if (!gridRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) setRowHeight(`${(entry.contentRect.width - 48) / 3}px`);
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        let cols = 1;
+        let gaps = 0;
+        // The container max-w-7xl is 1280px. Breakpoints usually apply to window width, 
+        // but approximating with container width is fine.
+        if (window.innerWidth >= 1024) {
+          cols = 3;
+          gaps = 48; // 2 * 24px gap
+        } else if (window.innerWidth >= 768) {
+          cols = 2;
+          gaps = 24; // 1 * 24px gap
+        }
+        setRowHeight(`${(width - gaps) / cols}px`);
+      }
     });
     observer.observe(gridRef.current);
     return () => observer.disconnect();
@@ -59,7 +73,7 @@ export default function BoardGrid({ query, editMode }) {
 
       <div
         ref={gridRef}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-dense"
         style={{ gridAutoRows: rowHeight }}
       >
         {items.map((item) => (
