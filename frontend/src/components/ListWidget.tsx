@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Check, Pencil } from 'lucide-react';
 import { RecommendationItem, RecommendationWidgetData } from '../types/widgets';
+import toggleCircle from '../assets/list-widget/toggle-circle.svg';
+import scrollThumb from '../assets/list-widget/scroll-thumb.svg';
 
 export interface ListWidgetProps {
   data?: Partial<RecommendationWidgetData>;
@@ -19,6 +21,18 @@ const DEFAULT_ITEMS: RecommendationItem[] = [
   { id: '4', title: 'Brothers', isChecked: false },
 ];
 
+// Figma "Recommendation List" (stormhacks-27, node 47:198)
+const CARD_GRADIENT =
+  'linear-gradient(138.23deg, rgba(255, 64, 0, 0.1) 11.72%, rgba(254, 89, 34, 0.02) 50.62%, rgba(254, 89, 34, 0.1) 89.51%)';
+const LIST_GRADIENT =
+  'linear-gradient(151.66deg, rgba(255, 64, 0, 0.1) 11.72%, rgba(254, 89, 34, 0.02) 50.62%, rgba(254, 89, 34, 0.1) 89.51%)';
+const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
+
+// Scroll thumb asset is 84x8 horizontal; rotated to vertical. Track inset matches the 32px top offset in the design.
+const THUMB_LENGTH = 84;
+const TRACK_INSET = 32;
+
 export default function ListWidget({
   data,
   initialData,
@@ -29,9 +43,29 @@ export default function ListWidget({
   const [items, setItems] = useState<RecommendationItem[]>(() => (
     data?.items ?? initialData?.items ?? DEFAULT_ITEMS
   ));
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [trackLength, setTrackLength] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const title = data?.title ?? initialData?.title ?? 'Recommendation List';
   const date = data?.date ?? initialData?.date ?? '02/20/2027';
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setTrackLength(Math.max(0, el.clientHeight - TRACK_INSET * 2 - THUMB_LENGTH));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const max = el.scrollHeight - el.clientHeight;
+    setScrollProgress(max > 0 ? el.scrollTop / max : 0);
+  };
 
   const toggleItem = (id: string) => {
     setItems((prev) =>
@@ -43,94 +77,101 @@ export default function ListWidget({
   };
 
   return (
-    <>
-      <style>{`
-        .custom-pink-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-pink-scroll::-webkit-scrollbar-track {
-          background: transparent;
-          margin-block: 8px; /* Adds padding to top and bottom of track */
-        }
-        .custom-pink-scroll::-webkit-scrollbar-thumb {
-          background-color: #E29B9B;
-          border-radius: 9999px;
-        }
-        /* Fallback for Firefox */
-        .custom-pink-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: #E29B9B transparent;
-        }
-      `}</style>
-      <div
-        className={`relative w-full h-full min-h-[340px] rounded-[2.5rem] p-6 sm:p-7 flex flex-col justify-between select-none shadow-xl border-[1.5px] border-[#F3D5D5] bg-gradient-to-br from-[#FFD6D6] via-[#FFFFFF] to-[#FFD6D6] transition-all duration-300 hover:shadow-2xl ${className}`}
+    <div
+      className={`relative w-full h-full min-h-[340px] rounded-[30px] border border-[#FFD9CC] px-[18px] pt-[37px] pb-5 flex flex-col select-none overflow-hidden ${className}`}
+      style={{ backgroundImage: CARD_GRADIENT }}
+    >
+      {/* Header */}
+      <h2
+        className="text-[32px] font-bold leading-[39px] text-[#DA7777] whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ fontFamily: TITLE_FONT }}
       >
-        {/* Subtle Grain Texture Overlay */}
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06] mix-blend-multiply rounded-[2.5rem]"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
-        />
+        {title}
+      </h2>
 
-        {/* Header */}
-        <div className="mb-4 relative z-10">
-          <h2 className="text-2xl sm:text-[26px] font-bold text-[#DE7A7A] tracking-tight leading-snug">
-            {title}
-          </h2>
-        </div>
+      {/* Inset List Container */}
+      <div
+        className="relative mt-[23px] flex-1 min-h-0 rounded-[20px] border border-[#FFD9CC] overflow-hidden"
+        style={{ backgroundImage: LIST_GRADIENT }}
+      >
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="absolute inset-0 overflow-y-auto pl-[31px] pr-10 py-[17px] flex flex-col gap-[18px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="checkbox"
+              aria-checked={item.isChecked}
+              onClick={() => toggleItem(item.id)}
+              className="flex items-center gap-4 shrink-0 text-left group cursor-pointer transition-transform active:scale-[0.98]"
+            >
+              {/* Circular Toggle */}
+              <span className="relative size-[39px] shrink-0">
+                <img
+                  src={toggleCircle}
+                  alt=""
+                  width={60.0088}
+                  height={60.0088}
+                  className="absolute block max-w-none left-[-9.17px] top-[-9.84px] pointer-events-none"
+                />
+                {item.isChecked && (
+                  <Check
+                    className="absolute inset-0 m-auto w-5 h-5 text-[#DA7777]"
+                    strokeWidth={2.6}
+                  />
+                )}
+              </span>
 
-        {/* Inset List Container */}
-        <div className="relative z-10 flex-1 min-h-0 rounded-[1.75rem] apple-glass bg-white/40 dark:bg-white/10 border-[1.5px] border-[#F3D5D5]/50 dark:border-white/20 p-4 sm:p-5 flex flex-col shadow-sm">
-          {/* Scrollable list items */}
-          <div className="flex-1 overflow-y-auto pr-3 space-y-3.5 custom-pink-scroll">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => toggleItem(item.id)}
-                className="flex items-center gap-3.5 group cursor-pointer py-1 transition-transform active:scale-[0.98]"
+              {/* Item Title */}
+              <span
+                className="text-[20px] leading-[23px] text-[#646464] group-hover:text-[#4A4A4A] transition-colors"
+                style={{ fontFamily: BODY_FONT }}
               >
-                {/* Circular Toggle */}
-                <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 border-[1.5px] ${
-                    item.isChecked
-                      ? 'bg-[#FFF5F5] border-[#F3D5D5] shadow-sm'
-                      : 'bg-white/40 border-[#F3D5D5]/60 group-hover:bg-white/60'
-                  }`}
-                  aria-label={`Toggle ${item.title}`}
-                  role="checkbox"
-                  aria-checked={item.isChecked}
-                >
-                  {item.isChecked && (
-                    <Check className="w-5 h-5 text-[#DE7A7A]" strokeWidth={2.6} />
-                  )}
-                </div>
-
-                {/* Item Title */}
-                <span className="text-[17px] font-medium text-[#7A7A7A] tracking-tight group-hover:text-[#555555] transition-colors">
-                  {item.title}
-                </span>
-              </div>
-            ))}
-          </div>
+                {item.title}
+              </span>
+            </button>
+          ))}
         </div>
 
-        {/* Footer */}
-        <div className="relative z-10 flex items-center justify-between pt-4 mt-auto">
-          <span className="text-[15px] font-medium text-[#A3A3A3] tracking-tight">
-            {date}
-          </span>
-
-          {/* Edit Button */}
-          <button
-            onClick={onEdit}
-            type="button"
-            aria-label="Edit list"
-            className="w-11 h-11 rounded-2xl apple-glass bg-white/40 hover:bg-white/60 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 border-[1.5px] border-[#F3D5D5]/50 dark:border-white/20 shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200"
-          >
-            <Pencil className="w-[18px] h-[18px] text-[#A3A3A3]" strokeWidth={2.2} />
-          </button>
+        {/* Scroll Thumb */}
+        <div
+          aria-hidden
+          className="absolute right-[11px] w-2 pointer-events-none"
+          style={{ top: TRACK_INSET + scrollProgress * trackLength, height: THUMB_LENGTH }}
+        >
+          <img
+            src={scrollThumb}
+            alt=""
+            width={84}
+            height={8}
+            className="absolute block max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90"
+          />
         </div>
       </div>
-    </>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-[23px] pl-[15px]">
+        <span
+          className="text-[20px] leading-[23px] text-[#C2BCBC]"
+          style={{ fontFamily: BODY_FONT }}
+        >
+          {date}
+        </span>
+
+        {/* Edit Button */}
+        <button
+          onClick={onEdit}
+          type="button"
+          aria-label="Edit list"
+          className="relative w-[62px] h-[55px] rounded-[18.752px] bg-[rgba(220,220,220,0.2)] shadow-[1.875px_0.938px_14.814px_0px_rgba(0,0,0,0.07),inset_-0.938px_0px_49.6px_13px_rgba(255,255,255,0.52)] flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+        >
+          <Pencil className="w-[22px] h-[22px] text-[#8E8E8E]" strokeWidth={2.2} />
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -147,6 +147,11 @@ export default function App() {
           )}
 
           <BoardGrid query={query} editMode={editMode} />
+          
+          {/* ListWidget (Recommendation list placeholder from screenshot-extract branch) */}
+          <div className="fixed bottom-8 right-8 z-[60] w-96 h-96">
+            <ListWidget />
+          </div>
         </div>
       ) : (
         <BoardGate />
