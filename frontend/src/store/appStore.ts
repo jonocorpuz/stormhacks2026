@@ -32,7 +32,7 @@ export interface AppState {
 }
 
 export interface AppActions {
-  /** Load board list. Call once at startup. */
+  /** Load board list and open most recent board. Call once at startup. */
   init(): Promise<void>
   createBoard(name: string): Promise<Board>
   openBoard(id: string): Promise<void>
@@ -111,7 +111,11 @@ export function createAppStore(repo: BoardRepository): AppStore {
     async init() {
       setState({ status: 'loading', error: null })
       try {
-        setState({ boards: await repo.listBoards(), status: 'idle' })
+        const boards = await repo.listBoards()
+        // Always land on a board when one exists: open the most recently updated.
+        const latest = [...boards].sort((a, b) => b.updatedAt - a.updatedAt)[0]
+        const currentBoard = latest ? await repo.loadBoard(latest.id) : null
+        setState({ boards, currentBoard, status: 'idle' })
       } catch (err) {
         fail(err)
       }

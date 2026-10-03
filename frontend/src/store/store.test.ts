@@ -17,11 +17,20 @@ describe('app store', () => {
     expect(store.getState().status).toBe('idle')
   })
 
-  it('init loads board list', async () => {
+  it('init loads board list and opens most recent board', async () => {
     const { repo, store } = setup()
-    await createAppStore(repo).actions.createBoard('Existing')
+    const other = createAppStore(repo)
+    await other.actions.createBoard('Old')
+    await new Promise((r) => setTimeout(r, 2))
+    const recent = await other.actions.createBoard('Recent')
     await store.actions.init()
-    expect(store.getState().boards.map((b) => b.name)).toEqual(['Existing'])
+    expect(store.getState().boards.map((b) => b.name).sort()).toEqual(['Old', 'Recent'])
+    expect(store.getState().currentBoard?.id).toBe(recent.id)
+  })
+
+  it('init with no boards leaves none open', async () => {
+    const { store } = setup()
+    await store.actions.init()
     expect(store.getState().currentBoard).toBeNull()
   })
 
