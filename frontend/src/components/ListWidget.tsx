@@ -2,13 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Check, Pencil } from 'lucide-react';
 import { RecommendationItem, RecommendationWidgetData } from '../types/widgets';
 
-export interface RecommendationListWidgetProps {
+export interface ListWidgetProps {
   data?: Partial<RecommendationWidgetData>;
   initialData?: RecommendationWidgetData;
   onToggleItem?: (id: string) => void;
   onEdit?: () => void;
   className?: string;
 }
+
+export type RecommendationListWidgetProps = ListWidgetProps;
 
 const DEFAULT_ITEMS: RecommendationItem[] = [
   { id: '1', title: 'Argo', isChecked: true },
@@ -17,13 +19,13 @@ const DEFAULT_ITEMS: RecommendationItem[] = [
   { id: '4', title: 'Brothers', isChecked: false },
 ];
 
-export default function RecommendationListWidget({
+export default function ListWidget({
   data,
   initialData,
   onToggleItem,
   onEdit,
   className = '',
-}: RecommendationListWidgetProps) {
+}: ListWidgetProps) {
   const [items, setItems] = useState<RecommendationItem[]>(() => (
     data?.items ?? initialData?.items ?? DEFAULT_ITEMS
   ));
@@ -143,3 +145,6 @@ export default function RecommendationListWidget({
     </div>
   );
 }
+
+export { ListWidget as RecommendationListWidget };
+

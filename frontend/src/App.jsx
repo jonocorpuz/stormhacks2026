@@ -3,7 +3,7 @@ import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import WidgetCreationMenu from './components/WidgetCreationMenu';
 import ProfileSettingsMenu from './components/ProfileSettingsMenu';
-import RecommendationListWidget from './components/RecommendationListWidget';
+import ListWidget from './components/ListWidget';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -178,7 +178,7 @@ export default function App() {
           
           {/* Recommendation List Widget */}
           <div className="md:col-span-1 md:row-span-1 h-full w-full">
-            <RecommendationListWidget />
+            <ListWidget />
           </div>
           
           {/* Placeholder: 1x2 Tall Rectangle */}
