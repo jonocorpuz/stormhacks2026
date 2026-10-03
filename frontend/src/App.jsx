@@ -124,12 +124,6 @@ export default function App() {
             <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-1</span>
           </div>
 
-          {/* Placeholder: 1x1 Square */}
-          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1x1 Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
-          </div>
-
           {/* Placeholder: 3x1 Wide Banner */}
           <div className="apple-glass md:col-span-3 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">3x1 Widget</span>
