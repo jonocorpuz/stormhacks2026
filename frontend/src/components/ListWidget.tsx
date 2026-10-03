@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Pencil } from 'lucide-react';
-import { RecommendationItem, RecommendationWidgetData } from '../types/widgets';
+import type { RecommendationItem, RecommendationWidgetData } from '../types/widgets';
 import toggleCircle from '../assets/list-widget/toggle-circle.svg';
 import scrollThumb from '../assets/list-widget/scroll-thumb.svg';
 
