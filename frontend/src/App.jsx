@@ -5,11 +5,11 @@ import WidgetCreationMenu from './components/WidgetCreationMenu';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedWidgetType, setSelectedWidgetType] = useState(null);
+  const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
 
   const handleCloseMenu = () => {
     setIsMenuOpen(false);
-    setSelectedWidgetType(null);
+    setSelectedWidgetType('Text Note');
   };
 
   return (
@@ -35,7 +35,6 @@ export default function App() {
             isOpen={isMenuOpen}
             selectedType={selectedWidgetType}
             onSelectType={setSelectedWidgetType}
-            onBack={() => setSelectedWidgetType(null)}
             onCreate={() => {
               console.log('Created widget:', selectedWidgetType);
               handleCloseMenu();
