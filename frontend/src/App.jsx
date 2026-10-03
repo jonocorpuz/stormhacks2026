@@ -84,7 +84,7 @@ export default function App() {
         </GlassButton>
 
         {/* Search Bar */}
-        <GlassInput placeholder="Search" />
+        <GlassInput placeholder="Looking for something..?" />
 
         {/* Avatar & Settings Menu Container */}
         <div className="relative">
