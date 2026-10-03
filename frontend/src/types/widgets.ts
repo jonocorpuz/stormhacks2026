@@ -1,11 +1,11 @@
-export interface RecommendationItem {
+export interface ListItem {
   id: string;
   title: string;
   isChecked: boolean;
 }
 
-export interface RecommendationWidgetData {
+export interface ListWidgetData {
   title: string;
   date: string;
-  items: RecommendationItem[];
+  items: ListItem[];
 }
