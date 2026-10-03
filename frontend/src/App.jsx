@@ -1,29 +1,75 @@
-import React from 'react';
+import React, { useState } from 'react';
+import GlassButton from './components/GlassButton';
+import GlassInput from './components/GlassInput';
+import WidgetCreationMenu from './components/WidgetCreationMenu';
+import ProfileSettingsMenu from './components/ProfileSettingsMenu';
 
 export default function App() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
+
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false);
+    setIsProfileMenuOpen(false);
+    setSelectedWidgetType('Text Note');
+  };
+
   return (
     <div className="min-h-screen bg-black relative p-6 font-sans overflow-hidden flex flex-col items-center justify-center">
       
+      {/* Click-Outside Overlay */}
+      {(isMenuOpen || isProfileMenuOpen) && (
+        <div 
+          className="fixed inset-0 z-40 bg-transparent"
+          onClick={handleCloseMenu}
+        />
+      )}
+
       {/* Floating Header */}
-      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-50 pointer-events-none">
-        <div className="flex items-center space-x-4 pointer-events-auto">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="px-6 py-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-2xl w-64"
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
+        
+        {/* Add Button & Dropdown Container */}
+        <div className="relative">
+          <GlassButton onClick={() => {
+            setIsProfileMenuOpen(false);
+            setIsMenuOpen(!isMenuOpen);
+          }}>
+            <span className="text-2xl leading-none font-light">+</span>
+          </GlassButton>
+          <WidgetCreationMenu 
+            isOpen={isMenuOpen}
+            selectedType={selectedWidgetType}
+            onSelectType={setSelectedWidgetType}
+            onCreate={() => {
+              console.log('Created widget:', selectedWidgetType);
+              handleCloseMenu();
+            }}
           />
-          <button className="flex items-center space-x-2 px-6 py-2.5 bg-blue-600/80 backdrop-blur-xl border border-blue-400/30 text-white rounded-full hover:bg-blue-500/80 transition-colors shadow-2xl">
-            <span className="text-xl leading-none font-light">+</span>
-            <span className="font-medium">Add</span>
-          </button>
-          <button className="flex items-center space-x-2 px-6 py-2.5 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-full hover:bg-white/20 transition-colors shadow-2xl">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            <span className="font-medium">Edit</span>
-          </button>
         </div>
-        <div className="pointer-events-auto w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl">
-          <span className="text-white font-bold text-lg">U</span>
+
+        {/* Edit Button */}
+        <GlassButton>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+        </GlassButton>
+
+        {/* Search Bar */}
+        <GlassInput placeholder="Search..." />
+
+        {/* Avatar & Settings Menu Container */}
+        <div className="relative">
+          <div 
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsProfileMenuOpen(!isProfileMenuOpen);
+            }}
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
+          >
+            <span className="text-white font-bold text-lg">U</span>
+          </div>
+          <ProfileSettingsMenu isOpen={isProfileMenuOpen} />
         </div>
+
       </div>
 
       {/* Simple Blank Bento Grid */}
