@@ -1,10 +1,10 @@
 Sacrifice grammar for the sake of concision.
 
-Atomic commits
 ## Architecture (frontend/src)
 
-Plan: `documents/initial-build-plan.md`. Model is center.
+Initial Plan (May change): `documents/initial-build-plan.md`. Model is center.
 
+References: (Don't create unecessary context - you don't need to read the linked files below unless it's relevant)
 - `model/` — pure TS domain: blocks, primitives, items, boards, validation. No React, no storage, no side effects.
 - `persistence/` — `BoardRepository` impls. Only loads/saves model objects. Never validates.
 - `store/` — app state + actions + autosave. Only place that calls persistence. `useApp`/`useActions` = only React bridge.
