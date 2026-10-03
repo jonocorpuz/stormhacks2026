@@ -1,8 +1,158 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "oxc"],
+  "plugins": [
+    "react",
+    "oxc"
+  ],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/model/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "message": "model is pure: no React"
+              },
+              {
+                "name": "react-dom",
+                "message": "model is pure: no React"
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "**/store",
+                  "**/store/**",
+                  "**/persistence",
+                  "**/persistence/**",
+                  "**/components/**"
+                ],
+                "message": "model imports nothing app-level"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/persistence/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "message": "persistence only loads/saves model objects"
+              },
+              {
+                "name": "react-dom",
+                "message": "persistence only loads/saves model objects"
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "**/store",
+                  "**/store/**",
+                  "**/components/**"
+                ],
+                "message": "persistence imports only model"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/store/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/components/**"
+                ],
+                "message": "store never imports UI"
+              },
+              {
+                "group": [
+                  "**/persistence/*Repo",
+                  "**/persistence/*Repo.ts"
+                ],
+                "message": "store uses the BoardRepository interface; inject concrete repos in main.jsx"
+              }
+            ],
+            "paths": [
+              {
+                "name": "../persistence",
+                "importNames": [
+                  "LocalStorageRepo",
+                  "MemoryRepo"
+                ],
+                "message": "store uses the BoardRepository interface; inject concrete repos in main.jsx"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/components/**",
+        "src/App.jsx"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/persistence",
+                  "**/persistence/**"
+                ],
+                "message": "components go through the store (useApp/useActions), never persistence"
+              },
+              {
+                "group": [
+                  "**/store/*",
+                  "**/model/*"
+                ],
+                "message": "import from the layer's index (../store, ../model), not internals"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/**/*.test.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
 }
