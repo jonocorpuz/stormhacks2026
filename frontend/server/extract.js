@@ -1,6 +1,6 @@
 import { WidgetPayloadSchema } from '../src/types/api.ts';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.8-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const PROMPT = `You are given a screenshot. Classify it as exactly ONE of the widget types below and extract its data.
