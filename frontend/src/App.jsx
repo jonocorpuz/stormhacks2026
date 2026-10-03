@@ -23,7 +23,28 @@ function App() {
       </header>
       
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 overflow-y-auto min-h-screen p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
+          {/* Card 1: Large primary bento item spanning 2 rows and 2 columns */}
+          <div className="md:col-span-2 md:row-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <span className="text-gray-400 font-medium">Main Content Card (2x2)</span>
+          </div>
+
+          {/* Card 2: Medium item spanning 2 columns but 1 row */}
+          <div className="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <span className="text-gray-400 font-medium">Stats / Info (2x1)</span>
+          </div>
+
+          {/* Card 3: Small square item 1x1 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <span className="text-gray-400 font-medium">Activity (1x1)</span>
+          </div>
+
+          {/* Card 4: Small square item 1x1 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <span className="text-gray-400 font-medium">Alerts (1x1)</span>
+          </div>
+        </div>
       </main>
     </div>
   );
