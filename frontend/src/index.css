@@ -16,3 +16,17 @@
 .animate-slide-down-fade {
   animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@layer utilities {
+  /* Enforce perfect square rows: Width = 100%, 3 columns, 2 gaps of 1.5rem (24px) each = 3rem */
+  @media (min-width: 768px) {
+    .bento-grid {
+      grid-auto-rows: calc((100% - 3rem) / 3);
+    }
+  }
+  @media (max-width: 767px) {
+    .bento-grid {
+      grid-auto-rows: 350px;
+    }
+  }
+}

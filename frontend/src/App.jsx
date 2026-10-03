@@ -74,48 +74,42 @@ export default function App() {
 
       {/* Dashboard Bento Grid Container */}
       <div className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense bento-grid">
           
-          {/* Placeholder 1: 2-Wide */}
-          <div className="apple-glass col-span-1 md:col-span-2 min-h-[300px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">2-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | min-h-[300px]</span>
+          {/* Placeholder: 2x2 Large Square */}
+          <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">2x2 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-2</span>
           </div>
           
-          {/* Placeholder 2: 1-Wide */}
-          <div className="apple-glass col-span-1 min-h-[200px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | min-h-[200px]</span>
+          {/* Placeholder: 1x1 Square */}
+          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">1x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
           </div>
           
-          {/* Placeholder 3: 1-Wide (Taller) */}
-          <div className="apple-glass col-span-1 min-h-[250px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | min-h-[250px]</span>
+          {/* Placeholder: 1x2 Tall Rectangle */}
+          <div className="apple-glass md:col-span-1 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">1x2 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-2</span>
           </div>
-          
-          {/* Placeholder 4: 3-Wide */}
-          <div className="apple-glass col-span-1 md:col-span-3 min-h-[150px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">3-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-3 | min-h-[150px]</span>
+
+          {/* Placeholder: 2x1 Wide Rectangle */}
+          <div className="apple-glass md:col-span-2 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">2x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-1</span>
           </div>
-          
-          {/* Placeholder 5: 1-Wide */}
-          <div className="apple-glass col-span-1 min-h-[200px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | min-h-[200px]</span>
+
+          {/* Placeholder: 1x1 Square */}
+          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">1x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
           </div>
-          
-          {/* Placeholder 6: 1-Wide (Tallest) */}
-          <div className="apple-glass col-span-1 min-h-[350px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | min-h-[350px]</span>
-          </div>
-          
-          {/* Placeholder 7: 1-Wide */}
-          <div className="apple-glass col-span-1 min-h-[200px] rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
-            <span className="text-2xl">1-Wide Widget</span>
-            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | min-h-[200px]</span>
+
+          {/* Placeholder: 3x1 Wide Banner */}
+          <div className="apple-glass md:col-span-3 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">3x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-3 | row-span-1</span>
           </div>
 
         </div>
