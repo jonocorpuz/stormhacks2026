@@ -10,6 +10,39 @@ export default function App() {
   const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
   const [isDarkMode, setIsDarkMode] = useState(true);
 
+  // Screenshot drops: each entry is { id, status: 'pending' | 'done', result }
+  const [extractions, setExtractions] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
+    if (!file) return;
+
+    const id = crypto.randomUUID();
+    setExtractions(prev => [{ id, status: 'pending' }, ...prev]);
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      // Strip the "data:image/png;base64," prefix
+      const image = reader.result.split(',')[1];
+      let result;
+      try {
+        const res = await fetch('/api/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image, mimeType: file.type }),
+        });
+        result = await res.json();
+      } catch (err) {
+        result = { ok: false, error: err.message };
+      }
+      setExtractions(prev => prev.map(x => (x.id === id ? { id, status: 'done', result } : x)));
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Apply dark mode globally to the html document
   useEffect(() => {
     if (isDarkMode) {
@@ -108,12 +141,34 @@ export default function App() {
 
       {/* Dashboard Bento Grid Container */}
       <div className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8">
-        <div 
+        <div
           ref={gridRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense"
+          className={`grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense rounded-[2rem] transition-shadow ${isDragging ? 'ring-4 ring-blue-400/60' : ''}`}
           style={{ gridAutoRows: rowHeight }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false);
+          }}
+          onDrop={handleDrop}
         >
-          
+
+          {/* Extracted screenshot results (raw JSON) */}
+          {extractions.map(({ id, status, result }) => (
+            <div key={id} className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] p-6 flex flex-col shadow-2xl overflow-hidden">
+              <span className="text-black/50 dark:text-white/50 font-semibold text-sm mb-3">
+                {status === 'pending' ? 'Parsing screenshot…' : result.ok ? result.data.type : 'Extraction failed'}
+              </span>
+              {status === 'done' && (
+                <pre className="flex-1 overflow-auto text-xs text-black/80 dark:text-white/80 whitespace-pre-wrap break-words">
+                  {JSON.stringify(result, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
+
           {/* Placeholder: 2x2 Large Square */}
           <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
             <span className="text-2xl">2x2 Widget</span>
