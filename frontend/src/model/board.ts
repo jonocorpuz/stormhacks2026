@@ -1,7 +1,7 @@
 // Board: owns its items. Items array order = manual order.
 // View is an opaque bag owned by the frontend; model persists but never reads it.
 
-import { updateItemFields, type FieldValues, type Item } from './item'
+import { createItem, updateItemFields, type FieldValues, type Item } from './item'
 
 export const BOARD_SCHEMA_VERSION = 1
 
@@ -26,11 +26,16 @@ export interface BoardSummary {
 
 export function createBoard(name: string): Board {
   const now = Date.now()
+  const defaultList = createItem('recommendation_list')
   return {
     id: crypto.randomUUID(),
     name,
-    items: [],
-    view: {},
+    items: [defaultList],
+    view: {
+      sizes: {
+        [defaultList.id]: '1x2' // List widget looks better tall
+      }
+    },
     createdAt: now,
     updatedAt: now,
     schemaVersion: BOARD_SCHEMA_VERSION,

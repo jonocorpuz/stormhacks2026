@@ -4,7 +4,7 @@ import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import CreateItemMenu from './components/CreateItemMenu';
 import ProfileSettingsMenu from './components/ProfileSettingsMenu';
-import ListWidget from './components/ListWidget';
+
 import BoardMenu from './components/boards/BoardMenu';
 import BoardGate from './components/boards/BoardGate';
 import BoardGrid from './components/boards/BoardGrid';
@@ -148,10 +148,7 @@ export default function App() {
 
           <BoardGrid query={query} editMode={editMode} />
           
-          {/* ListWidget (Recommendation list placeholder from screenshot-extract branch) */}
-          <div className="fixed bottom-8 right-8 z-[60] w-96 h-96">
-            <ListWidget />
-          </div>
+
         </div>
       ) : (
         <BoardGate />
