@@ -8,7 +8,7 @@ export default function App() {
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
         
         {/* Add Button */}
-        <button className="w-12 h-12 flex items-center justify-center bg-blue-600/80 backdrop-blur-xl border border-blue-400/30 text-white rounded-full hover:bg-blue-500/80 transition-colors shadow-2xl">
+        <button className="w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-full hover:bg-white/20 transition-colors shadow-2xl">
           <span className="text-2xl leading-none font-light">+</span>
         </button>
 
