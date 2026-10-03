@@ -79,7 +79,7 @@ export default function ListWidget({
         </div>
 
         {/* Inset List Container */}
-        <div className="relative z-10 flex-1 min-h-0 rounded-[1.75rem] bg-white/30 backdrop-blur-md border-[1.5px] border-[#F3D5D5] p-4 sm:p-5 flex flex-col shadow-sm">
+        <div className="relative z-10 flex-1 min-h-0 rounded-[1.75rem] apple-glass bg-white/40 dark:bg-white/10 border-[1.5px] border-[#F3D5D5]/50 dark:border-white/20 p-4 sm:p-5 flex flex-col shadow-sm">
           {/* Scrollable list items */}
           <div className="flex-1 overflow-y-auto pr-3 space-y-3.5 custom-pink-scroll">
             {items.map((item) => (
