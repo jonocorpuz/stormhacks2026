@@ -18,11 +18,11 @@
 }
 
 @layer utilities {
-  /* Enforce perfect square rows: Width = 100cqw, 3 columns, 2 gaps of 1.5rem (24px) each = 3rem */
+  /* Enforce near-perfect square rows, slightly shortened per visual preference */
   @media (min-width: 768px) {
     .bento-grid {
       container-type: inline-size;
-      grid-auto-rows: calc((100cqw - 3rem) / 3);
+      grid-auto-rows: calc(((100cqw - 3rem) / 3) - 0.75rem);
     }
   }
   @media (max-width: 767px) {
