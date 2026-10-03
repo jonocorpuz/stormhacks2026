@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import WidgetCreationMenu from './components/WidgetCreationMenu';
@@ -8,6 +8,26 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
+  
+  // Use a ref and state to strictly enforce mathematically perfect grid rows
+  const gridRef = useRef(null);
+  const [rowHeight, setRowHeight] = useState('200px');
+
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        // The grid has 3 columns and 2 gaps of 24px (1.5rem)
+        // We want 1 row height = 1 column width exactly.
+        const width = entry.contentRect.width;
+        // Subtract 48px for the two gaps, then divide by 3
+        const calculatedHeight = (width - 48) / 3;
+        setRowHeight(`${calculatedHeight}px`);
+      }
+    });
+    observer.observe(gridRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCloseMenu = () => {
     setIsMenuOpen(false);
@@ -74,7 +94,11 @@ export default function App() {
 
       {/* Dashboard Bento Grid Container */}
       <div className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense bento-grid">
+        <div 
+          ref={gridRef}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense"
+          style={{ gridAutoRows: rowHeight }}
+        >
           
           {/* Placeholder: 2x2 Large Square */}
           <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
