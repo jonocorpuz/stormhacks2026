@@ -1,4 +1,6 @@
 import React from 'react';
+import GlassButton from './components/GlassButton';
+import GlassInput from './components/GlassInput';
 
 export default function App() {
   return (
@@ -8,24 +10,20 @@ export default function App() {
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
         
         {/* Add Button */}
-        <button className="w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-full hover:bg-white/20 transition-colors shadow-2xl">
+        <GlassButton>
           <span className="text-2xl leading-none font-light">+</span>
-        </button>
+        </GlassButton>
 
         {/* Edit Button */}
-        <button className="w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-full hover:bg-white/20 transition-colors shadow-2xl">
+        <GlassButton>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-        </button>
+        </GlassButton>
 
         {/* Search Bar */}
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-6 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-2xl w-64"
-        />
+        <GlassInput placeholder="Search..." />
 
         {/* Avatar */}
-        <div className="w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-white/20 transition-colors">
+        <div className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
           <span className="text-white font-bold text-lg">U</span>
         </div>
 

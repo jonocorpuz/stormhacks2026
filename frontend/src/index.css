@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .apple-glass {
+    @apply backdrop-blur-2xl bg-white/10 border border-white/20 shadow-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)];
+  }
+}
