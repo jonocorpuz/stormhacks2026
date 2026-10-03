@@ -4,7 +4,7 @@ export default function GlassInput({ className = '', ...props }) {
   return (
     <div className="relative flex items-center">
       <svg 
-        className="w-[1.125rem] h-[1.125rem] absolute left-4 text-gray-400 dark:text-white/60 pointer-events-none" 
+        className="w-[1.125rem] h-[1.125rem] absolute left-4 text-gray-400 dark:text-white/60 pointer-events-none z-10" 
         fill="none" 
         stroke="currentColor" 
         strokeWidth="2.5" 
