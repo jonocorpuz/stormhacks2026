@@ -36,7 +36,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-black font-sans relative">
+    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-black font-sans relative overscroll-none">
       
       {/* Click-Outside Overlay */}
       {(isMenuOpen || isProfileMenuOpen) && (
