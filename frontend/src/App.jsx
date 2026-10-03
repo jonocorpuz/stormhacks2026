@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import WidgetCreationMenu from './components/WidgetCreationMenu';
@@ -8,6 +8,36 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Apply dark mode globally to the html document
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Use a ref and state to strictly enforce mathematically perfect grid rows
+  const gridRef = useRef(null);
+  const [rowHeight, setRowHeight] = useState('200px');
+
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        // The grid has 3 columns and 2 gaps of 24px (1.5rem)
+        // We want 1 row height = 1 column width exactly.
+        const width = entry.contentRect.width;
+        // Subtract 48px for the two gaps, then divide by 3
+        const calculatedHeight = (width - 48) / 3;
+        setRowHeight(`${calculatedHeight}px`);
+      }
+    });
+    observer.observe(gridRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCloseMenu = () => {
     setIsMenuOpen(false);
@@ -16,7 +46,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative p-6 font-sans overflow-hidden flex flex-col items-center justify-center">
+    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-[#fafafa] dark:bg-black font-sans relative overscroll-none transition-colors duration-500">
       
       {/* Click-Outside Overlay */}
       {(isMenuOpen || isProfileMenuOpen) && (
@@ -27,7 +57,7 @@ export default function App() {
       )}
 
       {/* Floating Header */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
         
         {/* Add Button & Dropdown Container */}
         <div className="relative">
@@ -35,7 +65,7 @@ export default function App() {
             setIsProfileMenuOpen(false);
             setIsMenuOpen(!isMenuOpen);
           }}>
-            <span className="text-2xl leading-none font-light">+</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path></svg>
           </GlassButton>
           <WidgetCreationMenu 
             isOpen={isMenuOpen}
@@ -50,11 +80,11 @@ export default function App() {
 
         {/* Edit Button */}
         <GlassButton>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+          <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
         </GlassButton>
 
         {/* Search Bar */}
-        <GlassInput placeholder="Search..." />
+        <GlassInput placeholder="Search" />
 
         {/* Avatar & Settings Menu Container */}
         <div className="relative">
@@ -63,32 +93,57 @@ export default function App() {
               setIsMenuOpen(false);
               setIsProfileMenuOpen(!isProfileMenuOpen);
             }}
-            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
           >
-            <span className="text-white font-bold text-lg">U</span>
+            <span className="text-gray-400 dark:text-white font-bold text-lg transition-colors">AN</span>
           </div>
-          <ProfileSettingsMenu isOpen={isProfileMenuOpen} />
+          <ProfileSettingsMenu 
+            isOpen={isProfileMenuOpen} 
+            isDarkMode={isDarkMode} 
+            onToggleTheme={() => setIsDarkMode(prev => !prev)} 
+          />
         </div>
 
       </div>
 
-      {/* Simple Blank Bento Grid */}
-      <div className="w-full max-w-6xl mt-20">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 auto-rows-[280px]">
-          {/* Card 1 */}
-          <div className="md:col-span-1 md:row-span-2 bg-zinc-900 rounded-[2rem]"></div>
+      {/* Dashboard Bento Grid Container */}
+      <div className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8">
+        <div 
+          ref={gridRef}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense"
+          style={{ gridAutoRows: rowHeight }}
+        >
+          
+          {/* Placeholder: 2x2 Large Square */}
+          <div className="apple-glass md:col-span-2 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">2x2 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-2</span>
+          </div>
+          
+          {/* Placeholder: 1x1 Square */}
+          <div className="apple-glass md:col-span-1 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">1x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-1</span>
+          </div>
+          
+          {/* Placeholder: 1x2 Tall Rectangle */}
+          <div className="apple-glass md:col-span-1 md:row-span-2 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">1x2 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-1 | row-span-2</span>
+          </div>
 
-          {/* Card 2 */}
-          <div className="md:col-span-2 md:row-span-1 bg-zinc-900 rounded-[2rem]"></div>
+          {/* Placeholder: 2x1 Wide Rectangle */}
+          <div className="apple-glass md:col-span-2 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">2x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-2 | row-span-1</span>
+          </div>
 
-          {/* Card 5 */}
-          <div className="md:col-span-1 md:row-span-2 bg-zinc-900 rounded-[2rem]"></div>
+          {/* Placeholder: 3x1 Wide Banner */}
+          <div className="apple-glass md:col-span-3 md:row-span-1 rounded-[2rem] flex flex-col items-center justify-center text-black/50 dark:text-white/50 font-semibold shadow-2xl transition-transform hover:scale-[1.02] cursor-default">
+            <span className="text-2xl">3x1 Widget</span>
+            <span className="text-xs font-normal opacity-70 mt-2">col-span-3 | row-span-1</span>
+          </div>
 
-          {/* Card 3 */}
-          <div className="md:col-span-1 md:row-span-1 bg-zinc-900 rounded-[2rem]"></div>
-
-          {/* Card 4 */}
-          <div className="md:col-span-1 md:row-span-1 bg-zinc-900 rounded-[2rem]"></div>
         </div>
       </div>
     </div>

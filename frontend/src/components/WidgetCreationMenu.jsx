@@ -29,7 +29,7 @@ export default function WidgetCreationMenu({
 
   return (
     <div className="absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-3xl origin-top animate-slide-down-fade z-50 flex flex-col space-y-5">
-      <h3 className="text-white font-bold text-sm px-1">Create Widget</h3>
+      <h3 className="text-black dark:text-white font-bold text-sm px-1">Create Widget</h3>
       
       {/* Toggle Buttons (Pills) */}
       <div className="flex flex-wrap gap-2">
@@ -40,7 +40,7 @@ export default function WidgetCreationMenu({
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               selectedType === type 
                 ? 'bg-blue-500 text-white shadow-md' 
-                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                : 'bg-black/5 text-black/70 hover:bg-black/10 hover:text-black dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white'
             }`}
           >
             {type}
@@ -56,7 +56,7 @@ export default function WidgetCreationMenu({
               key={`${selectedType}-${idx}`}
               name={field.name}
               placeholder={field.placeholder}
-              className="apple-glass w-full p-3 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none h-24 text-sm bg-transparent transition-all"
+              className="apple-glass w-full p-3 rounded-xl text-black dark:text-white placeholder-black/50 dark:placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-black/30 dark:focus:ring-white/50 resize-none h-24 text-sm bg-transparent transition-all"
             />
           ) : (
             <input
@@ -64,7 +64,7 @@ export default function WidgetCreationMenu({
               name={field.name}
               type={field.type}
               placeholder={field.placeholder}
-              className="apple-glass w-full px-4 h-10 rounded-full text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm bg-transparent transition-all"
+              className="apple-glass w-full px-4 h-10 rounded-full text-black dark:text-white placeholder-black/50 dark:placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-black/30 dark:focus:ring-white/50 text-sm bg-transparent transition-all"
             />
           )
         ))}
