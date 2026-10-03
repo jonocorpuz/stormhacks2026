@@ -65,15 +65,21 @@ export default function ListWidget({
       <div
         className={`relative w-full h-full min-h-[340px] rounded-[2.5rem] p-6 sm:p-7 flex flex-col justify-between select-none shadow-xl border-[1.5px] border-[#F3D5D5] bg-gradient-to-br from-[#FFD6D6] via-[#FFFFFF] to-[#FFD6D6] transition-all duration-300 hover:shadow-2xl ${className}`}
       >
+        {/* Subtle Grain Texture Overlay */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06] mix-blend-multiply rounded-[2.5rem]"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+        />
+
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-4 relative z-10">
           <h2 className="text-2xl sm:text-[26px] font-bold text-[#DE7A7A] tracking-tight leading-snug">
             {title}
           </h2>
         </div>
 
         {/* Inset List Container */}
-        <div className="relative flex-1 min-h-0 rounded-[1.75rem] bg-white/30 backdrop-blur-md border-[1.5px] border-[#F3D5D5] p-4 sm:p-5 flex flex-col shadow-sm">
+        <div className="relative z-10 flex-1 min-h-0 rounded-[1.75rem] bg-white/30 backdrop-blur-md border-[1.5px] border-[#F3D5D5] p-4 sm:p-5 flex flex-col shadow-sm">
           {/* Scrollable list items */}
           <div className="flex-1 overflow-y-auto pr-3 space-y-3.5 custom-pink-scroll">
             {items.map((item) => (
@@ -108,7 +114,7 @@ export default function ListWidget({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 mt-auto">
+        <div className="relative z-10 flex items-center justify-between pt-4 mt-auto">
           <span className="text-[15px] font-medium text-[#A3A3A3] tracking-tight">
             {date}
           </span>
