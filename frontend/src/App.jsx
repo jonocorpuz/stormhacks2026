@@ -46,7 +46,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-black font-sans relative overscroll-none transition-colors duration-500">
+    <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-[#fafafa] dark:bg-black font-sans relative overscroll-none transition-colors duration-500">
       
       {/* Click-Outside Overlay */}
       {(isMenuOpen || isProfileMenuOpen) && (
@@ -65,7 +65,7 @@ export default function App() {
             setIsProfileMenuOpen(false);
             setIsMenuOpen(!isMenuOpen);
           }}>
-            <span className="text-2xl leading-none font-light">+</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path></svg>
           </GlassButton>
           <WidgetCreationMenu 
             isOpen={isMenuOpen}
@@ -80,11 +80,11 @@ export default function App() {
 
         {/* Edit Button */}
         <GlassButton>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+          <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
         </GlassButton>
 
         {/* Search Bar */}
-        <GlassInput placeholder="Search..." />
+        <GlassInput placeholder="Search" />
 
         {/* Avatar & Settings Menu Container */}
         <div className="relative">
@@ -93,9 +93,9 @@ export default function App() {
               setIsMenuOpen(false);
               setIsProfileMenuOpen(!isProfileMenuOpen);
             }}
-            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/20 transition-colors"
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
           >
-            <span className="text-black dark:text-white font-bold text-lg transition-colors">U</span>
+            <span className="text-gray-400 dark:text-white font-bold text-lg transition-colors">AN</span>
           </div>
           <ProfileSettingsMenu 
             isOpen={isProfileMenuOpen} 
