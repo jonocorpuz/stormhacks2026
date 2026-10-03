@@ -124,7 +124,7 @@ export default function ListWidget({
             onClick={onEdit}
             type="button"
             aria-label="Edit list"
-            className="w-11 h-11 rounded-2xl bg-white/60 hover:bg-white/80 active:scale-95 border-[1.5px] border-[#F3D5D5] backdrop-blur-sm shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200"
+            className="w-11 h-11 rounded-2xl apple-glass bg-white/40 hover:bg-white/60 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 border-[1.5px] border-[#F3D5D5]/50 dark:border-white/20 shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200"
           >
             <Pencil className="w-[18px] h-[18px] text-[#A3A3A3]" strokeWidth={2.2} />
           </button>
