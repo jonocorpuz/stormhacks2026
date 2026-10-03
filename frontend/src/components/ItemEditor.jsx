@@ -1,0 +1,57 @@
+import React, { useState } from 'react';
+import { getPrimitive, validateFields } from '../model';
+import { useActions } from '../store';
+import PrimitiveForm from './forms/PrimitiveForm';
+
+// Modal for editing one item. Saves once on "Save" (not per keystroke).
+export default function ItemEditor({ item, onClose }) {
+  const { updateItem, deleteItem } = useActions();
+  const primitive = getPrimitive(item.primitiveId);
+  const [values, setValues] = useState(item.fields);
+  const issues = validateFields(values, primitive);
+
+  const handleSave = async () => {
+    await updateItem(item.id, values);
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    await deleteItem(item.id);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-[28rem] max-w-[calc(100vw-2rem)] p-6 apple-glass rounded-3xl animate-slide-down-fade flex flex-col space-y-5"
+      >
+        <h3 className="text-black dark:text-white font-bold text-sm px-1">Edit {primitive.name}</h3>
+
+        <PrimitiveForm primitive={primitive} values={values} onChange={setValues} issues={issues} />
+
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={handleDelete}
+            className="px-4 py-2.5 rounded-full text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors"
+          >
+            Delete
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-full text-sm font-semibold bg-black/5 text-black/70 hover:bg-black/10 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-5 py-2.5 bg-blue-500/90 backdrop-blur-md border border-blue-400/50 text-white rounded-full hover:bg-blue-600/90 text-sm font-semibold transition-colors shadow-lg"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
