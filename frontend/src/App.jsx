@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import WidgetCreationMenu from './components/WidgetCreationMenu';
+import ProfileSettingsMenu from './components/ProfileSettingsMenu';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState('Text Note');
 
   const handleCloseMenu = () => {
     setIsMenuOpen(false);
+    setIsProfileMenuOpen(false);
     setSelectedWidgetType('Text Note');
   };
 
@@ -16,7 +19,7 @@ export default function App() {
     <div className="min-h-screen bg-black relative p-6 font-sans overflow-hidden flex flex-col items-center justify-center">
       
       {/* Click-Outside Overlay */}
-      {isMenuOpen && (
+      {(isMenuOpen || isProfileMenuOpen) && (
         <div 
           className="fixed inset-0 z-40 bg-transparent"
           onClick={handleCloseMenu}
@@ -28,7 +31,10 @@ export default function App() {
         
         {/* Add Button & Dropdown Container */}
         <div className="relative">
-          <GlassButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <GlassButton onClick={() => {
+            setIsProfileMenuOpen(false);
+            setIsMenuOpen(!isMenuOpen);
+          }}>
             <span className="text-2xl leading-none font-light">+</span>
           </GlassButton>
           <WidgetCreationMenu 
@@ -50,9 +56,18 @@ export default function App() {
         {/* Search Bar */}
         <GlassInput placeholder="Search..." />
 
-        {/* Avatar */}
-        <div className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
-          <span className="text-white font-bold text-lg">U</span>
+        {/* Avatar & Settings Menu Container */}
+        <div className="relative">
+          <div 
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsProfileMenuOpen(!isProfileMenuOpen);
+            }}
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
+          >
+            <span className="text-white font-bold text-lg">U</span>
+          </div>
+          <ProfileSettingsMenu isOpen={isProfileMenuOpen} />
         </div>
 
       </div>
