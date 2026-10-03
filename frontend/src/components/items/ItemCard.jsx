@@ -2,7 +2,7 @@ import React from 'react';
 import { getItemIssues, getPrimitive } from '../../model';
 import GenericCard from './GenericCard';
 import { CARD_COMPONENTS } from './registry';
-import { DEFAULT_SIZE, SIZE_CLASSES } from './sizes';
+import { DEFAULT_SIZE, FIXED_SIZES, SIZE_CLASSES } from './sizes';
 
 const ISSUE_TEXT = {
   missing_required: 'missing required',
@@ -25,13 +25,15 @@ export default function ItemCard({
   const Card = CARD_COMPONENTS[primitive.id] ?? GenericCard;
   const issues = getItemIssues(item);
 
-  const isFullBleed = primitive.id === 'recommendation_list';
+  const isFullBleed = primitive.id === 'recommendation_list' || primitive.id === 'code_snippet';
+  const fixedSize = FIXED_SIZES[primitive.id];
+  const effectiveSize = fixedSize ?? size;
 
   return (
     <div
       {...dragProps}
       onClick={onOpen}
-      className={`${SIZE_CLASSES[size] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative transition-transform hover:scale-[1.02] cursor-pointer ${
+      className={`${SIZE_CLASSES[effectiveSize] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative transition-transform hover:scale-[1.02] cursor-pointer ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'
@@ -50,9 +52,11 @@ export default function ItemCard({
 
       {editMode && (
         <div className="absolute top-3 right-3 flex gap-1.5">
-          <CardButton label="Resize" onClick={onCycleSize}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
-          </CardButton>
+          {!fixedSize && (
+            <CardButton label="Resize" onClick={onCycleSize}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
+            </CardButton>
+          )}
           <CardButton label="Delete" onClick={onDelete} danger>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </CardButton>

@@ -10,6 +10,11 @@ export const SIZE_CLASSES = {
 
 export const DEFAULT_SIZE = '1x1';
 
+// Primitives whose card only works at one size. Overrides board.view.sizes; not resizable.
+export const FIXED_SIZES = {
+  code_snippet: '2x2',
+};
+
 const ORDER = Object.keys(SIZE_CLASSES);
 
 export function nextSize(size) {
