@@ -1,18 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
+import WidgetCreationMenu from './components/WidgetCreationMenu';
 
 export default function App() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedWidgetType, setSelectedWidgetType] = useState(null);
+
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false);
+    setSelectedWidgetType(null);
+  };
+
   return (
     <div className="min-h-screen bg-black relative p-6 font-sans overflow-hidden flex flex-col items-center justify-center">
       
+      {/* Click-Outside Overlay */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-transparent"
+          onClick={handleCloseMenu}
+        />
+      )}
+
       {/* Floating Header */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
         
-        {/* Add Button */}
-        <GlassButton>
-          <span className="text-2xl leading-none font-light">+</span>
-        </GlassButton>
+        {/* Add Button & Dropdown Container */}
+        <div className="relative">
+          <GlassButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <span className="text-2xl leading-none font-light">+</span>
+          </GlassButton>
+          <WidgetCreationMenu 
+            isOpen={isMenuOpen}
+            selectedType={selectedWidgetType}
+            onSelectType={setSelectedWidgetType}
+            onBack={() => setSelectedWidgetType(null)}
+            onCreate={() => {
+              console.log('Created widget:', selectedWidgetType);
+              handleCloseMenu();
+            }}
+          />
+        </div>
 
         {/* Edit Button */}
         <GlassButton>
