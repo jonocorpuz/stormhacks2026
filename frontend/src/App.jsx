@@ -100,7 +100,7 @@ export default function App() {
           <ProfileSettingsMenu 
             isOpen={isProfileMenuOpen} 
             isDarkMode={isDarkMode} 
-            onToggleTheme={() => setIsDarkMode(!isDarkMode)} 
+            onToggleTheme={() => setIsDarkMode(prev => !prev)} 
           />
         </div>
 

@@ -21,7 +21,10 @@ export default function ProfileSettingsMenu({ isOpen, isDarkMode, onToggleTheme 
         {/* Theme Toggle */}
         <li 
           className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors text-sm"
-          onClick={onToggleTheme}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleTheme();
+          }}
         >
           <div className="flex items-center gap-3">
             {isDarkMode ? (
