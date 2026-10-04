@@ -14,7 +14,8 @@ export default function BoardGate() {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    await createBoard(name.trim());
+    // Save failure is shown by SaveStatus; the change stays in state and persists on the next save.
+    await createBoard(name.trim()).catch(() => {});
     setName('');
   };
 

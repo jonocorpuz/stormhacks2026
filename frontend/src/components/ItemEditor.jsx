@@ -12,12 +12,13 @@ export default function ItemEditor({ item, onClose }) {
   const issues = primitive ? validateFields(values, primitive) : [];
 
   const handleSave = async () => {
-    await updateItem(item.id, values);
+    // Save failure is shown by SaveStatus; the change stays in state and persists on the next save.
+    await updateItem(item.id, values).catch(() => {});
     onClose();
   };
 
   const handleDelete = async () => {
-    await deleteItem(item.id);
+    await deleteItem(item.id).catch(() => {});
     onClose();
   };
 

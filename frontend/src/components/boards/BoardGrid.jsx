@@ -432,7 +432,7 @@ function BoardGridView({ board, query, editMode }) {
               if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
                 const [moved] = workingIds.splice(fromIdx, 1);
                 workingIds.splice(toIdx, 0, moved);
-                reorderItems(fromIdx, toIdx);
+                reorderItems(fromIdx, toIdx).catch(() => {}); // failure shown by SaveStatus
               }
               // Recompute visibleCurrentIds after splice
               const updatedVisible = workingIds.filter((id) => visibleSet.has(id));
@@ -483,7 +483,7 @@ function BoardGridView({ board, query, editMode }) {
           item={deletingItem}
           onCancel={() => setDeletingId(null)}
           onConfirm={() => {
-            deleteItem(deletingItem.id);
+            deleteItem(deletingItem.id).catch(() => {}); // failure shown by SaveStatus
             setDeletingId(null);
           }}
         />

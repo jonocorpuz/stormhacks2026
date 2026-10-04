@@ -27,7 +27,7 @@ export default function ListCard({ item, primitive }) {
     const newItems = items.map((i) =>
       i.id === id ? { ...i, isChecked: !i.isChecked } : i
     );
-    updateItem(item.id, { items: newItems });
+    updateItem(item.id, { items: newItems }).catch(() => {}); // failure shown by SaveStatus
   };
 
   return <ListWidget data={data} onToggleItem={handleToggleItem} />;

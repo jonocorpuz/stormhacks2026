@@ -363,7 +363,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
           item={deletingItem}
           onCancel={() => setDeletingId(null)}
           onConfirm={() => {
-            deleteItem(deletingItem.id);
+            deleteItem(deletingItem.id).catch(() => {}); // failure shown by SaveStatus
             setDeletingId(null);
           }}
         />

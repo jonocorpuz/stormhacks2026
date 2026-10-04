@@ -118,22 +118,48 @@ export function createAppStore(
     return exists ? boards.map((b) => (b.id === board.id ? summary : b)) : [...boards, summary]
   }
 
-  /** Saves serialized so writes land in order even with a real async backend. */
+  /**
+   * boardId → latest version whose save failed (+ error). Cleared by that board's next successful
+   * save. openBoard prefers it over the repo, so switching away and back doesn't drop the change.
+   */
+  const failedSaves = new Map<string, { board: Board; error: string }>()
+  let saveErrorShown = false
+
+  const showSaveError = (error: string) => {
+    saveErrorShown = true
+    setState({ status: 'error', error })
+  }
+
+  /**
+   * Saves serialized so writes land in order even with a real async backend.
+   * Rejects on failure (callers must know), but the queue itself never rejects, so one bad
+   * write (e.g. quota exceeded) doesn't block later ones. Each save writes the whole board,
+   * so the next success for that board also persists what the failed one missed.
+   */
   const save = (board: Board): Promise<void> => {
     pendingSaves++
     setState({ status: 'saving' })
-    saveQueue = saveQueue
-      .then(() => repo.saveBoard(board))
-      .then(
-        () => {
-          if (--pendingSaves === 0 && state.status === 'saving') setState({ status: 'idle' })
-        },
-        (err) => {
-          pendingSaves--
-          fail(err)
-        },
-      )
-    return saveQueue
+    const write = saveQueue.then(() => repo.saveBoard(board))
+    saveQueue = write.then(
+      () => {
+        pendingSaves--
+        failedSaves.delete(board.id)
+        if (pendingSaves > 0) return
+        const [stillFailing] = failedSaves.values()
+        if (stillFailing) showSaveError(stillFailing.error)
+        else if (state.status === 'saving' || saveErrorShown) {
+          saveErrorShown = false
+          setState({ status: 'idle', error: null })
+        }
+      },
+      (err) => {
+        pendingSaves--
+        const error = err instanceof Error ? err.message : String(err)
+        failedSaves.set(board.id, { board, error })
+        showSaveError(error)
+      },
+    )
+    return write
   }
 
   /** Apply a new version of a board to state, then persist it. */
@@ -211,7 +237,7 @@ export function createAppStore(
       guardSwitch()
       setState({ status: 'loading', error: null })
       try {
-        const board = await repo.loadBoard(id)
+        const board = failedSaves.get(id)?.board ?? (await repo.loadBoard(id))
         if (!board) throw new Error(`Board not found: ${id}`)
         setState({ currentBoard: board, status: 'idle' })
       } catch (err) {
@@ -225,13 +251,15 @@ export function createAppStore(
     },
 
     async renameBoard(id, name) {
-      const board = state.currentBoard?.id === id ? state.currentBoard : await repo.loadBoard(id)
+      const board =
+        state.currentBoard?.id === id ? state.currentBoard : (failedSaves.get(id)?.board ?? (await repo.loadBoard(id)))
       if (!board) throw new Error(`Board not found: ${id}`)
       await commit(rename(board, name))
     },
 
     async deleteBoard(id) {
       if (state.currentBoard?.id === id) guardSwitch()
+      failedSaves.delete(id) // nothing left to persist
       setState({
         boards: state.boards.filter((b) => b.id !== id),
         currentBoard: state.currentBoard?.id === id ? null : state.currentBoard,
@@ -270,7 +298,8 @@ export function createAppStore(
     async ingestCaptures(captures) {
       if (captures.length === 0) return
       // Before marking pending, else the switch guard blocks it.
-      if (!state.currentBoard) await actions.createBoard('Untitled')
+      // Save failure surfaces via status; the board is in state either way.
+      if (!state.currentBoard) await actions.createBoard('Untitled').catch(() => {})
       setState({
         extractions: [
           ...state.extractions,

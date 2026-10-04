@@ -17,14 +17,15 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    await createBoard(newName.trim());
+    // Save failure is shown by SaveStatus; the change stays in state and persists on the next save.
+    await createBoard(newName.trim()).catch(() => {});
     setNewName('');
     onClose();
   };
 
   const handleRename = async (e) => {
     e.preventDefault();
-    if (renaming?.trim()) await renameBoard(currentBoard.id, renaming.trim());
+    if (renaming?.trim()) await renameBoard(currentBoard.id, renaming.trim()).catch(() => {});
     setRenaming(null);
   };
 

@@ -36,7 +36,8 @@ export default function CreateItemMenu({ isOpen, onClose }) {
   const issues = validateFields(values, primitive);
 
   const handleCreate = async () => {
-    await createItem(primitiveId, values);
+    // Save failure is shown by SaveStatus; the change stays in state and persists on the next save.
+    await createItem(primitiveId, values).catch(() => {});
     setValues({});
     onClose();
   };
