@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ArrowUpRight, FastForward, Pause, Play, Rewind } from 'lucide-react';
 import type { MusicWidgetData } from '../types/widgets';
+import { useMusicPlayback } from './useMusicPlayback';
 import vinyl from '../assets/music-widget/vinyl.svg';
 import playButton from '../assets/music-widget/play-button.svg';
 import track from '../assets/music-widget/track.svg';
@@ -31,13 +32,9 @@ const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, san
 const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
 const GLASS_SHADOW = `${u(1.612)} ${u(0.806)} ${u(12.735)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.806)} 0 ${u(42.639)} 0 rgba(255, 255, 255, 0.52)`;
 
-// Track bar spans 282 design px. The design shows 129 of it played.
+// Track bar spans 282 design px.
 const TRACK_LENGTH = 282;
-const INITIAL_PROGRESS = 129 / TRACK_LENGTH;
-// There's no audio, so playback is simulated over a typical song length.
-const SONG_SECONDS = 210;
 const SEEK_SECONDS = 10;
-const TICK_MS = 250;
 
 const PINK = 'text-[#DA7777]';
 
@@ -47,33 +44,16 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   const date = data?.date || DEFAULT_DATA.date;
   const url = data?.url ?? '';
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(INITIAL_PROGRESS);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-    const timer = setInterval(() => {
-      setProgress((p) => {
-        const next = p + TICK_MS / 1000 / SONG_SECONDS;
-        if (next >= 1) {
-          setIsPlaying(false);
-          return 1;
-        }
-        return next;
-      });
-    }, TICK_MS);
-    return () => clearInterval(timer);
-  }, [isPlaying]);
+  const { status, isPlaying, position, duration, toggle, seekBy, embedRef } = useMusicPlayback({ title, artist, url });
+  const progress = duration > 0 ? Math.min(1, position / duration) : 0;
+  const canPlay = status === 'ready';
+  const playLabel =
+    status === 'loading' ? 'Loading song' : status === 'unavailable' ? 'Song unavailable' : isPlaying ? 'Pause' : 'Play';
 
   // Cards open the item editor on click; the controls shouldn't.
   const control = (action: () => void) => (e: React.MouseEvent) => {
     e.stopPropagation();
     action();
-  };
-  const seek = (seconds: number) => setProgress((p) => Math.min(1, Math.max(0, p + seconds / SONG_SECONDS)));
-  const togglePlay = () => {
-    if (!isPlaying && progress >= 1) setProgress(0);
-    setIsPlaying((playing) => !playing);
   };
 
   // Progress line keeps its rounded caps, so never draw it shorter than its stroke.
@@ -105,6 +85,14 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
             }}
           />
         </div>
+
+        {/* Spotify embed for Spotify links: kept in the DOM to play audio, never shown. */}
+        <div
+          ref={embedRef}
+          aria-hidden
+          className="absolute left-0 top-0 overflow-hidden opacity-0 pointer-events-none"
+          style={{ width: 1, height: 1 }}
+        />
 
         {/* Song */}
         <div className="absolute" style={{ left: u(38), right: u(38), top: u(149) }}>
@@ -142,9 +130,10 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         {/* Controls */}
         <button
           type="button"
-          onClick={control(() => seek(-SEEK_SECONDS))}
+          onClick={control(() => seekBy(-SEEK_SECONDS))}
+          disabled={!canPlay}
           aria-label={`Back ${SEEK_SECONDS} seconds`}
-          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95`}
+          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-all duration-200 enabled:hover:scale-110 enabled:active:scale-95 disabled:cursor-default disabled:opacity-50`}
           style={{ left: u(91), top: u(236), width: u(44), height: u(40) }}
         >
           <Rewind fill="currentColor" style={skipStyle} strokeWidth={1.5} />
@@ -152,10 +141,12 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
 
         <button
           type="button"
-          onClick={control(togglePlay)}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
+          onClick={control(toggle)}
+          disabled={!canPlay}
+          aria-label={playLabel}
+          title={status === 'unavailable' ? 'No playable version of this song found' : undefined}
           aria-pressed={isPlaying}
-          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-95`}
+          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-all duration-200 enabled:hover:scale-105 enabled:active:scale-95 disabled:cursor-default disabled:opacity-50`}
           style={{ left: u(152), top: u(228), width: u(55), height: u(55) }}
         >
           <img
@@ -175,9 +166,10 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
 
         <button
           type="button"
-          onClick={control(() => seek(SEEK_SECONDS))}
+          onClick={control(() => seekBy(SEEK_SECONDS))}
+          disabled={!canPlay}
           aria-label={`Forward ${SEEK_SECONDS} seconds`}
-          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95`}
+          className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-all duration-200 enabled:hover:scale-110 enabled:active:scale-95 disabled:cursor-default disabled:opacity-50`}
           style={{ left: u(224), top: u(236), width: u(44), height: u(40) }}
         >
           <FastForward fill="currentColor" style={skipStyle} strokeWidth={1.5} />
