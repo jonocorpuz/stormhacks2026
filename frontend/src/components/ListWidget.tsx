@@ -57,6 +57,12 @@ export default function ListWidget({
   const date = data?.date ?? initialData?.date ?? '02/20/2027';
 
   useEffect(() => {
+    if (data?.items) {
+      setItems(data.items);
+    }
+  }, [data?.items]);
+
+  useEffect(() => {
     const root = rootRef.current;
     const el = scrollRef.current;
     if (!root || !el) return;
