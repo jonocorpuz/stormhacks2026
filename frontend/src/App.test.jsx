@@ -321,3 +321,32 @@ describe('profile menu', () => {
     expect(store.getState().name).toBeNull();
   });
 });
+
+describe('mobile swipe between boards', () => {
+  const swipe = (el, dx, dy = 0) =>
+    act(async () => {
+      fireEvent.touchStart(el, { touches: [{ clientX: 200, clientY: 300 }] });
+      fireEvent.touchEnd(el, { changedTouches: [{ clientX: 200 + dx, clientY: 300 + dy }] });
+    });
+
+  it('steps through boards in menu order without wrapping; ignores vertical drags', async () => {
+    const store = createAppStore(new MemoryRepo());
+    await store.actions.init();
+    for (const name of ['A', 'B', 'C']) await store.actions.createBoard(name);
+    const order = store.getState().boards.map((b) => b.id);
+    await store.actions.openBoard(order[0]);
+    render(<StoreProvider store={store}><MobileRolodexView query="" /></StoreProvider>);
+    const stage = () => screen.getByLabelText(/Board cards/);
+    const current = () => store.getState().currentBoard.id;
+
+    await swipe(stage(), 100); // right on first board: nowhere to go
+    expect(current()).toBe(order[0]);
+    await swipe(stage(), -100);
+    expect(current()).toBe(order[1]);
+    expect(screen.getByRole('status').textContent).toMatch(/2\/3/);
+    await swipe(stage(), -40, 200); // mostly vertical: card scrolling, not a swipe
+    expect(current()).toBe(order[1]);
+    await swipe(stage(), 100);
+    expect(current()).toBe(order[0]);
+  });
+});
