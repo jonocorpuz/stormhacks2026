@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Underdamped spring (eases in from rest, overshoots ~16%, settles) for linear()-based transitions */
+  --spring: linear(0, 0.069, 0.237, 0.449, 0.662, 0.849, 0.994, 1.092, 1.146, 1.163, 1.153, 1.127, 1.092, 1.057, 1.026, 1.002, 0.986, 0.977, 0.973, 0.975, 0.979, 0.985, 0.99, 0.995, 0.999, 1.002, 1.004, 1.004, 1.004, 1.003, 1);
+}
+
 @font-face {
   font-family: 'Alte Haas Grotesk';
   src: url('/fonts/AlteHaasGroteskRegular.ttf') format('truetype');
@@ -26,28 +31,98 @@
   font-display: swap;
 }
 
+/* Design tokens. Single source for every color in the app: Tailwind maps these in
+   tailwind.config.js, widgets read them via components/widgetKit.ts. Values are RGB channels
+   so Tailwind opacity modifiers work (`text-ink/60`). `.dark` swaps them, so a token class
+   needs no `dark:` twin unless the design differs per theme. */
 @layer base {
+  :root {
+    /* Neutrals */
+    --canvas: 250 250 250;
+    --surface: 255 255 255;
+    --ink: 0 0 0;
+    --ink-muted: 100 100 100;
+    --ink-subtle: 162 162 162;
+    --control: 220 220 220;
+    --control-ink: 100 100 100;
+    --sunken: rgb(217 217 217);
+
+    /* Status */
+    --primary: 59 130 246;
+    --primary-strong: 37 99 235;
+    --danger: 239 68 68;
+    --danger-strong: 220 38 38;
+    --warning: 245 158 11;
+
+    /* Widget accents: edge = border, base = title/icon, deep = emphasis, tint = gradient wash */
+    --edge-alpha: 1;
+    --blue-edge: 138 198 255;
+    --blue: 34 148 254;
+    --blue-deep: 0 108 227;
+    --blue-tint: 34 148 254;
+    --green-edge: 142 231 153;
+    --green: 75 135 53;
+    --green-tint: 31 203 52;
+    --coral-edge: 255 217 204;
+    --coral: 218 119 119;
+    --coral-tint: 254 89 34;
+    --pink-edge: 255 215 249;
+    --pink: 220 138 207;
+    --pink-tint: 255 158 240;
+
+    /* One-offs */
+    --map-paper: 242 239 233;
+    --code-bg: 22 25 22;
+    --code-ink: 255 255 255;
+
+    /* Shadow colors */
+    --shadow: 0 0 0;
+    --glow: 255 255 255;
+    --haze: 144 144 144;
+  }
+
+  .dark {
+    --canvas: 30 30 30;
+    --surface: 30 30 30;
+    --ink: 255 255 255;
+    --ink-muted: 255 255 255;
+    --ink-subtle: 255 255 255;
+    --control-ink: 63 63 63;
+    --sunken: rgb(255 255 255 / 0.08);
+
+    --danger: 248 113 113;
+    --warning: 252 211 77;
+
+    --edge-alpha: 0.3;
+    /* Accent text lifted toward its edge pastel so titles stay readable on the dark canvas. */
+    --blue: 102 181 255;
+    --blue-deep: 102 181 255;
+    --green: 128 208 116;
+    --coral: 240 152 152;
+    --pink: 236 166 225;
+    /* Washes: same hue + lightness, ~55% saturation so cards read tinted, not neon. */
+    --blue-tint: 83 146 204;
+    --green-tint: 70 164 81;
+    --coral-tint: 204 114 83;
+    --pink-tint: 233 180 225;
+
+    --map-paper: 30 30 30;
+  }
+
   html, body {
-    @apply bg-white text-black dark:bg-[#1E1E1E] dark:text-white overscroll-none transition-colors duration-500 font-sans;
+    @apply bg-surface text-ink overscroll-none transition-colors duration-500 font-sans;
   }
 }
 
 @layer components {
   .apple-glass {
     @apply backdrop-blur-2xl 
-           bg-white/80 border border-white/50 shadow-md shadow-black/[0.03] text-gray-400
-           dark:bg-white/10 dark:border-white/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] dark:text-white
+           bg-surface/80 border border-surface/50 shadow-md shadow-black/[0.03] text-ink-subtle
+           dark:bg-ink/10 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
            transition-colors duration-500;
   }
 
-  .receipt-text-primary {
-    @apply text-[#646464] dark:text-white transition-colors duration-500;
   }
-
-  .receipt-text-secondary {
-    @apply text-[#C2BCBC] dark:text-white transition-colors duration-500;
-  }
-}
 
 @keyframes slideDownFade {
   from { opacity: 0; transform: translateY(-10px) scale(0.95); }
@@ -56,6 +131,92 @@
 
 .animate-slide-down-fade {
   animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Buoyant hover (cards, nav) */
+.buoyant {
+  transition: transform 900ms var(--spring);
+}
+
+/* Pop in on mount (cards, nav; staggered via inline animation-delay), same spring curve */
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pop-in {
+  animation: popIn 700ms var(--spring) backwards;
+}
+
+/* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
+   Keeps the color fade that Tailwind's transition-colors would otherwise provide. */
+.nav-grow {
+  transition: transform 900ms var(--spring), background-color 150ms, color 150ms;
+}
+
+.nav-grow:hover {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
+  .buoyant { transition: transform 200ms ease-out; }
+  .pop-in { animation: none; }
+}
+
+/* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.
+   Opacity is faded per layer: opacity < 1 on the container would make it the backdrop root and kill the blur. */
+.nav-fog > * {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms;
+}
+
+.nav-fog.is-on > * {
+  opacity: 1;
+}
+
+.nav-fog > :nth-child(1) {
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+  mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
+}
+
+.nav-fog > :nth-child(2) {
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
+}
+
+.nav-fog > :nth-child(3) {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
+}
+
+.nav-fog > :nth-child(4) {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
+}
+
+.nav-fog > :nth-child(5) {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
+}
+
+.nav-fog > :nth-child(6) {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
 }
 
 /* Smooth Sliding Animations for react-grid-layout */
@@ -84,14 +245,35 @@
   opacity: 1 !important;
 }
 
+/* Edit-mode wiggle + a slower float bob. Uses the individual `rotate`/`translate` properties so the two
+   run at different rates without fighting over `transform`. Per-card durations/delays set inline in ItemCard.
+   --wiggle-amp scales both: eases 0→1 on entering edit mode (.wiggle-on) and 1→0 on leaving, while
+   ItemCard keeps .ios-wiggle on briefly (WIGGLE_SETTLE_MS) so the wind-down is visible. */
+@property --wiggle-amp {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @keyframes iosWiggle {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(-0.7deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(0.7deg); }
-  100% { transform: rotate(0deg); }
+  0% { rotate: 0deg; }
+  25% { rotate: calc(var(--wiggle-amp) * -0.5deg); }
+  50% { rotate: 0deg; }
+  75% { rotate: calc(var(--wiggle-amp) * 0.5deg); }
+  100% { rotate: 0deg; }
+}
+
+@keyframes iosBob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 calc(var(--wiggle-amp) * -3px); }
 }
 
 .ios-wiggle {
-  animation: iosWiggle 0.4s infinite ease-in-out;
+  animation: iosWiggle 0.45s infinite ease-in-out, iosBob 1.6s infinite ease-in-out;
+  transition: transform 900ms var(--spring), --wiggle-amp 350ms ease-out;
+}
+
+.ios-wiggle.wiggle-on {
+  --wiggle-amp: 1;
+  transition: transform 900ms var(--spring), --wiggle-amp 500ms ease-in-out;
 }

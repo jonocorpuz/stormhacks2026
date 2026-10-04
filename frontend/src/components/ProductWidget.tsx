@@ -3,6 +3,7 @@ import GrainOverlay from './GrainOverlay';
 import { ArrowUpRight, Check, Link } from 'lucide-react';
 import type { ProductWidgetData } from '../types/widgets';
 import linkCircle from '../assets/product-widget/link-circle.svg';
+import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 
 export interface ProductWidgetProps {
   data?: Partial<ProductWidgetData>;
@@ -24,15 +25,10 @@ const DEFAULT_DATA: ProductWidgetData = {
 // designed at 732x355. All sizes scale with the widget's width (container query units)
 // so it keeps the design's proportions in a 2x1 bento cell.
 const DESIGN_WIDTH = 732;
-const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
+const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
 // Figma draws the card flipped horizontally, which mirrors its 156.86deg gradient to 203.14deg.
-const CARD_GRADIENT =
-  'linear-gradient(203.14deg, rgba(255, 158, 240, 0.1) 11.72%, rgba(254, 34, 221, 0.02) 50.62%, rgba(255, 158, 240, 0.1) 89.51%)';
-const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
-const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
-const GLASS_SHADOW = `${u(1.718)} ${u(0.859)} ${u(13.572)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.859)} 0 ${u(45.441)} ${u(11.91)} rgba(255, 255, 255, 0.52)`;
+const CARD_GRADIENT = accentGradient('pink', 203.14);
 
 const COPIED_RESET_MS = 1600;
 
@@ -73,55 +69,53 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border-solid border-[#FFD7F9] dark:border-[#FFD7F9]/30 select-none"
-        style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
+        className="relative w-full h-full overflow-hidden border-solid border-accent-pink-edge select-none"
+        style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: radius('card') }}
       >
         <GrainOverlay />
         {/* Details */}
         <div
           className="absolute flex flex-col items-start"
-          style={{ left: u(24), top: u(37), width: u(333), gap: u(14) }}
+          style={{ left: space(6), top: cardInset, width: u(333), gap: space(4) }}
         >
           <h2
-            className="font-bold text-[#DC8ACF] whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
-            style={{ fontFamily: TITLE_FONT, fontSize: u(20), lineHeight: u(24) }}
+            className="font-bold text-accent-pink whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
+            style={type('title')}
           >
             {title}
           </h2>
           <p
-            className="text-[#DC8ACF] line-clamp-2"
-            style={{ fontFamily: SF_FONT, fontSize: u(18.323), lineHeight: u(22), width: u(267.514) }}
+            className="text-accent-pink line-clamp-2"
+            style={{ ...type('body'), width: u(267.514) }}
           >
             {description}
           </p>
 
           <dl
-            className="grid text-[#646464] dark:text-white"
+            className="grid text-ink-muted"
             style={{
-              fontFamily: BODY_FONT,
-              fontSize: u(18.323),
-              lineHeight: u(21),
+              ...type('body'),
               gridTemplateColumns: `${u(89.14)} 1fr`,
-              rowGap: u(11),
+              rowGap: space(3),
               width: '100%',
             }}
           >
             {details.map(([label, value]) => (
               <React.Fragment key={label}>
-                <dt className="font-bold dark:text-[#BDBDBD]">{label}</dt>
+                <dt className="font-bold dark:text-ink-subtle">{label}</dt>
                 <dd className="whitespace-nowrap overflow-hidden text-ellipsis">{value}</dd>
               </React.Fragment>
             ))}
           </dl>
 
           {/* Actions */}
-          <div className="flex items-center" style={{ gap: u(15.61) }}>
+          <div className="flex items-center" style={{ gap: space(4) }}>
             <button
               type="button"
               onClick={handleCopyLink}
               disabled={!url}
               aria-label={copied ? 'Link copied' : 'Copy product link'}
-              className="relative shrink-0 flex items-center justify-center text-[#646464] dark:text-[#3F3F3F] cursor-pointer transition-transform active:scale-95 disabled:cursor-default disabled:opacity-60"
+              className="relative shrink-0 flex items-center justify-center text-control-ink cursor-pointer transition-transform active:scale-95 disabled:cursor-default disabled:opacity-60"
               style={{ width: u(50.388), height: u(50.388) }}
             >
               <img
@@ -133,7 +127,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
                 style={{ left: u(-11.85), top: u(-12.71), width: u(77.5314), height: u(77.5313) }}
               />
               {copied ? (
-                <Check className="relative text-[#DC8ACF]" style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
+                <Check className="relative text-accent-pink" style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
               ) : (
                 <Link className="relative" style={{ width: u(22), height: u(22) }} strokeWidth={1.8} />
               )}
@@ -148,19 +142,19 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
                 if (!url) e.preventDefault();
               }}
               aria-disabled={!url}
-              className={`flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-[#3F3F3F] transition-all duration-200 ${
-                url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 dark:opacity-80 cursor-default'
+              className={`flex items-center justify-between shrink-0 ${GLASS_CONTROL} text-control-ink transition-all duration-200 ${
+                url ? GLASS_CONTROL_HOVER : 'opacity-60 dark:opacity-80 cursor-default'
               }`}
               style={{
                 width: u(242.778),
                 height: u(50.388),
-                borderRadius: u(17.179),
-                paddingLeft: u(23.82),
-                paddingRight: u(20),
-                boxShadow: GLASS_SHADOW,
+                borderRadius: radius('control'),
+                paddingLeft: space(6),
+                paddingRight: space(5),
+                boxShadow: glassShadow,
               }}
             >
-              <span className="whitespace-nowrap" style={{ fontFamily: SF_FONT, fontSize: u(18.323), lineHeight: u(22) }}>
+              <span className="whitespace-nowrap" style={type('body')}>
                 View Product Listing
               </span>
               <ArrowUpRight style={{ width: u(20), height: u(20) }} strokeWidth={1.8} />
@@ -168,8 +162,8 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </div>
 
           <span
-            className="text-[#A2A2A2] dark:text-white whitespace-nowrap"
-            style={{ fontFamily: BODY_FONT, fontSize: u(14.658), lineHeight: u(17) }}
+            className="text-ink-subtle whitespace-nowrap"
+            style={type('body')}
           >
             {date}
           </span>
@@ -177,8 +171,8 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
 
         {/* Image */}
         <div
-          className="absolute overflow-hidden bg-[#D9D9D9] dark:bg-white/[0.08] flex items-center justify-center"
-          style={{ left: u(377), top: u(18), right: u(21), bottom: u(24), borderRadius: u(16.491) }}
+          className="absolute overflow-hidden bg-sunken flex items-center justify-center"
+          style={{ left: u(377), top: cardInset, right: u(21), bottom: cardInset, borderRadius: radius('control') }}
         >
           {showImage ? (
             <img
@@ -188,7 +182,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
               onError={() => setImageFailed(true)}
             />
           ) : (
-            <span className="text-[#646464] dark:text-[#8A8A8A]" style={{ fontFamily: BODY_FONT, fontSize: u(18.323) }}>
+            <span className="text-ink-subtle" style={type('body')}>
               IMAGE
             </span>
           )}

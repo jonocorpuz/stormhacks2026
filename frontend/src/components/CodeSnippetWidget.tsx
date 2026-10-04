@@ -16,6 +16,7 @@ import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import type { CodeSnippetData } from '../types/widgets';
+import { FONT, GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 
 const LANGUAGES = { bash, css, go, java, javascript, json, jsx, python, rust, sql, tsx, typescript };
 Object.entries(LANGUAGES).forEach(([name, grammar]) => SyntaxHighlighter.registerLanguage(name, grammar));
@@ -44,18 +45,15 @@ const DEFAULT_DATA: CodeSnippetData = {
 // designed at 730px wide. All sizes scale with the widget's width (container query units)
 // so it keeps the design's proportions in any bento cell.
 const DESIGN_WIDTH = 730;
-const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
+const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
-const CARD_GRADIENT =
-  'linear-gradient(138.27deg, rgba(31, 203, 52, 0.1) 11.72%, rgba(31, 203, 52, 0.02) 50.62%, rgba(31, 203, 52, 0.1) 89.51%)';
-const CODE_FRAME_GRADIENT =
-  'linear-gradient(144.53deg, rgba(31, 38, 32, 0.1) 11.72%, rgba(0, 0, 0, 0.1) 50.62%, rgba(31, 38, 32, 0.1) 89.51%)';
-const CODE_FILL_GRADIENT =
-  'linear-gradient(144.53deg, rgba(22, 25, 22, 0.83) 11.72%, rgba(0, 0, 0, 0.83) 50.62%, rgba(22, 25, 22, 0.83) 89.51%)';
-const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
-const DATE_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
-const CODE_FONT = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+const CARD_GRADIENT = accentGradient('green', 138.27);
+// Code panel: near-black wash, faint frame + dense fill.
+const codeGradient = (alpha: number) =>
+  `linear-gradient(144.53deg, rgb(var(--code-bg) / ${alpha}) 11.72%, rgb(var(--shadow) / ${alpha}) 50.62%, rgb(var(--code-bg) / ${alpha}) 89.51%)`;
+const CODE_FRAME_GRADIENT = codeGradient(0.1);
+const CODE_FILL_GRADIENT = codeGradient(0.83);
+const CODE_INSET_SHADOW = `inset ${u(3.4)} ${u(3.4)} ${u(21)} 0 rgb(var(--shadow) / 0.11)`;
 
 const COPIED_RESET_MS = 1600;
 
@@ -88,32 +86,32 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-[#8EE799] dark:border-[#8EE799]/30 dark:!shadow-none"
+        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-accent-green-edge dark:!shadow-none"
         style={{
           backgroundImage: CARD_GRADIENT,
           borderWidth: u(0.86),
-          borderRadius: u(25.789),
-          boxShadow: `${u(3.439)} ${u(3.439)} ${u(20.975)} 0 rgba(144, 144, 144, 0.25)`,
+          borderRadius: radius('card'),
+          boxShadow: `${u(3.4)} ${u(3.4)} ${u(21)} 0 rgb(var(--haze) / 0.25)`,
           backdropFilter: `blur(${u(1.719)})`,
-          paddingTop: u(59.05),
-          paddingBottom: u(18.4),
+          paddingTop: cardInset,
+          paddingBottom: cardInset,
         }}
       >
         <GrainOverlay />
         {/* Header */}
         <div
           className="flex items-center justify-between shrink-0"
-          style={{ paddingLeft: u(28.65), paddingRight: u(38), gap: u(16) }}
+          style={{ paddingLeft: space(7), paddingRight: space(10), gap: space(4) }}
         >
           <h2
-            className="font-bold text-[#4B8735] whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{ fontFamily: TITLE_FONT, fontSize: u(27.509), lineHeight: u(34) }}
+            className="font-bold text-accent-green whitespace-nowrap overflow-hidden text-ellipsis"
+            style={type('title')}
           >
             {title}
           </h2>
           <span
-            className="text-[#C2BCBC] dark:text-white whitespace-nowrap shrink-0"
-            style={{ fontFamily: BODY_FONT, fontSize: u(17.193), lineHeight: u(20) }}
+            className="text-ink-subtle whitespace-nowrap shrink-0"
+            style={type('body')}
           >
             {language}
           </span>
@@ -121,23 +119,23 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
 
         {/* Code Block */}
         <div
-          className="relative flex-1 min-h-0 border-solid border-[#8EE799] dark:border-[#8EE799]/30"
+          className="relative flex-1 min-h-0 border-solid border-accent-green-edge"
           style={{
-            marginTop: u(13.3),
-            marginLeft: u(22),
-            marginRight: u(23),
+            marginTop: space(3),
+            marginLeft: space(6),
+            marginRight: space(6),
             borderWidth: u(0.86),
-            borderRadius: u(25.789),
+            borderRadius: radius('card'),
             backgroundImage: CODE_FRAME_GRADIENT,
-            boxShadow: `inset ${u(3.439)} ${u(3.439)} ${u(20.975)} 0 rgba(0, 0, 0, 0.11)`,
+            boxShadow: CODE_INSET_SHADOW,
           }}
         >
           <div
-            className="absolute inset-0 overflow-auto [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]"
+            className="absolute inset-0 overflow-auto [scrollbar-width:thin] [scrollbar-color:rgb(var(--code-ink)/0.25)_transparent]"
             style={{
-              borderRadius: u(17.193),
+              borderRadius: radius('control'),
               backgroundImage: CODE_FILL_GRADIENT,
-              boxShadow: `inset ${u(3.439)} ${u(3.439)} ${u(20.975)} 0 rgba(0, 0, 0, 0.11)`,
+              boxShadow: CODE_INSET_SHADOW,
             }}
           >
             <SyntaxHighlighter
@@ -146,17 +144,17 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
               wrapLongLines
               customStyle={{
                 margin: 0,
-                padding: `${u(28.95)} ${u(23.72)}`,
+                padding: `${space(7)} ${space(6)}`,
                 background: 'transparent',
-                fontFamily: CODE_FONT,
-                fontSize: u(17.193),
+                fontFamily: FONT.mono,
+                fontSize: type('body').fontSize,
                 fontWeight: 700,
                 lineHeight: 'normal',
-                color: '#FFFFFF',
+                color: 'rgb(var(--code-ink))',
                 textShadow: 'none',
               }}
               codeTagProps={{
-                style: { fontFamily: CODE_FONT, fontSize: 'inherit', fontWeight: 'inherit', textShadow: 'none' },
+                style: { fontFamily: FONT.mono, fontSize: 'inherit', fontWeight: 'inherit', textShadow: 'none' },
               }}
             >
               {code}
@@ -167,11 +165,11 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
         {/* Footer */}
         <div
           className="flex items-center justify-between shrink-0"
-          style={{ marginTop: u(13), paddingLeft: u(29), paddingRight: u(18.4) }}
+          style={{ marginTop: space(3), paddingLeft: space(7), paddingRight: space(5) }}
         >
           <span
-            className="text-[#C2BCBC] dark:text-white whitespace-nowrap"
-            style={{ fontFamily: DATE_FONT, fontSize: u(17.193), lineHeight: u(21) }}
+            className="text-ink-subtle whitespace-nowrap"
+            style={type('body')}
           >
             {date}
           </span>
@@ -181,25 +179,25 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
             type="button"
             onClick={handleCopy}
             aria-label={copied ? 'Code copied' : 'Copy code'}
-            className="flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-white cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className={`flex items-center justify-between shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} text-control-ink transition-all duration-200`}
             style={{
               width: u(155.596),
               height: u(47.281),
-              borderRadius: u(16.12),
-              paddingLeft: u(15.47),
-              paddingRight: u(16.7),
-              boxShadow: `${u(1.612)} ${u(0.806)} ${u(12.735)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.806)} 0 ${u(42.639)} ${u(11.175)} rgba(255, 255, 255, 0.52)`,
+              borderRadius: radius('control'),
+              paddingLeft: space(4),
+              paddingRight: space(4),
+              boxShadow: glassShadow,
             }}
           >
             <span
               className="whitespace-nowrap"
-              style={{ fontFamily: BODY_FONT, fontSize: u(17.193), lineHeight: u(20) }}
+              style={type('body')}
               aria-live="polite"
             >
               {copied ? 'Copied!' : 'Copy Code'}
             </span>
             {copied ? (
-              <Check className="text-[#4B8735]" style={{ width: u(22), height: u(21) }} strokeWidth={2.4} />
+              <Check className="text-accent-green" style={{ width: u(22), height: u(21) }} strokeWidth={2.4} />
             ) : (
               <Copy style={{ width: u(22), height: u(21) }} strokeWidth={1.8} />
             )}

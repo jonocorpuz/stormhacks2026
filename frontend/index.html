@@ -8,12 +8,15 @@
     <link rel="preload" href="/fonts/AlteHaasGroteskBold.ttf" as="font" type="font/ttf" crossorigin />
     <title>frontend</title>
     <script>
-      // Set the theme before first paint (same rule as getInitialDarkMode in App.jsx).
-      try {
-        var saved = localStorage.getItem('theme');
-        var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      // Theme before first paint (no flash). Mirrors model resolveTheme + LocalStorageRepo 'prefs' key — keep in sync.
+      // Store takes over after init (main.jsx).
+      (function () {
+        var theme = null;
+        try { theme = JSON.parse(localStorage.getItem('prefs') || 'null').theme; } catch (e) {}
+        var dark = theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.classList.toggle('dark', dark);
-      } catch (e) {}
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      })();
     </script>
   </head>
   <body>

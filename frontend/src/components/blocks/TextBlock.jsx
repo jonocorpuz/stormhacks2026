@@ -13,7 +13,7 @@ export function TextInput({ value, onChange, placeholder, autoFocus, flagged }) 
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       autoFocus={autoFocus}
-      className={`${INPUT_CLASS} px-4 h-10 rounded-full ${flagged ? 'ring-2 ring-amber-400/70' : ''}`}
+      className={`${INPUT_CLASS} px-4 h-10 rounded-full ${flagged ? 'ring-2 ring-warning/70' : ''}`}
     />
   );
 }
