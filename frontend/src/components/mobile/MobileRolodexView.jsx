@@ -30,16 +30,16 @@ function backingRadius(item, sizes, cardW) {
 
 // Tilt-stack motion (defaults from the "Tilt stack prototype"): the focused card stands upright;
 // upcoming cards wait in a pile below, tilted toward you; flipped cards stack above, tilted away.
-const FWD_TILT = 58; // deg, waiting pile
+const FWD_TILT = 40; // deg, waiting pile
 const BACK_TILT = 14; // deg, first card behind the focused one (+7deg per card deeper); focused card is flat
-const BACK_GAP = 26; // px between flipped cards
+const BACK_GAP = 44; // px between flipped cards
 const PERSPECTIVE = 900;
 const STEP = 150; // scroll px per card flip
-const FOCUS_Y = 0.36; // focused card centre, fraction of stage height
+const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
 const FWD_Y = 0.8; // waiting pile centre
 const MAX_CARD_W = 330;
 const BAR_CLEARANCE = 72; // floating bottom bar height; piles are positioned in the space above it
-const MAX_CARD_H = 0.46; // fraction of stage height, so tall cards (1x2) don't swallow the stack
+const MAX_CARD_H = 0.42; // fraction of stage height, so tall cards (1x2) don't swallow the stack
 
 const lerp = (a, b, u) => a + (b - a) * u;
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
