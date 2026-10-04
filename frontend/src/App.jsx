@@ -12,6 +12,7 @@ import BoardGrid from './components/boards/BoardGrid';
 import MobileRolodexView from './components/mobile/MobileRolodexView';
 import SaveStatus from './components/SaveStatus';
 import ExtractionStatus from './components/ExtractionStatus';
+import DropOverlay from './components/DropOverlay';
 
 // File → base64 (no data-URL prefix).
 const readBase64 = (file) =>
@@ -75,8 +76,13 @@ export default function App() {
     <div 
       className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas font-sans relative overscroll-none transition-colors duration-500`}
       onDragOver={(e) => {
+        // Only OS file drags, not text/link drags from inside the page.
+        if (!e.dataTransfer.types.includes('Files')) return;
         e.preventDefault();
         setIsDragging(true);
+        // Glow follows the cursor; set directly to skip a re-render per dragover.
+        e.currentTarget.style.setProperty('--drop-x', `${e.clientX}px`);
+        e.currentTarget.style.setProperty('--drop-y', `${e.clientY}px`);
       }}
       onDragLeave={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false);
@@ -84,8 +90,7 @@ export default function App() {
       onDrop={handleDrop}
       onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
     >
-      {/* Drag Overlay */}
-      {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-primary/60 pointer-events-none" />}
+      <DropOverlay active={isDragging} />
 
       {isMobile ? (
         // Phone simulator. translateZ makes it the containing block for fixed-position modals

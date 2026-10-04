@@ -152,6 +152,46 @@
   transform: scale(1.06);
 }
 
+/* File drop overlay (components/DropOverlay.jsx). Fades + springs in when files hover the window. */
+.drop-overlay {
+  opacity: 0;
+  transition: opacity 250ms ease-out;
+}
+.drop-overlay.is-on {
+  opacity: 1;
+}
+
+.drop-overlay-glow {
+  background:
+    radial-gradient(420px circle at var(--drop-x, 50%) var(--drop-y, 50%), rgb(var(--primary) / 0.22), transparent 70%),
+    rgb(var(--canvas) / 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.drop-overlay-card {
+  transform: scale(0.7) translateY(20px);
+  transition: transform 700ms var(--spring);
+}
+.drop-overlay.is-on .drop-overlay-card {
+  transform: scale(1) translateY(0);
+}
+
+.drop-overlay-icon {
+  box-shadow: 0 10px 30px -8px rgb(var(--primary) / 0.7);
+}
+.drop-overlay.is-on .drop-overlay-icon {
+  animation: dropBob 1.4s ease-in-out infinite;
+}
+@keyframes dropBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-overlay.is-on .drop-overlay-icon { animation: none; }
+  .drop-overlay-card { transition: none; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
   .buoyant { transition: transform 200ms ease-out; }
