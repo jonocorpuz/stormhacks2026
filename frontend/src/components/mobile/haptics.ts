@@ -30,15 +30,19 @@ export function prepareHaptics() {
   if (touch() && !canVibrate()) switchLabel();
 }
 
-// DEBUG (temporary): counters for the on-screen haptics overlay.
-export const hapticDebug = { calls: 0, fired: 0, method: 'none' as 'none' | 'vibrate' | 'switch' | 'no-touch' };
+// DEBUG (temporary): state for the on-screen haptics test panel (HapticDebug.jsx).
+export const hapticDebug = {
+  fired: 0,
+  method: 'none' as 'none' | 'vibrate' | 'switch',
+  mode: 'normal' as 'normal' | 'touchstart' | 'touchend',
+  log: [] as string[],
+};
+export const hapticLog = (msg: string) => {
+  hapticDebug.log = [`${(performance.now() / 1000).toFixed(1)}s ${msg}`, ...hapticDebug.log].slice(0, 6);
+};
 
-export function hapticTick() {
-  hapticDebug.calls++;
-  if (!touch()) {
-    hapticDebug.method = 'no-touch';
-    return;
-  }
+export function hapticTick(why = '') {
+  if (!touch()) return hapticLog(`skip (no touch) ${why}`);
   const now = performance.now();
   if (now - last < MIN_GAP_MS) return;
   last = now;
@@ -50,6 +54,7 @@ export function hapticTick() {
     hapticDebug.method = 'switch';
     switchLabel().click();
   }
+  hapticLog(`tick ${why}`);
 }
 
 // Test-only: forget throttle + element between cases.
