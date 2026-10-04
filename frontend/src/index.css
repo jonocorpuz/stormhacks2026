@@ -165,6 +165,8 @@
 }
 
 /* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.
+   No hand-written -webkit- twins: Lightning CSS (build minifier) keeps only the last of a prefixed/unprefixed
+   pair, so a trailing -webkit- line drops the standard property. Autoprefixer adds them in the right order.
    Opacity is faded per layer: opacity < 1 on the container would make it the backdrop root and kill the blur. */
 .nav-fog > * {
   position: absolute;
@@ -179,44 +181,32 @@
 
 .nav-fog > :nth-child(1) {
   backdrop-filter: blur(0.5px);
-  -webkit-backdrop-filter: blur(0.5px);
   mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
-  -webkit-mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
 }
 
 .nav-fog > :nth-child(2) {
   backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
   mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
-  -webkit-mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
 }
 
 .nav-fog > :nth-child(3) {
   backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
   mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
-  -webkit-mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
 }
 
 .nav-fog > :nth-child(4) {
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
-  -webkit-mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
 }
 
 .nav-fog > :nth-child(5) {
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
-  -webkit-mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
 }
 
 .nav-fog > :nth-child(6) {
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
-  -webkit-mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
 }
 
 /* Smooth Sliding Animations for react-grid-layout */
