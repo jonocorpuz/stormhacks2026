@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createCapture } from './model';
 import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
@@ -39,7 +39,6 @@ export default function App() {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
   const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | 'boards' | null
-  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const [editMode, setEditMode] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -56,16 +55,6 @@ export default function App() {
     );
     ingestCaptures(captures);
   };
-
-  // Apply dark mode globally to the html document and remember the choice.
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-    try {
-      localStorage.setItem(THEME_KEY, isDarkMode ? 'dark' : 'light');
-    } catch {
-      // Storage blocked (private mode): theme still works for this session.
-    }
-  }, [isDarkMode]);
 
   const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
   const closeMenu = () => setOpenMenu(null);
@@ -130,11 +119,7 @@ export default function App() {
           >
             <span className="text-gray-400 dark:text-white font-bold text-lg transition-colors">AN</span>
           </div>
-          <ProfileSettingsMenu
-            isOpen={openMenu === 'profile'}
-            isDarkMode={isDarkMode}
-            onToggleTheme={() => setIsDarkMode((prev) => !prev)}
-          />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} />
         </div>
       </div>
 

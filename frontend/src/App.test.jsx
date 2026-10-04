@@ -104,7 +104,7 @@ describe('App', () => {
     const store = await mount(repo);
     await act(async () => {
       await store.actions.createBoard('B');
-      await store.actions.createItem('note', { title: 'Temp' });
+      await store.actions.createItem('recommendation_list', { title: 'Temp' }); // resizable (notes are fixed-size)
     });
 
     await click(screen.getByLabelText('Edit board'));

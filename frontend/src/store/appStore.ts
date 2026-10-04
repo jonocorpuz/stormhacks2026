@@ -3,6 +3,9 @@
 
 import {
   addItem,
+  defaultPrefs,
+  otherTheme,
+  resolveTheme,
   captureProblem,
   createBoard as newBoard,
   createItem as newItem,
@@ -22,9 +25,11 @@ import {
   type FieldValues,
   type Issue,
   type Item,
+  type Prefs,
+  type Theme,
 } from '../model'
 import type { Extractor } from '../extractor'
-import type { BoardRepository } from '../persistence'
+import type { BoardRepository, PrefsRepository } from '../persistence'
 
 export type AppStatus = 'idle' | 'loading' | 'saving' | 'error'
 
@@ -42,6 +47,8 @@ export interface AppState {
   status: AppStatus
   error: string | null
   extractions: Extraction[]
+  /** Resolved (saved choice or browser). null until init loads prefs. */
+  theme: Theme | null
 }
 
 export interface AppActions {
@@ -68,6 +75,8 @@ export interface AppActions {
    */
   ingestCaptures(captures: Capture[]): Promise<void>
   dismissExtraction(id: string): void
+  /** Saves the choice; from then on browser setting is ignored. */
+  toggleTheme(): Promise<void>
 }
 
 export interface AppStore {
@@ -76,8 +85,20 @@ export interface AppStore {
   actions: AppActions
 }
 
-export function createAppStore(repo: BoardRepository, extractor?: Extractor): AppStore {
-  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null, extractions: [] }
+export interface StoreEnv {
+  /** Omit → prefs live in memory only. */
+  prefsRepo?: PrefsRepository
+  /** Browser's prefers-color-scheme, read by caller (store stays DOM-free). */
+  systemDark?: boolean
+}
+
+export function createAppStore(
+  repo: BoardRepository,
+  extractor?: Extractor,
+  { prefsRepo, systemDark = false }: StoreEnv = {},
+): AppStore {
+  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null, extractions: [], theme: null }
+  let prefs: Prefs = defaultPrefs()
   const listeners = new Set<() => void>()
   let saveQueue: Promise<void> = Promise.resolve()
   let pendingSaves = 0
@@ -166,6 +187,8 @@ export function createAppStore(repo: BoardRepository, extractor?: Extractor): Ap
     async init() {
       setState({ status: 'loading', error: null })
       try {
+        prefs = (await prefsRepo?.loadPrefs()) ?? prefs
+        setState({ theme: resolveTheme(prefs, systemDark) })
         const boards = await repo.listBoards()
         // Always land on a board when one exists: open the most recently updated.
         const latest = [...boards].sort((a, b) => b.updatedAt - a.updatedAt)[0]
@@ -259,6 +282,16 @@ export function createAppStore(repo: BoardRepository, extractor?: Extractor): Ap
 
     dismissExtraction(id) {
       setExtraction(id, null)
+    },
+
+    async toggleTheme() {
+      prefs = { ...prefs, theme: otherTheme(state.theme ?? resolveTheme(prefs, systemDark)) }
+      setState({ theme: prefs.theme })
+      try {
+        await prefsRepo?.savePrefs(prefs)
+      } catch (err) {
+        fail(err)
+      }
     },
   }
 

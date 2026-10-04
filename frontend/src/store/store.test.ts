@@ -10,6 +10,24 @@ const setup = () => {
 }
 
 describe('app store', () => {
+  it('theme follows browser until toggled, then saves choice', async () => {
+    const prefsRepo = new MemoryRepo()
+    const store = createAppStore(new MemoryRepo(), undefined, { prefsRepo, systemDark: true })
+    expect(store.getState().theme).toBeNull()
+    await store.actions.init()
+    expect(store.getState().theme).toBe('dark')
+    expect(await prefsRepo.loadPrefs()).toBeNull()
+
+    await store.actions.toggleTheme()
+    expect(store.getState().theme).toBe('light')
+    expect(await prefsRepo.loadPrefs()).toEqual({ theme: 'light' })
+
+    // Saved choice beats browser on next launch
+    const next = createAppStore(new MemoryRepo(), undefined, { prefsRepo, systemDark: true })
+    await next.actions.init()
+    expect(next.getState().theme).toBe('light')
+  })
+
   it('creates and opens a board, autosaves it', async () => {
     const { repo, store } = setup()
     const board = await store.actions.createBoard('Trip')

@@ -7,7 +7,19 @@ import { LocalStorageRepo } from './persistence'
 import { createAppStore, StoreProvider } from './store'
 
 // Swap persistence / extractor here (e.g. new SupabaseRepo()) — nothing else changes.
-const store = createAppStore(new LocalStorageRepo(), new HttpExtractor())
+const repo = new LocalStorageRepo()
+const store = createAppStore(repo, new HttpExtractor(), {
+  prefsRepo: repo,
+  systemDark: matchMedia('(prefers-color-scheme: dark)').matches,
+})
+
+// Theme → <html> (Tailwind `dark` class). index.html sets it pre-paint; this keeps it in sync.
+store.subscribe(() => {
+  const { theme } = store.getState()
+  if (!theme) return
+  document.documentElement.classList.toggle('dark', theme === 'dark')
+  document.documentElement.style.colorScheme = theme
+})
 store.actions.init()
 
 createRoot(document.getElementById('root')).render(

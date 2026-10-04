@@ -1,14 +1,15 @@
-// Thin Gemini proxy. Holds no type knowledge: prompt + schema come from src/model,
-// so new primitives flow through automatically. Request/response shape: src/extractor/extractor.ts.
+// Thin Gemini proxy. Holds no type knowledge: prompt + schema come from frontend/src/model,
+// so new primitives flow through automatically. Request/response shape: frontend/src/extractor/extractor.ts.
+// Shared by Express (server/index.js, prod) and Vite dev middleware (frontend/vite.config.js).
+// No deps on purpose: Vite loads this from frontend/, where server/node_modules isn't resolvable.
 
-import { z } from 'zod';
 import {
   CAPTURE_IMAGE_TYPES,
   buildExtractionPrompt,
   buildExtractionSchema,
   extractablePrimitives,
   parseExtraction,
-} from '../src/model/index.ts';
+} from '../frontend/src/model/index.ts';
 
 const GEMINI_MODEL = 'gemini-3.6-flash'; // 3.8-flash 503'd (overloaded) 2026-10-03; retry later
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -26,22 +27,23 @@ async function fetchWithRetry(url, init) {
   }
 }
 
-const RequestSchema = z
-  .object({
-    mimeType: z.string().refine((t) => CAPTURE_IMAGE_TYPES.includes(t), 'Unsupported image type'),
-    data: z.string().min(1),
-    primitiveIds: z.array(z.string()).min(1),
-  })
-  .strict();
+/** Error message for a bad ExtractRequest, or null. */
+function requestProblem(body) {
+  if (typeof body !== 'object' || body === null) return 'expected JSON object';
+  if (!CAPTURE_IMAGE_TYPES.includes(body.mimeType)) return 'Unsupported image type';
+  if (typeof body.data !== 'string' || !body.data) return 'missing image data';
+  if (!Array.isArray(body.primitiveIds) || !body.primitiveIds.length) return 'missing primitiveIds';
+  return null;
+}
 
 /** Returns ExtractResponse: { ok: true, drafts } | { ok: false, error }. */
 export async function extract(body, env) {
-  const req = RequestSchema.safeParse(body);
-  if (!req.success) return { ok: false, error: `Invalid request: ${req.error.issues[0]?.message}` };
+  const problem = requestProblem(body);
+  if (problem) return { ok: false, error: `Invalid request: ${problem}` };
 
-  if (!env.GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY not set (frontend/.env)' };
+  if (!env.GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY not set' };
 
-  const primitives = extractablePrimitives().filter((p) => req.data.primitiveIds.includes(p.id));
+  const primitives = extractablePrimitives().filter((p) => body.primitiveIds.includes(p.id));
   if (primitives.length === 0) return { ok: false, error: 'No extractable primitives requested' };
 
   const res = await fetchWithRetry(GEMINI_URL, {
@@ -51,7 +53,7 @@ export async function extract(body, env) {
       contents: [
         {
           parts: [
-            { inline_data: { mime_type: req.data.mimeType, data: req.data.data } },
+            { inline_data: { mime_type: body.mimeType, data: body.data } },
             { text: buildExtractionPrompt(primitives) },
           ],
         },

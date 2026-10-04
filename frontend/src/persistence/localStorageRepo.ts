@@ -1,14 +1,16 @@
 // localStorage layout:
 //   boards:index -> BoardSummary[]
 //   board:<id>   -> Board JSON
+//   prefs        -> Prefs JSON (also read pre-paint by index.html — keep in sync)
 
-import { toSummary, type Board, type BoardSummary } from '../model'
-import type { BoardRepository } from './repository'
+import { toSummary, type Board, type BoardSummary, type Prefs } from '../model'
+import type { BoardRepository, PrefsRepository } from './repository'
 
 const INDEX_KEY = 'boards:index'
+const PREFS_KEY = 'prefs'
 const boardKey = (id: string) => `board:${id}`
 
-export class LocalStorageRepo implements BoardRepository {
+export class LocalStorageRepo implements BoardRepository, PrefsRepository {
   constructor(private storage: Storage = globalThis.localStorage) {}
 
   private readIndex(): BoardSummary[] {
@@ -38,5 +40,14 @@ export class LocalStorageRepo implements BoardRepository {
   async deleteBoard(id: string): Promise<void> {
     this.storage.removeItem(boardKey(id))
     this.writeIndex(this.readIndex().filter((s) => s.id !== id))
+  }
+
+  async loadPrefs(): Promise<Prefs | null> {
+    const json = this.storage.getItem(PREFS_KEY)
+    return json ? JSON.parse(json) : null
+  }
+
+  async savePrefs(prefs: Prefs): Promise<void> {
+    this.storage.setItem(PREFS_KEY, JSON.stringify(prefs))
   }
 }

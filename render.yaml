@@ -1,0 +1,13 @@
+# Render Blueprint. One Web Service: Express (server/) serves built frontend (frontend/dist) + /api/extract.
+services:
+  - type: web
+    name: stormhacks2026
+    runtime: node
+    plan: free
+    buildCommand: npm --prefix frontend install && npm --prefix frontend run build && npm --prefix server install
+    startCommand: npm --prefix server start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: GEMINI_API_KEY
+        sync: false # set in Render dashboard; never committed
