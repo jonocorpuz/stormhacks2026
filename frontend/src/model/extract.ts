@@ -30,6 +30,16 @@ const BLOCK_JSON_SCHEMA: Record<BlockId, Record<string, unknown>> = {
       required: ['title', 'isChecked'],
     },
   },
+  number: { type: 'number' },
+  // Entries: { id, name, price }. id added in parse.
+  line_items: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: { name: { type: 'string' }, price: { type: 'number' } },
+      required: ['name', 'price'],
+    },
+  },
 }
 
 export function buildExtractionPrompt(primitives: readonly PrimitiveDef[]): string {
@@ -45,7 +55,8 @@ export function buildExtractionPrompt(primitives: readonly PrimitiveDef[]): stri
   return `You are given an image a user saved. Map it onto the known item types below.
 Pick the single best-matching type, even if none fits well, and fill its fields from what is visible.
 Return exactly one item. Only use the listed field keys. Omit fields you cannot fill — never guess or invent.
-text = short single line; longtext = multi-line, preserve useful detail; list = one entry per line item.
+text = short single line; longtext = multi-line, preserve useful detail; list = one entry per line item;
+number = plain number, no units or symbols; line_items = one entry per purchased item with its price as a number.
 
 Item types:
 ${types}`
@@ -86,7 +97,7 @@ export function buildExtractionSchema(primitives: readonly PrimitiveDef[]): Reco
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** List entries need ids for the UI; AI doesn't produce them. */
+/** List and line-item entries need ids for the UI; AI doesn't produce them. */
 const withId = (entry: unknown) =>
   isRecord(entry) && typeof entry.id !== 'string' ? { id: crypto.randomUUID(), ...entry } : entry
 
@@ -111,7 +122,8 @@ export function parseExtraction(raw: unknown, primitives: readonly PrimitiveDef[
         ? getBlock(field.block).isEmpty(value)
         : value === null || value === undefined || value === ''
       if (empty) continue
-      fields[key] = field?.block === 'list' && Array.isArray(value) ? value.map(withId) : value
+      const needsIds = field?.block === 'list' || field?.block === 'line_items'
+      fields[key] = needsIds && Array.isArray(value) ? value.map(withId) : value
     }
     return { primitiveId: def.id, fields }
   })
