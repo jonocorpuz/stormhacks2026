@@ -22,8 +22,8 @@ export default function CreateItemMenu({ isOpen, onClose }) {
   };
 
   return (
-    <div className="absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-3xl origin-top animate-slide-down-fade z-50 flex flex-col space-y-5">
-      <h3 className="text-black dark:text-white font-bold text-sm px-1">New</h3>
+    <div className="absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-sheet origin-top animate-slide-down-fade z-50 flex flex-col space-y-5">
+      <h3 className="text-ink font-bold text-sm px-1">New</h3>
 
       <div className="flex flex-wrap gap-2">
         {PRIMITIVES.map((p) => (
@@ -35,8 +35,8 @@ export default function CreateItemMenu({ isOpen, onClose }) {
             }}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               primitiveId === p.id
-                ? 'bg-blue-500 text-white shadow-md'
-                : 'bg-black/5 text-black/70 hover:bg-black/10 hover:text-black dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white'
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-ink/5 text-ink/70 hover:bg-ink/10 hover:text-ink dark:bg-ink/10 dark:hover:bg-ink/20'
             }`}
           >
             {p.name}
@@ -48,7 +48,7 @@ export default function CreateItemMenu({ isOpen, onClose }) {
 
       <button
         onClick={handleCreate}
-        className="w-full py-2.5 bg-blue-500/90 backdrop-blur-md border border-blue-400/50 text-white rounded-full hover:bg-blue-600/90 text-sm font-semibold transition-colors shadow-lg mt-2"
+        className="w-full py-2.5 bg-primary/90 backdrop-blur-md border border-primary/50 text-white rounded-full hover:bg-primary-strong/90 text-sm font-semibold transition-colors shadow-lg mt-2"
       >
         Create {primitive.name}
       </button>

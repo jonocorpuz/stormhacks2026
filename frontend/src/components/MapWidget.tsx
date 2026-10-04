@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { MapWidgetData } from '../types/widgets';
+import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 
 export interface MapWidgetProps {
   data?: Partial<MapWidgetData>;
@@ -17,13 +18,9 @@ const DEFAULT_DATA: MapWidgetData = {
 // designed at 357px square. All sizes scale with the widget's width (container query units)
 // so it keeps the design's proportions in any 1x1 bento cell.
 const DESIGN_WIDTH = 357;
-const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
+const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
-const PANEL_GRADIENT =
-  'linear-gradient(157.97deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
-const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
-const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
+const PANEL_GRADIENT = accentGradient('blue', 157.97);
 
 // The live map is rendered larger than the card and offset so Google's embed chrome
 // (place box, zoom controls, attribution) is cropped away and the pin lands where the design has it.
@@ -44,8 +41,8 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30 bg-[#F2EFE9] dark:bg-[#1E1E1E] select-none"
-        style={{ borderRadius: u(23) }}
+        className="relative w-full h-full overflow-hidden border border-accent-blue-edge bg-map-paper select-none"
+        style={{ borderRadius: radius('card') }}
       >
         {/* Map */}
         <iframe
@@ -65,22 +62,22 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-white transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+          className={`absolute flex items-center justify-between ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} text-control-ink transition-all duration-200`}
           style={{
-            left: u(25),
-            top: u(28),
+            left: cardInset,
+            top: cardInset,
             width: u(173),
             height: u(50),
-            borderRadius: u(17.179),
-            paddingLeft: u(23.82),
-            paddingRight: u(23),
+            borderRadius: radius('control'),
+            paddingLeft: space(6),
+            paddingRight: space(6),
             backdropFilter: `blur(${u(6)})`,
-            boxShadow: `${u(1.718)} ${u(0.859)} ${u(13.572)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.859)} 0 ${u(45.441)} ${u(11.91)} rgba(255, 255, 255, 0.52)`,
+            boxShadow: glassShadow,
           }}
         >
           <span
             className="whitespace-nowrap"
-            style={{ fontFamily: BODY_FONT, fontSize: u(18.323), lineHeight: u(21) }}
+            style={type('body')}
           >
             Open Maps
           </span>
@@ -89,14 +86,14 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
 
         {/* Location Panel */}
         <div
-          className="absolute border-solid border-[#8AC6FF] dark:border-[#8AC6FF]/30 bg-[rgba(255,255,255,0.83)] dark:bg-[rgba(30,30,30,0.83)]"
+          className="absolute border-solid border-accent-blue-edge bg-surface/[0.83]"
           style={{
             left: u(21),
-            top: u(187),
+            bottom: cardInset,
             width: u(315.226),
             height: u(144.747),
             borderWidth: u(0.804),
-            borderRadius: u(14.475),
+            borderRadius: radius('control'),
             backdropFilter: `blur(${u(4)})`,
           }}
         >
@@ -104,27 +101,27 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
             className="absolute inset-0 flex flex-col"
             style={{
               backgroundImage: PANEL_GRADIENT,
-              borderRadius: u(14.475),
-              paddingLeft: u(23.32),
-              paddingTop: u(19.9),
-              gap: u(10),
+              borderRadius: radius('control'),
+              paddingLeft: space(6),
+              paddingTop: space(5),
+              gap: space(2),
             }}
           >
             <h2
-              className="font-bold text-[#2294FE] whitespace-nowrap overflow-hidden text-ellipsis"
-              style={{ fontFamily: TITLE_FONT, fontSize: u(20), lineHeight: u(24), width: u(236.419) }}
+              className="font-bold text-accent-blue whitespace-nowrap overflow-hidden text-ellipsis"
+              style={{ ...type('title'), width: u(236.419) }}
             >
               {title}
             </h2>
             <p
-              className="text-[#2294FE] line-clamp-2"
-              style={{ fontFamily: SF_FONT, fontSize: u(16.083), lineHeight: u(19), width: u(236.419) }}
+              className="text-accent-blue line-clamp-2"
+              style={{ ...type('body'), width: u(236.419) }}
             >
               {address}
             </p>
             <span
-              className="text-[#A2A2A2] dark:text-white whitespace-nowrap"
-              style={{ fontFamily: SF_FONT, fontSize: u(12.866), lineHeight: u(15) }}
+              className="text-ink-subtle whitespace-nowrap"
+              style={type('body')}
             >
               {date}
             </span>

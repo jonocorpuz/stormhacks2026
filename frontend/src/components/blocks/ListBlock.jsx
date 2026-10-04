@@ -40,7 +40,7 @@ export function ListInput({ value, onChange, placeholder, autoFocus, flagged }) 
   };
 
   return (
-    <div className={`space-y-2 ${flagged ? 'ring-2 ring-amber-400/70 rounded-xl p-1' : ''}`}>
+    <div className={`space-y-2 ${flagged ? 'ring-2 ring-warning/70 rounded-xl p-1' : ''}`}>
       {items.map((it, i) => (
         <div key={i} className="flex gap-2 items-center">
           <input
@@ -55,10 +55,10 @@ export function ListInput({ value, onChange, placeholder, autoFocus, flagged }) 
             className={`${INPUT_CLASS} flex-1`}
             autoFocus={autoFocus && i === 0}
           />
-          <button onClick={() => handleRemove(i)} className="text-red-500 font-bold w-6 hover:text-red-700">×</button>
+          <button onClick={() => handleRemove(i)} className="text-danger font-bold w-6 hover:text-danger-strong">×</button>
         </div>
       ))}
-      <button onClick={handleAdd} className="text-sm font-medium text-blue-500 hover:text-blue-600 w-full text-left px-1">
+      <button onClick={handleAdd} className="text-sm font-medium text-primary hover:text-primary-strong w-full text-left px-1">
         + Add Item
       </button>
     </div>

@@ -12,7 +12,7 @@ export function LongtextInput({ value, onChange, placeholder, autoFocus, flagged
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       autoFocus={autoFocus}
-      className={`${INPUT_CLASS} p-3 rounded-xl resize-none h-24 ${flagged ? 'ring-2 ring-amber-400/70' : ''}`}
+      className={`${INPUT_CLASS} p-3 rounded-xl resize-none h-24 ${flagged ? 'ring-2 ring-warning/70' : ''}`}
     />
   );
 }
