@@ -87,9 +87,11 @@ describe('App', () => {
     await type(screen.getByPlaceholderText('Search'), '');
 
     // Edit via modal
-    await click(screen.getByText('Ramen spots'));
+    await click(screen.getByLabelText('Edit board'));
+    await click(screen.getByLabelText('Edit'));
     await type(screen.getByDisplayValue('Ramen spots'), 'Best ramen');
     await click(screen.getByText('Save'));
+    await click(screen.getByLabelText('Edit board'));
     expect(screen.getByText('Best ramen')).toBeTruthy();
 
     // Reload: fresh store on same repo lands back on the board w/ the note

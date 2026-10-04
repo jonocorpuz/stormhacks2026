@@ -21,8 +21,3 @@ export const FIXED_SIZES = {
   music_track: '1x1',
 };
 
-const ORDER = Object.keys(SIZE_CLASSES);
-
-export function nextSize(size) {
-  return ORDER[(ORDER.indexOf(size) + 1) % ORDER.length];
-}

@@ -6,7 +6,7 @@ import 'react-resizable/css/styles.css';
 import { findPrimitive, itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
-import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
+import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
@@ -238,10 +238,6 @@ export default function BoardGrid({ query, editMode }) {
   // Stable per-id handlers so memoized cards skip re-render during drag/settle state changes.
   const openItem = useCallback((id) => setEditingId(id), []);
   const askDelete = useCallback((id) => setDeletingId(id), []);
-  const cycleSize = useCallback(
-    (id) => setView({ sizes: { ...sizes, [id]: nextSize(sizes[id] ?? DEFAULT_SIZE) } }),
-    [sizes, setView],
-  );
   const editingItem = board.items.find((i) => i.id === editingId);
   const deletingItem = board.items.find((i) => i.id === deletingId);
 
@@ -463,7 +459,6 @@ export default function BoardGrid({ query, editMode }) {
                     isDragging={isDragging}
                     onOpen={openItem}
                     onDelete={askDelete}
-                    onCycleSize={cycleSize}
                   />
                 </div>
               </div>
