@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { verticalCompactor } from 'react-grid-layout';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
@@ -230,7 +230,18 @@ export default function BoardGrid({ query, editMode }) {
   useEffect(() => () => clearTimeout(settleTimerRef.current), []);
 
   const sizes = board.view.sizes ?? EMPTY;
-  const items = board.items.filter((item) => itemMatchesQuery(item, query));
+  // Memoized so layout packing + RGL re-layout only run when items/query change, not every render.
+  const items = useMemo(
+    () => board.items.filter((item) => itemMatchesQuery(item, query)),
+    [board.items, query],
+  );
+  // Stable per-id handlers so memoized cards skip re-render during drag/settle state changes.
+  const openItem = useCallback((id) => setEditingId(id), []);
+  const askDelete = useCallback((id) => setDeletingId(id), []);
+  const cycleSize = useCallback(
+    (id) => setView({ sizes: { ...sizes, [id]: nextSize(sizes[id] ?? DEFAULT_SIZE) } }),
+    [sizes, setView],
+  );
   const editingItem = board.items.find((i) => i.id === editingId);
   const deletingItem = board.items.find((i) => i.id === deletingId);
 
@@ -450,8 +461,9 @@ export default function BoardGrid({ query, editMode }) {
                     size={sizes[item.id]}
                     editMode={editMode}
                     isDragging={isDragging}
-                    onOpen={() => setEditingId(item.id)}
-                    onDelete={() => setDeletingId(item.id)}
+                    onOpen={openItem}
+                    onDelete={askDelete}
+                    onCycleSize={cycleSize}
                   />
                 </div>
               </div>
