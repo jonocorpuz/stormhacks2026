@@ -463,7 +463,7 @@ export default function BoardGrid({ query, editMode }) {
             }
           }}
         >
-          {stableItems.map((item) => {
+          {stableItems.map((item, i) => {
             const isDragging = editMode && dragId === item.id;
             const isSettling = settlingId === item.id;
 
