@@ -1,7 +1,7 @@
 import React from 'react';
 import TicketWidget from '../TicketWidget';
 
-export default function TicketCard({ item }) {
+export default function TicketCard({ item, isCompact }) {
   const data = {
     vendor: item.fields.vendor,
     title: item.fields.title,
@@ -14,5 +14,5 @@ export default function TicketCard({ item }) {
     url: item.fields.url,
   };
 
-  return <TicketWidget data={data} />;
+  return <TicketWidget data={data} isCompact={isCompact} />;
 }

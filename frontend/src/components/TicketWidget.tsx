@@ -1,12 +1,12 @@
 import React from 'react';
-import type { TicketWidgetData } from '../types/widgets';
+import type { TicketWidgetData, WidgetDisplayProps } from '../types/widgets';
 import ticketmasterLogo from '../assets/ticket-widget/ticketmaster-logo.png';
 import ticketShape from '../assets/ticket-widget/ticket-watermark.svg';
 import { ticketHref } from './ticketHref';
 import WidgetShell, { ShellPill, Watermark } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
-export interface TicketWidgetProps {
+export interface TicketWidgetProps extends WidgetDisplayProps {
   data?: Partial<TicketWidgetData>;
   className?: string;
 }
@@ -28,6 +28,10 @@ const DEFAULT_DATA: TicketWidgetData = {
 const DESIGN_WIDTH = 732;
 const { u, space, radius, type } = widgetScale(DESIGN_WIDTH);
 
+// Compact (mobile Rolodex) variant: 1x1 square at the 1x1 design width.
+const COMPACT_WIDTH = 357;
+const compact = widgetScale(COMPACT_WIDTH);
+
 // Wordmark crop from the design's "image 1" layer (109 x 17.06), shrunk to fit the pill.
 const LOGO_WIDTH = 92;
 const LOGO_HEIGHT = LOGO_WIDTH * (17.06 / 109);
@@ -38,7 +42,7 @@ const TICKET_WATERMARK = { src: ticketShape, width: 71, height: 40 };
 const LABEL = `${ON_PANEL.secondary} font-bold`;
 const VALUE = `${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`;
 
-export default function TicketWidget({ data, className = '' }: TicketWidgetProps) {
+export default function TicketWidget({ data, className = '', isCompact = false }: TicketWidgetProps) {
   // Sample data only for previews (no data). Real items show their own values, even empty ones.
   const pick = <K extends keyof TicketWidgetData>(key: K) => (data ? (data[key] ?? '') : DEFAULT_DATA[key]);
   const vendor = pick('vendor');
@@ -56,31 +60,55 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
 
   const detailStyle = type('detail');
 
-  const footer = isTicketmaster ? (
-    <ShellPill
-      designWidth={DESIGN_WIDTH}
-      href={url}
-      label="View ticket on Ticketmaster"
-      logo={
-        // White capsule: the wordmark is too wide for a round badge.
-        <span
-          className="relative shrink-0 flex items-center justify-center rounded-full bg-white"
-          style={{ height: u(SHELL.logo), paddingLeft: space(3), paddingRight: space(3) }}
+  const footer = <TicketLink designWidth={DESIGN_WIDTH} url={url} isTicketmaster={isTicketmaster} />;
+
+  if (isCompact) {
+    // Stacked: vendor, event, date, then seating. Location and entry info hidden; full-width link.
+    return (
+      <WidgetShell
+        designWidth={COMPACT_WIDTH}
+        accent="yellow"
+        className={`aspect-square ${className}`}
+        watermark={<Watermark designWidth={COMPACT_WIDTH} shape={TICKET_WATERMARK} size={200} />}
+        footer={<TicketLink designWidth={COMPACT_WIDTH} url={url} isTicketmaster={isTicketmaster} grow />}
+      >
+        <div
+          className="absolute flex flex-col"
+          style={{ left: compact.u(SHELL.padX), right: compact.u(SHELL.padX), top: compact.u(SHELL.padY), bottom: compact.u(SHELL.padX) }}
         >
-          <span className="relative block overflow-hidden" style={{ width: u(LOGO_WIDTH), height: u(LOGO_HEIGHT) }} role="img" aria-label="Ticketmaster">
-            <img
-              src={ticketmasterLogo}
-              alt=""
-              className="absolute left-0 max-w-none w-full pointer-events-none"
-              style={{ height: '359.4%', top: '-132.61%' }}
-            />
+          <span className={`${ON_PANEL.faint} font-bold whitespace-nowrap overflow-hidden text-ellipsis`} style={compact.type('caption')}>
+            {vendor}
           </span>
-        </span>
-      }
-    />
-  ) : (
-    <ShellPill designWidth={DESIGN_WIDTH} href={url} label="View ticket" text="View ticket" />
-  );
+          <h2 className={`font-bold ${ON_PANEL.primary} line-clamp-2`} style={{ ...compact.type('display'), marginTop: compact.space(1) }}>
+            {pick('title')}
+          </h2>
+          <span className={`${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`} style={{ ...compact.type('body'), marginTop: compact.space(1) }}>
+            {pick('eventDate')}
+          </span>
+
+          {/* Seating: label above value so three wells fit one column. */}
+          <div className="flex mt-auto" style={{ gap: compact.space(2) }}>
+            {seating.map(([label, value]) => (
+              <div
+                key={label}
+                className={`flex flex-1 min-w-0 flex-col items-center justify-center ${ON_PANEL.well}`}
+                style={{
+                  height: compact.u(52),
+                  borderRadius: compact.radius('control'),
+                  boxShadow: `inset 0 ${compact.u(3)} ${compact.u(3)} 0 rgb(var(--shadow) / 0.25)`,
+                }}
+              >
+                <span className={LABEL} style={compact.type('caption')}>{label}</span>
+                <span className={`${VALUE} font-bold max-w-full`} style={compact.type('body')}>
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </WidgetShell>
+    );
+  }
 
   return (
     <WidgetShell
@@ -141,6 +169,47 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
         </div>
       </div>
     </WidgetShell>
+  );
+}
+
+// Footer link: Ticketmaster wordmark pill, or a plain "View ticket" pill. grow → full width.
+function TicketLink({
+  designWidth,
+  url,
+  isTicketmaster,
+  grow = false,
+}: {
+  designWidth: number;
+  url: string;
+  isTicketmaster: boolean;
+  grow?: boolean;
+}) {
+  const { u } = widgetScale(designWidth);
+  return isTicketmaster ? (
+    <ShellPill
+      designWidth={designWidth}
+      href={url}
+      label="View ticket on Ticketmaster"
+      grow={grow}
+      logo={
+        // White capsule: the wordmark is too wide for a round badge.
+        <span
+          className="relative shrink-0 flex items-center justify-center rounded-full bg-white"
+          style={{ height: u(SHELL.logo), paddingLeft: u(12), paddingRight: u(12) }}
+        >
+          <span className="relative block overflow-hidden" style={{ width: u(LOGO_WIDTH), height: u(LOGO_HEIGHT) }} role="img" aria-label="Ticketmaster">
+            <img
+              src={ticketmasterLogo}
+              alt=""
+              className="absolute left-0 max-w-none w-full pointer-events-none"
+              style={{ height: '359.4%', top: '-132.61%' }}
+            />
+          </span>
+        </span>
+      }
+    />
+  ) : (
+    <ShellPill designWidth={designWidth} href={url} label="View ticket" text="View ticket" grow={grow} />
   );
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import CodeSnippetWidget from '../CodeSnippetWidget';
 
-export default function CodeSnippetCard({ item, primitive }) {
+export default function CodeSnippetCard({ item, isCompact }) {
   const data = {
     title: item.fields.title,
     language: item.fields.language,
@@ -9,5 +9,5 @@ export default function CodeSnippetCard({ item, primitive }) {
     date: item.fields.date,
   };
 
-  return <CodeSnippetWidget data={data} />;
+  return <CodeSnippetWidget data={data} isCompact={isCompact} />;
 }

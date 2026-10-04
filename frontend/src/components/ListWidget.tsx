@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Pencil } from 'lucide-react';
-import type { ListItem, ListWidgetData } from '../types/widgets';
+import type { ListItem, ListWidgetData, WidgetDisplayProps } from '../types/widgets';
 import WidgetShell, { ShellIconButton } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
-export interface ListWidgetProps {
+export interface ListWidgetProps extends WidgetDisplayProps {
   data?: Partial<ListWidgetData>;
   initialData?: ListWidgetData;
   onToggleItem?: (id: string) => void;
@@ -37,6 +37,7 @@ export default function ListWidget({
   onToggleItem,
   onEdit,
   className = '',
+  isCompact = false,
 }: ListWidgetProps) {
   const [items, setItems] = useState<ListItem[]>(() => (
     data?.items ?? initialData?.items ?? DEFAULT_ITEMS
@@ -96,7 +97,8 @@ export default function ListWidget({
   );
 
   return (
-    <div ref={rootRef} className="w-full h-full min-h-[280px]">
+    // Compact (mobile Rolodex): already drawn at 1x1, so just a square with no min height and no date.
+    <div ref={rootRef} className={`w-full h-full ${isCompact ? 'aspect-square' : 'min-h-[280px]'}`}>
       <WidgetShell
         designWidth={DESIGN_WIDTH}
         accent="green"
@@ -186,12 +188,14 @@ export default function ListWidget({
             )}
           </div>
 
-          <span
-            className={`${ON_PANEL.faint} whitespace-nowrap shrink-0`}
-            style={{ ...type('caption'), marginTop: space(2) }}
-          >
-            {date}
-          </span>
+          {!isCompact && (
+            <span
+              className={`${ON_PANEL.faint} whitespace-nowrap shrink-0`}
+              style={{ ...type('caption'), marginTop: space(2) }}
+            >
+              {date}
+            </span>
+          )}
         </div>
       </WidgetShell>
     </div>

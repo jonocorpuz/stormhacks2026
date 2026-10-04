@@ -25,6 +25,7 @@ export default memo(function ItemCard({
   onOpen,
   onDelete,
   dragProps,
+  isCompact = false, // mobile Rolodex: multi-span widgets render their square 1x1 variant
 }) {
   // Saved boards can hold items whose primitive this build doesn't know (e.g. created on
   // another branch). Show a placeholder instead of throwing, which would blank the whole app.
@@ -75,7 +76,7 @@ export default memo(function ItemCard({
             : ''
       }`}
     >
-      <Card item={item} primitive={primitive} />
+      <Card item={item} primitive={primitive} isCompact={isCompact} />
 
       {/* Widgets draw their own grip; plain glass cards get one here. */}
       {!isFullBleed && (

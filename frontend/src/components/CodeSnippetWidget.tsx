@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { CodeSnippetData } from '../types/widgets';
+import type { CodeSnippetData, WidgetDisplayProps } from '../types/widgets';
 import WidgetShell, { ShellIconButton, SolidPanel, Watermark } from './WidgetShell';
 import { FONT, ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
-export interface CodeSnippetWidgetProps {
+export interface CodeSnippetWidgetProps extends WidgetDisplayProps {
   data?: Partial<CodeSnippetData>;
   className?: string;
 }
@@ -20,9 +20,15 @@ const DEFAULT_DATA: CodeSnippetData = {
 const DESIGN_WIDTH = 730;
 const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
+// Compact (mobile Rolodex) variant: 1x1 square at the 1x1 design width.
+const COMPACT_WIDTH = 357;
+const compact = widgetScale(COMPACT_WIDTH);
+// Code runs off the bottom instead of scrolling.
+const CODE_FADE = 'linear-gradient(to bottom, black 50%, transparent 100%)';
+
 const COPIED_RESET_MS = 1600;
 
-export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetWidgetProps) {
+export default function CodeSnippetWidget({ data, className = '', isCompact = false }: CodeSnippetWidgetProps) {
   // Sample data only for previews (no data). Real items show their own values, even empty ones.
   const src = data ?? DEFAULT_DATA;
   const title = src.title ?? '';
@@ -44,6 +50,45 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
       setCopied(false);
     }
   };
+
+  if (isCompact) {
+    // Title, language and a faded peek at the code. No copy button or date.
+    return (
+      <WidgetShell designWidth={COMPACT_WIDTH} className={`aspect-square ${className}`}>
+        <div className="absolute inset-0 flex flex-col" style={{ gap: compact.space(3) }}>
+          <div
+            className="flex items-baseline justify-between shrink-0"
+            style={{ gap: compact.space(3), paddingLeft: compact.u(SHELL.padX), paddingRight: compact.u(SHELL.padX), paddingTop: compact.u(SHELL.padY / 2) }}
+          >
+            <h2 className="font-bold text-white min-w-0 whitespace-nowrap overflow-hidden text-ellipsis" style={compact.type('display')}>
+              {title}
+            </h2>
+            <span className="text-white whitespace-nowrap shrink-0" style={compact.type('body')}>
+              {language}
+            </span>
+          </div>
+
+          <SolidPanel designWidth={COMPACT_WIDTH} accent="grey" className="flex-1 min-h-0">
+            <Watermark designWidth={COMPACT_WIDTH} glyph="{i++}" size={200} />
+            <pre
+              className={`absolute inset-0 m-0 overflow-hidden whitespace-pre-wrap break-words ${ON_PANEL.primary}`}
+              style={{
+                padding: compact.space(4),
+                fontFamily: FONT.mono,
+                fontSize: compact.type('body').fontSize,
+                fontWeight: 700,
+                lineHeight: 'normal',
+                maskImage: CODE_FADE,
+                WebkitMaskImage: CODE_FADE,
+              }}
+            >
+              <code style={{ fontFamily: 'inherit' }}>{code}</code>
+            </pre>
+          </SolidPanel>
+        </div>
+      </WidgetShell>
+    );
+  }
 
   const footer = (
     <ShellIconButton

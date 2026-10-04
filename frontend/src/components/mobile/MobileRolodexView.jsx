@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
-import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
 import CreateItemMenu from '../CreateItemMenu';
 import GlassButton from '../GlassButton';
@@ -11,26 +10,10 @@ import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
-// Desktop bento cell geometry, so each card keeps the exact aspect ratio it has on the grid
-// (a 2x1 spans two cells plus the gap). The Figma widgets scale off their width, so a matching
-// aspect ratio means nothing clips or leaves dead space.
-const CELL = 389;
-const GAP = 24;
-
-function cellsFor(item, sizes) {
-  return (sizes[item.id] || FIXED_SIZES[item.primitiveId] || DEFAULT_SIZE).split('x').map(Number);
-}
-
-function aspectFor(item, sizes) {
-  const [w, h] = cellsFor(item, sizes);
-  return (w * CELL + (w - 1) * GAP) / (h * CELL + (h - 1) * GAP);
-}
-
+// Every card is a 1x1 square here: multi-span widgets render their compact variant (isCompact).
 // Widgets draw a 28px corner at ~357px per column and scale with width. The opaque backing uses a
 // slightly larger radius (and a 1px inset) so it always hides inside the widget's own corners.
-function backingRadius(item, sizes, cardW) {
-  return (28 * 1.25 * cardW) / (cellsFor(item, sizes)[0] * 357);
-}
+const backingRadius = (cardW) => (28 * 1.25 * cardW) / 357;
 
 // Tilt-stack motion (defaults from the "Tilt stack prototype"): the focused card stands upright;
 // upcoming cards wait in a pile below, tilted toward you; flipped cards stack above, tilted away.
@@ -42,8 +25,7 @@ const PERSPECTIVE = 900;
 const STEP = 220; // scroll px per card flip
 const PUSH_MS = 380; // other cards slide off-screen when one is opened
 const FOLLOW_MS = 260; // drawn progress glides toward the scroll position with this time constant
-// Pile positions place the centre of a card's top square (w x w): square cards are centred there,
-// taller cards share the same top edge and extend downward.
+// Pile positions place the centre of each (square) card.
 const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
 const FWD_Y = 0.9; // waiting pile centre, low so the focused card has room
 const MAX_CARD_W = 330;
@@ -96,12 +78,8 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
   const askDelete = useCallback((id) => setDeletingId(id), []);
   const n = items.length;
 
-  // Card box: every card takes the full card width; height follows the widget aspect ratio.
-  const cardSize = (item) => {
-    const aspect = aspectFor(item, sizes);
-    const w = Math.max(0, Math.min(MAX_CARD_W, box.w - 40));
-    return { w, h: w / aspect };
-  };
+  // Card box: every card is a square at the full card width.
+  const cardW = Math.max(0, Math.min(MAX_CARD_W, box.w - 40));
 
   // Stage size drives layout (track height, pile positions).
   useLayoutEffect(() => {
@@ -301,7 +279,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
           >
             {box.h > 0 &&
               items.map((item, i) => {
-                const { w, h } = cardSize(item);
+                const w = cardW;
                 return (
                   <div
                     key={item.id}
@@ -309,13 +287,13 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
                     data-id={item.id}
                     onClick={focusCard(i, item.id)}
                     className="absolute left-1/2 top-0 cursor-pointer will-change-transform [--dim:0]"
-                    style={{ width: w, height: h, marginTop: -w / 2, transformOrigin: `50% ${w / 2}px` }}
+                    style={{ width: w, height: w, marginTop: -w / 2, transformOrigin: `50% ${w / 2}px` }}
                   >
                     {/* Opaque backing: widgets are translucent glass, so stacked cards would show through. */}
                     <div
                       aria-hidden
                       className="absolute inset-px bg-canvas pointer-events-none"
-                      style={{ borderRadius: backingRadius(item, sizes, w) }}
+                      style={{ borderRadius: backingRadius(w) }}
                     />
                     <div className="pop-in w-full h-full" style={cardPop(i)}>
                       <ItemCard
@@ -323,6 +301,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
                         size={sizes[item.id]}
                         editMode={editMode}
                         isDragging={false}
+                        isCompact
                         onOpen={openItem}
                         onDelete={askDelete}
                       />

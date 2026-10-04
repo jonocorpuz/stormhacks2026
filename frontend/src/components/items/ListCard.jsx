@@ -3,7 +3,7 @@ import ListWidget from '../ListWidget';
 import { useActions } from '../../store';
 import { toListEntries } from './listEntries';
 
-export default function ListCard({ item }) {
+export default function ListCard({ item, isCompact }) {
   const { updateItem } = useActions();
 
   // Normalized: tolerates corrupted shapes (JSON string, bare strings) without spreading strings.
@@ -23,5 +23,5 @@ export default function ListCard({ item }) {
     updateItem(item.id, { items: newItems }).catch(() => {}); // failure shown by SaveStatus
   };
 
-  return <ListWidget data={data} onToggleItem={handleToggleItem} />;
+  return <ListWidget data={data} onToggleItem={handleToggleItem} isCompact={isCompact} />;
 }

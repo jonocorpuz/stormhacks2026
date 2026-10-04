@@ -75,3 +75,8 @@ export interface MusicWidgetData {
   url: string;
   date: string;
 }
+
+/** Shared display props. isCompact: square 1x1 variant for the mobile Rolodex; desktop never sets it. */
+export interface WidgetDisplayProps {
+  isCompact?: boolean;
+}
