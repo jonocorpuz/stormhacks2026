@@ -12,6 +12,7 @@ export default {
       colors: {
         canvas: token('canvas'),
         surface: token('surface'),
+        glass: token('glass'),
         ink: {
           DEFAULT: token('ink'),
           muted: token('ink-muted'),

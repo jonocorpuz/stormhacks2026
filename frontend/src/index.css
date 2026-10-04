@@ -85,6 +85,9 @@
     --code-punctuation: 171 178 191;
 
     /* Shadow colors */
+    /* Dark-mode glass fill only (see .dark); light mode uses bg-surface. */
+    --glass: 255 255 255;
+
     --shadow: 0 0 0;
     --glow: 255 255 255;
     --haze: 144 144 144;
@@ -106,6 +109,10 @@
 
     --shell: 42 42 42;
 
+    /* Dark glass fill (.apple-glass): the grey a 10% white tint gives over the canvas, made mostly
+       opaque so menus/modals stay readable over cards. Opacity set in .apple-glass. */
+    --glass: 52 52 52;
+
   }
 
   /* Global UI scale: 1rem = 14.4px. Everything is rem-based (Tailwind) or scales with the
@@ -123,7 +130,7 @@
   .apple-glass {
     @apply backdrop-blur-2xl 
            bg-surface/80 border border-line shadow-md shadow-black/[0.03] text-ink-subtle
-           dark:bg-ink/10 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
+           dark:bg-glass/75 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
            transition-colors duration-500;
   }
 
