@@ -1,5 +1,5 @@
 import React from 'react';
-import { getItemIssues, getPrimitive } from '../../model';
+import { findPrimitive, getItemIssues } from '../../model';
 import GenericCard from './GenericCard';
 import { CARD_COMPONENTS } from './registry';
 import { DEFAULT_SIZE, FIXED_SIZES, SIZE_CLASSES } from './sizes';
@@ -21,9 +21,12 @@ export default function ItemCard({
   onCycleSize,
   dragProps,
 }) {
-  const primitive = getPrimitive(item.primitiveId);
-  const Card = CARD_COMPONENTS[primitive.id] ?? GenericCard;
-  const issues = getItemIssues(item);
+  // Saved boards can hold items whose primitive this build doesn't know (e.g. created on
+  // another branch). Show a placeholder instead of throwing, which would blank the whole app.
+  const known = findPrimitive(item.primitiveId);
+  const primitive = known ?? { id: item.primitiveId, name: item.primitiveId, fields: [] };
+  const Card = known ? (CARD_COMPONENTS[primitive.id] ?? GenericCard) : UnsupportedCard;
+  const issues = known ? getItemIssues(item) : [];
 
   const isFullBleed = ['recommendation_list', 'code_snippet', 'note'].includes(primitive.id);
   const fixedSize = FIXED_SIZES[primitive.id];
@@ -32,7 +35,7 @@ export default function ItemCard({
   return (
     <div
       {...dragProps}
-      onClick={onOpen}
+      onClick={known ? onOpen : undefined}
       className={`${SIZE_CLASSES[effectiveSize] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative transition-transform hover:scale-[1.02] cursor-pointer ${
         isFullBleed
           ? 'flex'
@@ -62,6 +65,17 @@ export default function ItemCard({
           </CardButton>
         </div>
       )}
+    </div>
+  );
+}
+
+function UnsupportedCard({ primitive }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full w-full gap-1 text-center text-black/50 dark:text-white/50">
+      <span className="text-sm font-semibold">Unsupported item</span>
+      <span className="text-xs">
+        &ldquo;{primitive.id}&rdquo; isn&rsquo;t available in this version. Delete it from edit mode.
+      </span>
     </div>
   );
 }
