@@ -19,7 +19,7 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 const RETRY_STATUSES = new Set([429, 500, 503]);
 const RETRY_DELAYS_MS = [1000, 2000, 4000];
 // Per attempt. A stalled connection (spotty Wi-Fi, DNS hang) throws TimeoutError instead of
-// hanging forever; thrown errors aren't retried, so extract() falls back to mock data.
+// hanging forever; thrown errors aren't retried and surface as an error to the user.
 const ATTEMPT_TIMEOUT_MS = 15000;
 
 async function fetchWithRetry(url, init) {
@@ -76,9 +76,11 @@ export async function extract(body, env) {
     });
     raw = await res.text(); // inside the try: the timeout also covers a body that stalls mid-stream
   } catch (err) {
-    // Network down (offline, DNS) or attempt timed out → fall back instead of crashing/hanging.
-    console.warn('[extract] Gemini unreachable, mock response:', err.message);
-    return { ok: true, drafts: buildMockExtraction(primitives) };
+    // Network failure or timeout: report the real reason (undici hides it in err.cause).
+    // No mock fallback here — a placeholder item would disguise real failures as "offline".
+    const reason = err.name === 'TimeoutError' ? `timed out after ${ATTEMPT_TIMEOUT_MS / 1000}s` : (err.cause?.message ?? err.message);
+    console.error('[extract] Gemini request failed:', reason);
+    return { ok: false, error: `Gemini request failed: ${reason}` };
   }
 
   if (!res.ok) {

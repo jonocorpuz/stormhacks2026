@@ -103,7 +103,7 @@ export function buildExtractionSchema(primitives: readonly PrimitiveDef[]): Reco
   }
 }
 
-/** Offline / no-key stand-in for the AI: one draft for the best fallback primitive. */
+/** No-key / mock-mode stand-in for the AI: one draft for the best fallback primitive. */
 export function buildMockExtraction(primitives: readonly PrimitiveDef[]): ExtractionDraft[] {
   const def = primitives.find((p) => p.id === 'note') ?? primitives[0]
   if (!def) return []
@@ -111,7 +111,7 @@ export function buildMockExtraction(primitives: readonly PrimitiveDef[]): Extrac
   const longKey = def.fields.find((f) => f.block === 'longtext')?.key
   const fields: FieldValues = {}
   if (textKey) fields[textKey] = 'Offline capture'
-  if (longKey) fields[longKey] = 'AI extraction unavailable (offline or no API key). Edit this item manually.'
+  if (longKey) fields[longKey] = 'AI extraction is off (no GEMINI_API_KEY, or MOCK_LLM_RESPONSES=true). Edit this item manually.'
   return [{ primitiveId: def.id, fields }]
 }
 
