@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Check, Share } from 'lucide-react';
 import { receiptTotals } from '../model';
 import type { ReceiptWidgetData } from '../types/widgets';
-import itemCircle from '../assets/receipt-widget/item-circle.svg';
+
 import scrollThumb from '../assets/receipt-widget/scroll-thumb.svg';
 import divider from '../assets/receipt-widget/divider.svg';
 
@@ -32,9 +32,9 @@ const DESIGN_WIDTH = 355;
 const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
 
 const CARD_GRADIENT =
-  'linear-gradient(118.76deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(118.76deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const PANEL_GRADIENT =
-  'linear-gradient(122.32deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(122.32deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
 const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
@@ -129,7 +129,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
   return (
     <div ref={rootRef} className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full flex flex-col overflow-hidden border border-[#8AC6FF] select-none"
+        className="relative w-full h-full flex flex-col overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30 select-none"
         style={{
           backgroundImage: CARD_GRADIENT,
           borderRadius: u(30),
@@ -149,7 +149,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
 
         {/* Receipt Panel */}
         <div
-          className="relative flex-1 min-h-0 flex flex-col overflow-hidden border border-[#8AC6FF]"
+          className="relative flex-1 min-h-0 flex flex-col overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30"
           style={{
             marginTop: u(21),
             borderRadius: u(16),
@@ -166,15 +166,13 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               style={{ padding: `${u(13.69)} ${u(31)} ${u(13.69)} ${u(24.96)}`, gap: u(14.49) }}
             >
               {items.map((line, i) => (
-                <li key={line.id ?? i} className="flex items-center shrink-0 text-[#646464]" style={{ gap: u(12.89) }}>
+                <li key={line.id ?? i} className="flex items-center shrink-0 receipt-text-primary" style={{ gap: u(12.89) }}>
                   <span className="relative shrink-0 flex items-center justify-center" style={{ width: u(31.403), height: u(31.403) }}>
-                    <img
-                      src={itemCircle}
-                      alt=""
-                      width={48.3199}
-                      height={48.3199}
-                      className="absolute block max-w-none pointer-events-none"
-                      style={{ left: u(-7.39), top: u(-7.92), width: u(48.3199), height: u(48.3199) }}
+                    <div
+                      className="absolute inset-0 rounded-full bg-[#DCDCDC]/20 dark:bg-white/10"
+                      style={{
+                        boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgba(255, 255, 255, 0.52)`
+                      }}
                     />
                     <span className="relative" style={{ fontFamily: MONO_FONT, fontSize: u(16.104), lineHeight: u(21) }}>
                       {i + 1}
@@ -217,7 +215,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             <>
               {dividerImg}
               <div
-                className="grid shrink-0 text-[#646464]"
+                className="grid shrink-0 receipt-text-primary"
                 style={{
                   gridTemplateColumns: `${u(159)} 1fr auto`,
                   rowGap: u(15),
@@ -234,7 +232,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
           {/* Total */}
           {dividerImg}
           <div
-            className="flex items-center justify-between shrink-0 text-[#646464]"
+            className="flex items-center justify-between shrink-0 receipt-text-primary"
             style={{ height: u(49), paddingLeft: u(25), paddingRight: u(32) }}
           >
             <span style={smallStyle}>TOTAL</span>
@@ -244,7 +242,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
 
         {/* Footer */}
         <div className="flex items-center justify-between shrink-0" style={{ marginTop: u(21) }}>
-          <span className="text-[#C2BCBC] whitespace-nowrap" style={{ fontFamily: BODY_FONT, fontSize: u(16.104), lineHeight: u(19) }}>
+          <span className="receipt-text-secondary whitespace-nowrap" style={{ fontFamily: BODY_FONT, fontSize: u(16.104), lineHeight: u(19) }}>
             {date}
           </span>
 
@@ -252,7 +250,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             type="button"
             onClick={handleShare}
             aria-label={copied ? 'Receipt copied' : 'Share receipt'}
-            className="flex items-center justify-center shrink-0 bg-[rgba(220,220,220,0.2)] text-[#8E8E8E] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className="flex items-center justify-center shrink-0 bg-[rgba(220,220,220,0.2)] text-[#8E8E8E] dark:text-[#3F3F3F] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{
               width: u(49.923),
               height: u(44.287),

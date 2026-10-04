@@ -29,16 +29,18 @@ const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
 
 // Figma draws the card flipped horizontally, which mirrors its 156.86deg gradient to 203.14deg.
 const CARD_GRADIENT =
-  'linear-gradient(203.14deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(203.14deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const PILL_GRADIENT =
-  'linear-gradient(170.01deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(170.01deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
 const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
 const GLASS_SHADOW = `${u(1.612)} ${u(0.806)} ${u(12.735)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.806)} 0 ${u(42.639)} ${u(11.175)} rgba(255, 255, 255, 0.52)`;
 
 const BLUE = 'text-[#006CE3]';
-const GREY = 'text-[#646464]';
+const GREY = 'text-[#646464] dark:text-white';
+// Dark mode (Figma "Frame 8", 78:18): labels turn light grey + bold instead of blue.
+const LABEL = `${BLUE} font-[510] dark:text-[#BDBDBD] dark:font-bold`;
 
 export default function TicketWidget({ data, className = '' }: TicketWidgetProps) {
   const pick = <K extends keyof TicketWidgetData>(key: K) => data?.[key] || DEFAULT_DATA[key];
@@ -54,12 +56,13 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
     ['ENTRY INFO', pick('entryInfo')],
   ] as const;
 
-  const labelStyle = { fontFamily: SF_FONT, fontSize: u(14), lineHeight: u(17), fontWeight: 510 };
+  // Weight lives in classes (font-[510]) so dark mode can switch labels to bold.
+  const labelStyle = { fontFamily: SF_FONT, fontSize: u(14), lineHeight: u(17) };
 
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border-solid border-[#8AC6FF] select-none"
+        className="relative w-full h-full overflow-hidden border-solid border-[#8AC6FF] dark:border-[#8AC6FF]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
       >
         {/* Vendor Badge */}
@@ -101,7 +104,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
           alt=""
           width={732}
           height={1}
-          className="absolute left-0 block max-w-none"
+          className="absolute left-0 block max-w-none dark:hidden"
           style={{ top: u(132.5), width: u(732), height: u(1) }}
         />
 
@@ -112,8 +115,8 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
         >
           {details.map(([label, value]) => (
             <React.Fragment key={label}>
-              <dt className={BLUE} style={labelStyle}>{label}</dt>
-              <dd className={`${GREY} whitespace-nowrap overflow-hidden text-ellipsis`} style={labelStyle}>{value}</dd>
+              <dt className={LABEL} style={labelStyle}>{label}</dt>
+              <dd className={`${GREY} font-[510] whitespace-nowrap overflow-hidden text-ellipsis`} style={labelStyle}>{value}</dd>
             </React.Fragment>
           ))}
         </dl>
@@ -123,7 +126,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
           {seating.map(([label, value]) => (
             <div
               key={label}
-              className="flex items-center justify-center border border-[#8AC6FF] overflow-hidden"
+              className="flex items-center justify-center border border-[#8AC6FF] overflow-hidden dark:border-transparent dark:!bg-none dark:!shadow-none"
               style={{
                 width: u(215),
                 height: u(43),
@@ -133,8 +136,8 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
                 boxShadow: `inset ${u(4)} ${u(4)} ${u(24.4)} 0 rgba(144, 144, 144, 0.11)`,
               }}
             >
-              <span className={BLUE} style={labelStyle}>{label}</span>
-              <span className={`${GREY} whitespace-nowrap overflow-hidden text-ellipsis`} style={{ ...labelStyle, maxWidth: u(90) }}>
+              <span className={LABEL} style={labelStyle}>{label}</span>
+              <span className={`${GREY} font-[510] whitespace-nowrap overflow-hidden text-ellipsis`} style={{ ...labelStyle, maxWidth: u(90) }}>
                 {value}
               </span>
             </div>
@@ -152,8 +155,8 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
             if (!url) e.preventDefault();
           }}
           aria-disabled={!url}
-          className={`absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] ${GREY} transition-all duration-200 ${
-            url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 cursor-default'
+          className={`absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] ${GREY} dark:text-[#3F3F3F] transition-all duration-200 ${
+            url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 dark:opacity-80 cursor-default'
           }`}
           style={{
             right: u(30),

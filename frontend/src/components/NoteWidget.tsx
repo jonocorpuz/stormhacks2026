@@ -29,7 +29,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-[#FFD9CC] select-none"
+        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-[#FFD9CC] dark:border-[#FFD9CC]/30 select-none"
         style={{
           backgroundImage: CARD_GRADIENT,
           borderWidth: u(0.834),
@@ -50,7 +50,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
 
         {/* Body */}
         <p
-          className="flex-1 min-h-0 overflow-hidden text-[#646464] whitespace-pre-wrap break-words"
+          className="flex-1 min-h-0 overflow-hidden text-[#646464] dark:text-white whitespace-pre-wrap break-words"
           style={{
             fontFamily: SF_FONT,
             fontSize: u(16.104),
@@ -70,7 +70,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
           style={{ marginTop: u(12), paddingLeft: u(12.37), marginRight: u(-2.96) }}
         >
           <span
-            className="text-[#C2BCBC] whitespace-nowrap"
+            className="text-[#C2BCBC] dark:text-white whitespace-nowrap"
             style={{ fontFamily: SF_FONT, fontSize: u(16.104), lineHeight: u(19) }}
           >
             {date}
@@ -89,7 +89,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
               boxShadow: `${u(1.51)} ${u(0.755)} ${u(11.928)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.755)} 0 ${u(39.939)} ${u(10.468)} rgba(255, 255, 255, 0.52)`,
             }}
           >
-            <Pencil className="text-[#8E8E8E]" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
+            <Pencil className="text-[#8E8E8E] dark:text-[#3F3F3F]" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
           </button>
         </div>
       </div>

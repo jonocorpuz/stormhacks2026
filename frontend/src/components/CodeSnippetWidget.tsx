@@ -46,7 +46,7 @@ const DESIGN_WIDTH = 730;
 const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
 
 const CARD_GRADIENT =
-  'linear-gradient(138.27deg, rgba(31, 203, 52, 0.1) 11.72%, rgba(225, 254, 228, 0.1) 50.62%, rgba(31, 203, 52, 0.1) 89.51%)';
+  'linear-gradient(138.27deg, rgba(31, 203, 52, 0.1) 11.72%, rgba(31, 203, 52, 0.02) 50.62%, rgba(31, 203, 52, 0.1) 89.51%)';
 const CODE_FRAME_GRADIENT =
   'linear-gradient(144.53deg, rgba(31, 38, 32, 0.1) 11.72%, rgba(0, 0, 0, 0.1) 50.62%, rgba(31, 38, 32, 0.1) 89.51%)';
 const CODE_FILL_GRADIENT =
@@ -87,7 +87,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-[#8EE799]"
+        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-[#8EE799] dark:border-[#8EE799]/30 dark:!shadow-none"
         style={{
           backgroundImage: CARD_GRADIENT,
           borderWidth: u(0.86),
@@ -110,7 +110,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
             {title}
           </h2>
           <span
-            className="text-[#C2BCBC] whitespace-nowrap shrink-0"
+            className="text-[#C2BCBC] dark:text-white whitespace-nowrap shrink-0"
             style={{ fontFamily: BODY_FONT, fontSize: u(17.193), lineHeight: u(20) }}
           >
             {language}
@@ -119,7 +119,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
 
         {/* Code Block */}
         <div
-          className="relative flex-1 min-h-0 border-solid border-[#8EE799]"
+          className="relative flex-1 min-h-0 border-solid border-[#8EE799] dark:border-[#8EE799]/30"
           style={{
             marginTop: u(13.3),
             marginLeft: u(22),
@@ -168,7 +168,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
           style={{ marginTop: u(13), paddingLeft: u(29), paddingRight: u(18.4) }}
         >
           <span
-            className="text-[#C2BCBC] whitespace-nowrap"
+            className="text-[#C2BCBC] dark:text-white whitespace-nowrap"
             style={{ fontFamily: DATE_FONT, fontSize: u(17.193), lineHeight: u(21) }}
           >
             {date}
@@ -179,7 +179,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
             type="button"
             onClick={handleCopy}
             aria-label={copied ? 'Code copied' : 'Copy code'}
-            className="flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className="flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-white cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{
               width: u(155.596),
               height: u(47.281),

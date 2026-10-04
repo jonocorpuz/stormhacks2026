@@ -99,7 +99,7 @@ export default function ListWidget({
       className={`w-full h-full min-h-[280px] [container-type:inline-size] ${className}`}
     >
       <div
-        className="relative w-full h-full border border-[#FFD9CC] flex flex-col select-none overflow-hidden"
+        className="relative w-full h-full border border-[#FFD9CC] dark:border-[#FFD9CC]/30 flex flex-col select-none overflow-hidden"
         style={{
           backgroundImage: CARD_GRADIENT,
           borderRadius: u(30),
@@ -116,7 +116,7 @@ export default function ListWidget({
 
         {/* Inset List Container */}
         <div
-          className="relative flex-1 min-h-0 border border-[#FFD9CC] overflow-hidden"
+          className="relative flex-1 min-h-0 border border-[#FFD9CC] dark:border-[#FFD9CC]/30 overflow-hidden"
           style={{ backgroundImage: LIST_GRADIENT, borderRadius: u(20), marginTop: u(23) }}
         >
           <div
@@ -156,7 +156,7 @@ export default function ListWidget({
 
                 {/* Item Title */}
                 <span
-                  className="text-[#646464] group-hover:text-[#4A4A4A] transition-colors"
+                  className="text-[#646464] dark:text-white group-hover:text-[#4A4A4A] dark:group-hover:text-gray-200 transition-colors"
                   style={{ fontFamily: BODY_FONT, fontSize: u(20), lineHeight: u(23) }}
                 >
                   {item.title}
@@ -193,7 +193,7 @@ export default function ListWidget({
           style={{ marginTop: u(23), paddingLeft: u(15) }}
         >
           <span
-            className="text-[#C2BCBC]"
+            className="text-[#C2BCBC] dark:text-white"
             style={{ fontFamily: BODY_FONT, fontSize: u(20), lineHeight: u(23) }}
           >
             {date}
@@ -207,7 +207,7 @@ export default function ListWidget({
             className="relative bg-[rgba(220,220,220,0.2)] shadow-[1.875px_0.938px_14.814px_0px_rgba(0,0,0,0.07),inset_-0.938px_0px_49.6px_13px_rgba(255,255,255,0.52)] flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{ width: u(62), height: u(55), borderRadius: u(18.752) }}
           >
-            <Pencil className="text-[#8E8E8E]" style={{ width: u(22), height: u(22) }} strokeWidth={2.2} />
+            <Pencil className="text-[#8E8E8E] dark:text-[#3F3F3F]" style={{ width: u(22), height: u(22) }} strokeWidth={2.2} />
           </button>
         </div>
       </div>
