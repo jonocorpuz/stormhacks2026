@@ -4,7 +4,6 @@ import type { MusicWidgetData } from '../types/widgets';
 import { useMusicPlayback } from './useMusicPlayback';
 import WidgetShell from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
-import vinyl from '../assets/music-widget/vinyl.svg';
 
 export interface MusicWidgetProps {
   data?: Partial<MusicWidgetData>;
@@ -19,12 +18,13 @@ const DEFAULT_DATA: MusicWidgetData = {
 };
 
 // Record player on the solid-shell card (stormhacks-27, node 120:1121 "Group 54"), laid out
-// 1x1 at 357px. Vinyl from Figma node 65:636, desaturated so it sits on the coral panel.
+// 1x1 at 357px. Flat record from Figma node 120:1083.
 // All sizes scale with the widget's width (container query units).
 const DESIGN_WIDTH = 357;
 const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
-const VINYL = 200;
+// Figma: r128 disc centred 111px in from the right, 66px down; label r42 with a 28px ring.
+const RECORD = { size: 256, right: -17, top: -62, label: 84, ring: 28 } as const;
 const SEEK_SECONDS = 10;
 
 export default function MusicWidget({ data, className = '' }: MusicWidgetProps) {
@@ -49,19 +49,15 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
 
   return (
     <WidgetShell designWidth={DESIGN_WIDTH} accent="coral" className={className}>
-      {/* Vinyl, centred on the panel's top edge so only its lower half shows; greyscale on the panel */}
+      {/* Flat record (Figma node 120:1169): panel-tinted disc + label ring, cropped top-right. */}
       <div
         aria-hidden
-        className="absolute pointer-events-none left-1/2 -translate-x-1/2"
-        style={{ top: u(-VINYL / 2), width: u(VINYL), height: u(VINYL) }}
+        className="absolute pointer-events-none rounded-full bg-black/[0.11] flex items-center justify-center"
+        style={{ right: u(RECORD.right), top: u(RECORD.top), width: u(RECORD.size), height: u(RECORD.size) }}
       >
-        <img
-          src={vinyl}
-          alt=""
-          width={282.28}
-          height={282.28}
-          className="block max-w-none rotate-[40.04deg] animate-[spin_6s_linear_infinite] grayscale brightness-[1.25]"
-          style={{ width: u(VINYL), height: u(VINYL), animationPlayState: isPlaying ? 'running' : 'paused' }}
+        <div
+          className="rounded-full border-solid border-black/[0.22] bg-accent-coral-solid"
+          style={{ width: u(RECORD.label), height: u(RECORD.label), borderWidth: u(RECORD.ring) }}
         />
       </div>
 
