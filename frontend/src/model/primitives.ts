@@ -46,13 +46,64 @@ export const NOTE: PrimitiveDef = {
 export const RECOMMENDATION_LIST: PrimitiveDef = {
   id: 'recommendation_list',
   name: 'Recommendations',
-  fields: [],
+  fields: [
+    {
+      key: 'title',
+      label: 'Title',
+      block: 'text',
+      required: false,
+      description: 'List title',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Date or subtitle',
+    },
+    {
+      key: 'items',
+      label: 'Items',
+      block: 'list',
+      required: false,
+      description: 'List items',
+    },
+  ],
 }
 
 export const CODE_SNIPPET: PrimitiveDef = {
   id: 'code_snippet',
   name: 'Code Snippet',
-  fields: [],
+  fields: [
+    {
+      key: 'title',
+      label: 'Title',
+      block: 'text',
+      required: false,
+      description: 'Title of the snippet',
+    },
+    {
+      key: 'language',
+      label: 'Language',
+      block: 'text',
+      required: false,
+      description: 'Programming language',
+    },
+    {
+      key: 'code',
+      label: 'Code',
+      block: 'longtext',
+      required: false,
+      description: 'The code snippet',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Date or subtitle',
+    },
+  ],
 }
 
 export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET]

@@ -1,6 +1,6 @@
 // Blocks: unsemantic value kinds. Define storage shape + validation only.
 
-export type BlockId = 'text' | 'longtext'
+export type BlockId = 'text' | 'longtext' | 'list'
 
 export interface BlockDef {
   id: BlockId
@@ -23,6 +23,11 @@ export const BLOCKS: Record<BlockId, BlockDef> = {
     id: 'longtext',
     isValid: (v) => typeof v === 'string',
     isEmpty: isBlankString,
+  },
+  list: {
+    id: 'list',
+    isValid: (v) => Array.isArray(v),
+    isEmpty: (v) => !Array.isArray(v) || v.length === 0,
   },
 }
 
