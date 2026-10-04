@@ -15,7 +15,7 @@ export const FIXED_SIZES = {
   code_snippet: '2x2',
   map_location: '1x1',
   note: '1x1',
-  product: '2x1',
+  product: '1x1',
   receipt: '1x2',
   ticket: '2x1',
   music_track: '1x1',

@@ -63,6 +63,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
   const rootRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [trackLength, setTrackLength] = useState(0);
+  const [overflowing, setOverflowing] = useState(false);
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
@@ -74,13 +75,14 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
     const measure = () => {
       const scale = root.clientWidth / DESIGN_WIDTH;
       setTrackLength(Math.max(0, el.clientHeight - (TRACK_INSET * 2 + THUMB_LENGTH) * scale));
+      setOverflowing(el.scrollHeight > el.clientHeight + 1);
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(root);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [items.length]);
 
   const handleScroll = () => {
     const el = scrollRef.current;
@@ -158,11 +160,12 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               ref={scrollRef}
               onScroll={handleScroll}
               className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: space(4) }}
+              // Row pitch snapped to whole px so every number circle lands on the same subpixel offset (else some blur).
+              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: `round(${space(4)}, 1px)` }}
             >
               {items.map((line, i) => (
                 <li key={line.id ?? i} className="flex items-center shrink-0 text-ink-muted" style={{ gap: space(3) }}>
-                  <span className="relative shrink-0 flex items-center justify-center" style={{ width: u(31.403), height: u(31.403) }}>
+                  <span className="relative shrink-0 flex items-center justify-center" style={{ width: `round(${u(31.403)}, 1px)`, height: `round(${u(31.403)}, 1px)` }}>
                     <div
                       className="absolute inset-0 rounded-full bg-control/20 dark:bg-ink/10"
                       style={{
@@ -183,26 +186,28 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               ))}
             </ol>
 
-            {/* Scroll Thumb */}
-            <div
-              aria-hidden
-              className="absolute pointer-events-none"
-              style={{
-                right: u(9.19),
-                width: u(THUMB_WIDTH),
-                height: u(THUMB_LENGTH),
-                top: `calc(${u(TRACK_INSET)} + ${scrollProgress * trackLength}px)`,
-              }}
-            >
-              <img
-                src={scrollThumb}
-                alt=""
-                width={THUMB_LENGTH}
-                height={THUMB_WIDTH}
-                className="absolute block max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90"
-                style={{ width: u(THUMB_LENGTH), height: u(THUMB_WIDTH) }}
-              />
-            </div>
+            {/* Scroll Thumb: only when the list overflows */}
+            {overflowing && (
+              <div
+                aria-hidden
+                className="absolute pointer-events-none"
+                style={{
+                  right: u(9.19),
+                  width: u(THUMB_WIDTH),
+                  height: u(THUMB_LENGTH),
+                  top: `calc(${u(TRACK_INSET)} + ${scrollProgress * trackLength}px)`,
+                }}
+              >
+                <img
+                  src={scrollThumb}
+                  alt=""
+                  width={THUMB_LENGTH}
+                  height={THUMB_WIDTH}
+                  className="absolute block max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90"
+                  style={{ width: u(THUMB_LENGTH), height: u(THUMB_WIDTH) }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Taxes */}
