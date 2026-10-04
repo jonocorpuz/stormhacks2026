@@ -36,6 +36,7 @@ export default {
           green: accent('green'),
           coral: accent('coral'),
           pink: accent('pink'),
+          grey: accent('grey'),
         },
         shell: {
           DEFAULT: token('shell'),

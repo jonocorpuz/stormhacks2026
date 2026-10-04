@@ -29,7 +29,7 @@ export const RADIUS = {
 const SPACE_UNIT = 4;
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16;
 
-export type Accent = 'blue' | 'green' | 'coral' | 'pink';
+export type Accent = 'blue' | 'green' | 'coral' | 'pink' | 'grey';
 export type Font = keyof typeof FONT;
 export type TypeSize = keyof typeof TYPE;
 
@@ -59,6 +59,7 @@ export const SOLID_PANEL: Record<Accent, string> = {
   green: 'bg-accent-green-solid',
   coral: 'bg-accent-coral-solid',
   pink: 'bg-accent-pink-solid',
+  grey: 'bg-accent-grey-solid',
 };
 
 // Text on solid panels: white in both themes (panels don't follow the theme).

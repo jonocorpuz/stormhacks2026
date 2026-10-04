@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Copy } from 'lucide-react';
 import type { CodeSnippetData } from '../types/widgets';
 import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
 import { FONT, ON_PANEL, SHELL, widgetScale } from './widgetKit';
@@ -45,19 +44,18 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
   };
 
   const footer = (
-    <ShellIconButton designWidth={DESIGN_WIDTH} label={copied ? 'Code copied' : 'Copy code'} onClick={handleCopy}>
-      {copied ? (
-        <Check style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
-      ) : (
-        <Copy style={{ width: u(22), height: u(22) }} strokeWidth={1.8} />
-      )}
-    </ShellIconButton>
+    <ShellIconButton
+      designWidth={DESIGN_WIDTH}
+      label={copied ? 'Code copied' : 'Copy code'}
+      text={copied ? 'Copied' : 'Copy Code'}
+      onClick={handleCopy}
+    />
   );
 
   return (
     <WidgetShell
       designWidth={DESIGN_WIDTH}
-      accent="green"
+      accent="grey"
       className={className}
       watermark={<Watermark designWidth={DESIGN_WIDTH} glyph="{i++}" size={200} />}
       footer={footer}

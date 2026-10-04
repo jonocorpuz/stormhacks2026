@@ -2,7 +2,7 @@ import React from 'react';
 import { FastForward, Pause, Play, Rewind } from 'lucide-react';
 import type { MusicWidgetData } from '../types/widgets';
 import { useMusicPlayback } from './useMusicPlayback';
-import WidgetShell, { ShellIconButton } from './WidgetShell';
+import WidgetShell from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 import vinyl from '../assets/music-widget/vinyl.svg';
 
@@ -24,7 +24,7 @@ const DEFAULT_DATA: MusicWidgetData = {
 const DESIGN_WIDTH = 357;
 const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
-const VINYL = 230;
+const VINYL = 200;
 const SEEK_SECONDS = 10;
 
 export default function MusicWidget({ data, className = '' }: MusicWidgetProps) {
@@ -39,44 +39,16 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   const playLabel =
     status === 'loading' ? 'Loading song' : status === 'unavailable' ? 'Song unavailable' : isPlaying ? 'Pause' : 'Play';
 
-  const iconStyle = { width: u(22), height: u(22) };
-
-  const footer = (
-    <>
-      <ShellIconButton
-        designWidth={DESIGN_WIDTH}
-        label={`Back ${SEEK_SECONDS} seconds`}
-        onClick={() => seekBy(-SEEK_SECONDS)}
-        disabled={!canPlay}
-      >
-        <Rewind fill="currentColor" style={iconStyle} strokeWidth={1.5} />
-      </ShellIconButton>
-      <ShellIconButton designWidth={DESIGN_WIDTH} label={playLabel}
-        title={status === 'unavailable' ? 'No playable version of this song found' : undefined}
-        pressed={isPlaying}
-        onClick={toggle}
-        disabled={!canPlay}
-        primary
-      >
-        {isPlaying ? (
-          <Pause fill="currentColor" style={iconStyle} strokeWidth={1.5} />
-        ) : (
-          <Play fill="currentColor" style={{ ...iconStyle, marginLeft: u(2) }} strokeWidth={1.5} />
-        )}
-      </ShellIconButton>
-      <ShellIconButton
-        designWidth={DESIGN_WIDTH}
-        label={`Forward ${SEEK_SECONDS} seconds`}
-        onClick={() => seekBy(SEEK_SECONDS)}
-        disabled={!canPlay}
-      >
-        <FastForward fill="currentColor" style={iconStyle} strokeWidth={1.5} />
-      </ShellIconButton>
-    </>
-  );
+  // Buttons sit on the card, which opens the editor on click.
+  const control = (fn: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fn();
+  };
+  const CONTROL = `flex items-center justify-center ${ON_PANEL.primary} cursor-pointer transition-all duration-200 enabled:active:scale-95 disabled:cursor-default disabled:opacity-50`;
+  const skipStyle = { width: u(22), height: u(22) };
 
   return (
-    <WidgetShell designWidth={DESIGN_WIDTH} accent="coral" className={className} footer={footer}>
+    <WidgetShell designWidth={DESIGN_WIDTH} accent="coral" className={className}>
       {/* Vinyl, centred on the panel's top edge so only its lower half shows; greyscale on the panel */}
       <div
         aria-hidden
@@ -101,7 +73,7 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         style={{ width: 1, height: 1 }}
       />
 
-      {/* Song, progress, date */}
+      {/* Song, progress, controls, date */}
       <div
         className="absolute flex flex-col"
         style={{ left: u(SHELL.padX), right: u(SHELL.padX), bottom: u(SHELL.padX), gap: space(2) }}
@@ -131,6 +103,46 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
           style={{ height: u(5), marginTop: space(1) }}
         >
           <div className="absolute left-0 top-0 h-full rounded-full bg-white" style={{ width: `${progress * 100}%` }} />
+        </div>
+
+        {/* Controls, centred under the track */}
+        <div className="flex items-center justify-center" style={{ gap: space(5) }}>
+          <button
+            type="button"
+            onClick={control(() => seekBy(-SEEK_SECONDS))}
+            disabled={!canPlay}
+            aria-label={`Back ${SEEK_SECONDS} seconds`}
+            className={`${CONTROL} enabled:hover:scale-110`}
+            style={{ width: u(40), height: u(40) }}
+          >
+            <Rewind fill="currentColor" style={skipStyle} strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={control(toggle)}
+            disabled={!canPlay}
+            aria-label={playLabel}
+            title={status === 'unavailable' ? 'No playable version of this song found' : undefined}
+            aria-pressed={isPlaying}
+            className={`${CONTROL} enabled:hover:scale-105 rounded-full bg-white !text-accent-coral-solid`}
+            style={{ width: u(SHELL.control), height: u(SHELL.control) }}
+          >
+            {isPlaying ? (
+              <Pause fill="currentColor" style={{ width: u(22), height: u(22) }} strokeWidth={1.5} />
+            ) : (
+              <Play fill="currentColor" style={{ width: u(22), height: u(22), marginLeft: u(2) }} strokeWidth={1.5} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={control(() => seekBy(SEEK_SECONDS))}
+            disabled={!canPlay}
+            aria-label={`Forward ${SEEK_SECONDS} seconds`}
+            className={`${CONTROL} enabled:hover:scale-110`}
+            style={{ width: u(40), height: u(40) }}
+          >
+            <FastForward fill="currentColor" style={skipStyle} strokeWidth={1.5} />
+          </button>
         </div>
 
         <span className={`${ON_PANEL.faint} whitespace-nowrap`} style={type('caption')}>

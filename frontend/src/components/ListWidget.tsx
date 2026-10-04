@@ -99,7 +99,7 @@ export default function ListWidget({
     <div ref={rootRef} className="w-full h-full min-h-[280px]">
       <WidgetShell
         designWidth={DESIGN_WIDTH}
-        accent="coral"
+        accent="green"
         className={className}
         watermark={<Watermark designWidth={DESIGN_WIDTH} icon={SquareCheck} />}
         footer={footer}
@@ -145,7 +145,7 @@ export default function ListWidget({
                     style={{ width: u(22), height: u(22), borderWidth: u(2), borderRadius: u(6) }}
                   >
                     {item.isChecked && (
-                      <Check className="text-accent-coral-solid" style={{ width: u(15), height: u(15) }} strokeWidth={3} />
+                      <Check className="text-accent-green-solid" style={{ width: u(15), height: u(15) }} strokeWidth={3} />
                     )}
                   </span>
 

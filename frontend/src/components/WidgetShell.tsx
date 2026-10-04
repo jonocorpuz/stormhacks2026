@@ -115,41 +115,46 @@ export function ShellIconButton({
   label,
   onClick,
   disabled,
-  primary,
-  pressed,
   title,
+  text,
   children,
 }: {
   designWidth: number;
   label: string;
   // Tooltip; defaults to the label.
   title?: string;
-  // Toggle state for toggle buttons (e.g. play/pause).
-  pressed?: boolean;
+  // Visible text after the icon; turns the circle into a pill.
+  text?: string;
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
-  // Larger, inverted control (e.g. play).
-  primary?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
-  const { u } = widgetScale(designWidth);
+  const { u, type } = widgetScale(designWidth);
   return (
     <button
       type="button"
       aria-label={label}
-      aria-pressed={pressed}
       title={title ?? label}
       disabled={disabled}
       onClick={(e) => {
         e.stopPropagation();
         onClick(e);
       }}
-      className={`${CONTROL_CLASS} justify-center ${disabled ? CONTROL_DISABLED : CONTROL_ACTIVE} ${
-        primary ? '!bg-shell-control-ink !text-shell' : ''
-      }`}
-      style={{ width: u(SHELL.control), height: u(SHELL.control), boxShadow: controlShadow(u) }}
+      className={`${CONTROL_CLASS} justify-center ${disabled ? CONTROL_DISABLED : CONTROL_ACTIVE}`}
+      style={{
+        height: u(SHELL.control),
+        ...(text
+          ? { minWidth: u(SHELL.pillMinWidth), gap: u(10), paddingLeft: u(18), paddingRight: u(18) }
+          : { width: u(SHELL.control) }),
+        boxShadow: controlShadow(u),
+      }}
     >
       {children}
+      {text && (
+        <span className="whitespace-nowrap" style={type('body')}>
+          {text}
+        </span>
+      )}
     </button>
   );
 }
