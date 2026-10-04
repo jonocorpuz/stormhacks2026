@@ -16,6 +16,8 @@ export const FIXED_SIZES = {
   map_location: '1x1',
   note: '1x1',
   product: '2x1',
+  receipt: '1x2',
+  ticket: '2x1',
 };
 
 const ORDER = Object.keys(SIZE_CLASSES);

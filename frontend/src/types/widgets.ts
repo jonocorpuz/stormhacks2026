@@ -42,3 +42,28 @@ export interface ProductWidgetData {
   imageUrl: string;
   date: string;
 }
+
+export interface ReceiptWidgetData {
+  title: string;
+  /** One line item per line, name then price, e.g. "Hamburger $5.00". */
+  items: string;
+  /** One tax per line, e.g. "GST $1.50". */
+  taxes: string;
+  total: string;
+  date: string;
+}
+
+export interface TicketWidgetData {
+  /** Ticket seller, e.g. "Ticketmaster". */
+  vendor: string;
+  /** Event name. */
+  title: string;
+  eventDate: string;
+  location: string;
+  entryInfo: string;
+  section: string;
+  row: string;
+  seat: string;
+  /** Link to the ticket. */
+  url: string;
+}
