@@ -57,7 +57,7 @@ export default function MobileRolodexView(props) {
   return <RolodexStack board={board} {...props} />;
 }
 
-function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
+function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -262,7 +262,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
               <ProfileAvatar />
             </div>
           </div>
-          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} onSignOut={onSignOut} />
         </div>
       </div>
 

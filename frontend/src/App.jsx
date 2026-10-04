@@ -47,7 +47,7 @@ function useMediaQuery(query) {
 // Nav pops in after the cards, rippling outward from the search bar (order = distance from it).
 const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
 
-export default function App() {
+export default function App({ onSignOut }) {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
 
@@ -113,6 +113,7 @@ export default function App() {
               onQueryChange={setQuery}
               editMode={editMode}
               onToggleEditMode={() => setEditMode((on) => !on)}
+              onSignOut={onSignOut}
             />
           ) : (
             <BoardGate />
@@ -129,6 +130,7 @@ export default function App() {
                 onQueryChange={setQuery}
                 editMode={editMode}
                 onToggleEditMode={() => setEditMode((on) => !on)}
+                onSignOut={onSignOut}
                 viewMode={viewMode}
                 onToggleViewMode={toggleViewMode}
               />
@@ -196,7 +198,7 @@ export default function App() {
           >
             <ProfileAvatar />
           </div>
-          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} onSignOut={onSignOut} />
         </div>
       </div>
 
