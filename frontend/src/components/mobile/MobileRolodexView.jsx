@@ -44,10 +44,11 @@ const FOLLOW_MS = 260; // drawn progress glides toward the scroll position with 
 // Pile positions place the centre of a card's top square (w x w): square cards are centred there,
 // taller cards share the same top edge and extend downward.
 const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
-const FWD_Y = 0.8; // waiting pile centre
+const FWD_Y = 0.9; // waiting pile centre, low so the focused card has room
 const MAX_CARD_W = 330;
-const BAR_CLEARANCE = 72; // floating bottom search bar; piles are positioned between it and the top buttons
-const TOP_CLEARANCE = 64; // floating top-right buttons
+const BAR_CLEARANCE = 16; // bottom edge; piles are positioned between it and the top bar
+const TOP_CLEARANCE = 64; // floating top bar (buttons + search)
+const MAX_BACK_TILT = 80; // deg, so deep flipped cards never tip past edge-on
 
 // Same staggered entrance as the desktop header (App.jsx navPop) and grid cards (BoardGrid).
 const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
@@ -57,9 +58,10 @@ const lerp = (a, b, u) => a + (b - a) * u;
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 
 // Waiting pile, d cards behind the next one.
-const fwdState = (d, H) => ({ y: H * FWD_Y + d * 16, rx: -FWD_TILT, s: FWD_SCALE - d * 0.035, o: d < 4 ? 1 : Math.max(0, 5 - d), dim: Math.min(d * 0.08, 0.3) });
+// Piles never fade out: deep cards just run off the stage edge (scale floored so they don't invert).
+const fwdState = (d, H) => ({ y: H * FWD_Y + d * 16, rx: -FWD_TILT, s: Math.max(0.6, FWD_SCALE - d * 0.035), o: 1, dim: Math.min(d * 0.08, 0.3) });
 // Flipped pile, k cards below the newest. k = 0 is the focused card: flat, tilting in as it's covered.
-const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(k, 1) * BACK_TILT + Math.max(0, k - 1) * 7, s: 1 - k * 0.07, o: k < 3 ? 1 : Math.max(0, 4 - k), dim: Math.min(k * 0.22, 0.65) });
+const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(MAX_BACK_TILT, Math.min(k, 1) * BACK_TILT + Math.max(0, k - 1) * 7), s: Math.max(0.4, 1 - k * 0.07), o: 1, dim: Math.min(k * 0.22, 0.65) });
 
 // Scroll-driven 3D tilt stack of the current board's cards. A sticky stage holds every card;
 // scroll progress (1 card per STEP px, snapped) flips cards from the waiting pile into the
@@ -133,8 +135,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
         const b = backState(0, H);
         st = { y: lerp(a.y, b.y, u), rx: lerp(a.rx, b.rx, u), s: lerp(a.s, b.s, u), o: 1, dim: lerp(a.dim, b.dim, u) };
       }
-      const dy = Math.sign(i - openIdx) * pushY;
-      card.style.transform = `translate3d(-50%, ${(st.y + TOP_CLEARANCE + dy).toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
+      let y = st.y + TOP_CLEARANCE + Math.sign(i - openIdx) * pushY;
+      // Opened card glides to the stage's vertical centre (y is its top square's centre, marginTop -w/2).
+      if (i === openIdx) y = lerp(y, (root.clientHeight + card.offsetWidth - card.offsetHeight) / 2, ease(push.amt));
+      card.style.transform = `translate3d(-50%, ${y.toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
       card.style.opacity = st.o;
       card.style.pointerEvents = openRef.current !== null && card.dataset.id !== openRef.current ? 'none' : '';
       card.style.setProperty('--dim', st.dim.toFixed(3));
@@ -224,7 +228,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     };
   }, [render, setOpen]);
 
-  // Tap a card to open it: it scrolls into focus (flat) and the rest are pushed off-screen.
+  // Tap a card to open it: it scrolls into focus (flat, vertically centred) and the rest are pushed off-screen.
   // Tapping it again or the empty stage closes it. Controls inside the card still work.
   const focusCard = (i, id) => (e) => {
     if (e.target.closest('button, a, input, textarea, select')) return;
@@ -239,37 +243,42 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     <div className="relative h-full w-full flex flex-col">
       {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
-      {/* Top actions: same glass buttons and pop-in as the desktop header. New + Edit top left
-          (create menu opens from the left edge), profile top right (settings menu from the right). */}
-      <div className="absolute top-4 left-4 z-[3001] flex items-center gap-2">
-        <div className="pop-in" style={navPop(2)}>
-          <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          </GlassButton>
-        </div>
-        <div className="pop-in" style={navPop(1)}>
-          <GlassButton
-            onClick={onToggleEditMode}
-            aria-label="Edit board"
-            aria-pressed={editMode}
-            className={`nav-grow ${editMode ? '!bg-primary !text-white' : ''}`}
-          >
-            <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          </GlassButton>
-        </div>
-        <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} />
-      </div>
-      <div className="absolute top-4 right-4 z-[3001]">
-        <div className="pop-in" style={navPop(1)}>
-          <div
-            onClick={() => toggleMenu('profile')}
-            aria-label="Settings"
-            className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
-          >
-            <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+      {/* Top bar: same glass buttons and pop-in as the desktop header. New + Edit left (create menu
+          opens from the left edge), search in the middle, profile right (settings menu from the right). */}
+      <div className="absolute top-4 inset-x-4 z-[3001] flex items-center gap-2">
+        <div className="relative shrink-0 flex items-center gap-2">
+          <div className="pop-in" style={navPop(2)}>
+            <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            </GlassButton>
           </div>
+          <div className="pop-in" style={navPop(1)}>
+            <GlassButton
+              onClick={onToggleEditMode}
+              aria-label="Edit board"
+              aria-pressed={editMode}
+              className={`nav-grow ${editMode ? '!bg-primary !text-white' : ''}`}
+            >
+              <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            </GlassButton>
+          </div>
+          <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} />
         </div>
-        <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
+        <div className="pop-in flex-1 min-w-0" style={navPop(0)}>
+          <GlassInput placeholder="Search" value={query} onChange={(e) => onQueryChange(e.target.value)} className="!w-full" />
+        </div>
+        <div className="relative shrink-0">
+          <div className="pop-in" style={navPop(1)}>
+            <div
+              onClick={() => toggleMenu('profile')}
+              aria-label="Settings"
+              className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
+            >
+              <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+            </div>
+          </div>
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
+        </div>
       </div>
 
       <div
@@ -337,17 +346,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
       </div>
 
       {n > 1 && (
-        <div ref={hintRef} className="absolute inset-x-0 bottom-24 text-center text-[13px] text-ink-subtle pointer-events-none transition-opacity duration-300 z-[2500]">
+        <div ref={hintRef} className="absolute inset-x-0 bottom-4 text-center text-[13px] text-ink-subtle pointer-events-none transition-opacity duration-300 z-[2500]">
           Scroll to flip through
         </div>
       )}
-
-      {/* Bottom search bar, floating over the waiting pile */}
-      <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-canvas to-transparent z-[3001]">
-        <div className="pop-in buoyant hover:scale-[1.03]" style={navPop(0)}>
-          <GlassInput placeholder="Search" value={query} onChange={(e) => onQueryChange(e.target.value)} className="!w-full" />
-        </div>
-      </div>
 
       {editingItem && <ItemEditor key={editingItem.id} item={editingItem} onClose={() => setEditingId(null)} />}
       {deletingItem && (
