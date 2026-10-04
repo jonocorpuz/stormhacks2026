@@ -181,13 +181,6 @@ export const PRODUCT: PrimitiveDef = {
       description: 'Link to the product listing page',
     },
     {
-      key: 'imageUrl',
-      label: 'Image URL',
-      block: 'text',
-      required: false,
-      description: 'Link to a product photo',
-    },
-    {
       key: 'date',
       label: 'Date',
       block: 'text',

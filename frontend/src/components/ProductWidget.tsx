@@ -18,7 +18,6 @@ const DEFAULT_DATA: ProductWidgetData = {
   brand: 'Seiko',
   model: 'Seiko Type II',
   url: '',
-  imageUrl: '',
   date: '03 / 10 / 26',
 };
 

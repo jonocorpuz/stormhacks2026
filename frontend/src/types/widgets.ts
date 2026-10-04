@@ -41,7 +41,6 @@ export interface ProductWidgetData {
   model: string;
   /** Product listing page. */
   url: string;
-  imageUrl: string;
   date: string;
 }
 
