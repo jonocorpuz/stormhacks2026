@@ -6,6 +6,8 @@ import { INPUT_CLASS } from '../blocks/styles';
 export default function BoardMenu({ isOpen, onToggle, onClose }) {
   const boards = useApp((s) => s.boards);
   const currentBoard = useApp((s) => s.currentBoard);
+  // Store refuses board switches mid-extraction; mirror that here.
+  const extracting = useApp((s) => s.extractions.some((e) => e.status === 'pending'));
   const { openBoard, createBoard, renameBoard, deleteBoard } = useActions();
   const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(null);
@@ -46,15 +48,19 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
 
       {isOpen && (
         <div className="absolute top-full mt-4 left-0 w-64 p-2 apple-glass rounded-2xl origin-top animate-slide-down-fade z-50 flex flex-col">
+          {extracting && (
+            <p className="px-4 py-2 text-xs opacity-60">Extracting… board switching paused</p>
+          )}
           <ul className="flex flex-col max-h-64 overflow-y-auto">
             {boards.map((b) => (
               <li key={b.id}>
                 <button
+                  disabled={extracting && b.id !== currentBoard.id}
                   onClick={() => {
                     if (b.id !== currentBoard.id) openBoard(b.id);
                     onClose();
                   }}
-                  className={`w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-sm ${
+                  className={`w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed ${
                     b.id === currentBoard.id ? 'font-semibold text-black dark:text-white' : ''
                   }`}
                 >
@@ -69,6 +75,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
 
           <form onSubmit={handleCreate} className="p-2">
             <input
+              disabled={extracting}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="+ New board"
@@ -97,7 +104,8 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
 
           <button
             onClick={handleDelete}
-            className="px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors text-sm text-left text-red-500 dark:text-red-400"
+            disabled={extracting}
+            className="px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors text-sm text-left text-red-500 dark:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Delete board
           </button>

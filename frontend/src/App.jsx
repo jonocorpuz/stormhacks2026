@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from './store';
+import { createCapture } from './model';
+import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import CreateItemMenu from './components/CreateItemMenu';
@@ -9,45 +10,37 @@ import BoardMenu from './components/boards/BoardMenu';
 import BoardGate from './components/boards/BoardGate';
 import BoardGrid from './components/boards/BoardGrid';
 import SaveStatus from './components/SaveStatus';
+import ExtractionStatus from './components/ExtractionStatus';
+
+// File → base64 (no data-URL prefix).
+const readBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1] ?? '');
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 
 export default function App() {
   const currentBoard = useApp((s) => s.currentBoard);
+  const { ingestCaptures } = useActions();
   const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | 'boards' | null
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [query, setQuery] = useState('');
 
-  // Screenshot drops: each entry is { id, status: 'pending' | 'done', result }
-  const [extractions, setExtractions] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDrop = (e) => {
+  // Dropped files → captures → store extracts onto current board (unsupported types flagged there).
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
-    if (!file) return;
-
-    const id = crypto.randomUUID();
-    setExtractions(prev => [{ id, status: 'pending' }, ...prev]);
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      // Strip the "data:image/png;base64," prefix
-      const image = reader.result.split(',')[1];
-      let result;
-      try {
-        const res = await fetch('/api/extract', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image, mimeType: file.type }),
-        });
-        result = await res.json();
-      } catch (err) {
-        result = { ok: false, error: err.message };
-      }
-      setExtractions(prev => prev.map(x => (x.id === id ? { id, status: 'done', result } : x)));
-    };
-    reader.readAsDataURL(file);
+    const files = [...e.dataTransfer.files];
+    if (!files.length) return;
+    const captures = await Promise.all(
+      files.map(async (f) => createCapture('image', f.type, await readBase64(f), f.name)),
+    );
+    ingestCaptures(captures);
   };
 
   // Apply dark mode globally to the html document
@@ -128,24 +121,6 @@ export default function App() {
 
       {currentBoard ? (
         <div className="relative">
-          {/* Temporary display of extractions as overlay while BoardGrid is refactored */}
-          {extractions.length > 0 && (
-            <div className="fixed top-32 right-8 w-96 z-[60] flex flex-col gap-4 max-h-[calc(100vh-10rem)] overflow-y-auto">
-               {extractions.map(({ id, status, result }) => (
-                <div key={id} className="apple-glass rounded-[2rem] p-6 flex flex-col shadow-2xl overflow-hidden bg-white/80 dark:bg-black/80 backdrop-blur-xl shrink-0">
-                  <span className="text-black/50 dark:text-white/50 font-semibold text-sm mb-3">
-                    {status === 'pending' ? 'Parsing screenshot…' : result.ok ? result.data?.type || 'Extracted' : 'Extraction failed'}
-                  </span>
-                  {status === 'done' && (
-                    <pre className="flex-1 overflow-auto text-xs text-black/80 dark:text-white/80 whitespace-pre-wrap break-words max-h-60">
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           <BoardGrid query={query} editMode={editMode} />
           
 
@@ -155,6 +130,7 @@ export default function App() {
       )}
 
       <SaveStatus />
+      <ExtractionStatus />
     </div>
   );
 }

@@ -1,9 +1,8 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
-import { ExtractRequestSchema } from './src/types/api.ts'
-import { extractWidget } from './server/extract.js'
+import { extract } from './server/extract.js'
 
-// Dev-only stand-in for a backend: POST /api/extract -> Gemini -> widget JSON
+// Dev-only stand-in for a backend: POST /api/extract -> Gemini -> item drafts
 function extractApi(env) {
   return {
     name: 'extract-api',
@@ -20,11 +19,7 @@ function extractApi(env) {
         try {
           let raw = ''
           for await (const chunk of req) raw += chunk
-          const parsed = ExtractRequestSchema.safeParse(JSON.parse(raw || '{}'))
-          if (!parsed.success) {
-            return send(400, { ok: false, error: 'Invalid request', issues: parsed.error.issues })
-          }
-          const result = await extractWidget(parsed.data, env)
+          const result = await extract(JSON.parse(raw || '{}'), env)
           send(result.ok ? 200 : 502, result)
         } catch (err) {
           send(500, { ok: false, error: err.message })

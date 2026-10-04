@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { Extractor } from '../extractor'
+import { createCapture, type ExtractionDraft } from '../model'
 import { MemoryRepo, type BoardRepository } from '../persistence'
 import { createAppStore } from './appStore'
 
@@ -109,5 +111,90 @@ describe('app store', () => {
     const store = createAppStore(repo)
     await store.actions.createBoard('Trip')
     expect(store.getState()).toMatchObject({ status: 'error', error: 'disk full' })
+  })
+
+  describe('ingestCaptures', () => {
+    const png = (name = 'a.png') => createCapture('image', 'image/png', 'abc', name)
+
+    /** Inline test double — resolves when you call release(). */
+    const deferredExtractor = (drafts: ExtractionDraft[] | Error) => {
+      let release!: () => void
+      const gate = new Promise<void>((r) => (release = r))
+      const extractor: Extractor = {
+        extract: async () => {
+          await gate
+          if (drafts instanceof Error) throw drafts
+          return drafts
+        },
+      }
+      return { extractor, release }
+    }
+
+    const note = { primitiveId: 'note', fields: { title: 'From image' } }
+
+    it('appends extracted items to current board, clears status', async () => {
+      const repo = new MemoryRepo()
+      const { extractor, release } = deferredExtractor([note])
+      const store = createAppStore(repo, extractor)
+      const board = await store.actions.createBoard('Trip')
+
+      const done = store.actions.ingestCaptures([png()])
+      expect(store.getState().extractions).toMatchObject([{ name: 'a.png', status: 'pending' }])
+      release()
+      await done
+
+      const items = (await repo.loadBoard(board.id))!.items
+      expect(items.at(-1)).toMatchObject({ primitiveId: 'note', fields: { title: 'From image' }, captureId: null })
+      expect(store.getState().extractions).toEqual([])
+    })
+
+    it('creates an Untitled board when none is open', async () => {
+      const { extractor, release } = deferredExtractor([note])
+      const store = createAppStore(new MemoryRepo(), extractor)
+      release()
+      await store.actions.ingestCaptures([png(), png('b.png')])
+      expect(store.getState().boards.map((b) => b.name)).toEqual(['Untitled'])
+      expect(store.getState().currentBoard?.items.filter((i) => i.primitiveId === 'note')).toHaveLength(2)
+    })
+
+    it('records failures until dismissed: errors, empty results, unsupported files', async () => {
+      const { extractor, release } = deferredExtractor(new Error('Gemini HTTP 500'))
+      const store = createAppStore(new MemoryRepo(), extractor)
+      await store.actions.createBoard('Trip')
+      release()
+      await store.actions.ingestCaptures([png(), createCapture('image', 'application/pdf', 'x', 'doc.pdf')])
+      expect(store.getState().extractions.map((e) => [e.status, e.error])).toEqual([
+        ['failed', 'Gemini HTTP 500'],
+        ['failed', 'Not supported (images only)'],
+      ])
+
+      store.actions.dismissExtraction(store.getState().extractions[0].id)
+      expect(store.getState().extractions).toHaveLength(1)
+
+      const empty = createAppStore(new MemoryRepo(), { extract: async () => [] })
+      await empty.actions.createBoard('Trip')
+      await empty.actions.ingestCaptures([png()])
+      expect(empty.getState().extractions[0].error).toBe('Nothing recognised')
+    })
+
+    it('blocks board switching while extracting', async () => {
+      const { extractor, release } = deferredExtractor([note])
+      const store = createAppStore(new MemoryRepo(), extractor)
+      const other = await store.actions.createBoard('Other')
+      const board = await store.actions.createBoard('Trip')
+
+      const done = store.actions.ingestCaptures([png()])
+      await expect(store.actions.openBoard(other.id)).rejects.toThrow(/while extracting/)
+      await expect(store.actions.createBoard('New')).rejects.toThrow(/while extracting/)
+      await expect(store.actions.deleteBoard(board.id)).rejects.toThrow(/while extracting/)
+      expect(() => store.actions.closeBoard()).toThrow(/while extracting/)
+      await store.actions.renameBoard(board.id, 'Trip 2') // still allowed
+
+      release()
+      await done
+      expect(store.getState().currentBoard?.id).toBe(board.id)
+      await store.actions.openBoard(other.id)
+      expect(store.getState().currentBoard?.id).toBe(other.id)
+    })
   })
 })

@@ -1,73 +1,81 @@
-import { WidgetPayloadSchema } from '../src/types/api.ts';
+// Thin Gemini proxy. Holds no type knowledge: prompt + schema come from src/model,
+// so new primitives flow through automatically. Request/response shape: src/extractor/extractor.ts.
 
-const GEMINI_MODEL = 'gemini-3.8-flash';
+import { z } from 'zod';
+import {
+  CAPTURE_IMAGE_TYPES,
+  buildExtractionPrompt,
+  buildExtractionSchema,
+  extractablePrimitives,
+  parseExtraction,
+} from '../src/model/index.ts';
+
+const GEMINI_MODEL = 'gemini-3.6-flash'; // 3.8-flash 503'd (overloaded) 2026-10-03; retry later
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-const PROMPT = `You are given a screenshot. Classify it as exactly ONE of the widget types below and extract its data.
-Respond with a single JSON object only, using exactly these keys (no extra keys). Use null where a nullable value is not visible.
+// Overload / rate-limit / transient errors: retry with backoff (1s, 2s, 4s).
+const RETRY_STATUSES = new Set([429, 500, 503]);
+const RETRY_DELAYS_MS = [1000, 2000, 4000];
 
-1. Product / shopping page:
-{"type":"consumer_links","title":string,"price":string,"brand":string,"rating":string|null,"reviews":string|null,"previewUrl":string|null,"embedCode":string|null}
-
-2. Source code:
-{"type":"code_viewer","title":string,"code":string,"viewUrl":string|null}
-
-3. Receipt / order / invoice:
-{"type":"receipt","title":string,"date":string,"total":string,"tax":string|null,"items":[{"name":string,"price":string}]}
-
-4. Map / place / address:
-{"type":"location_pin","title":string,"location":string,"directionsAvailable":boolean}`;
-
-const MOCK_WIDGET = {
-  type: 'receipt',
-  title: 'Mock Coffee Co.',
-  date: '2026-10-03',
-  total: '$9.45',
-  tax: '$0.45',
-  items: [
-    { name: 'Oat Latte', price: '$5.50' },
-    { name: 'Croissant', price: '$3.50' },
-  ],
-};
-
-export async function extractWidget({ image, mimeType }, env) {
-  if (env.MOCK_LLM_RESPONSES === 'true' || !env.GEMINI_API_KEY) {
-    return { ok: true, mock: true, data: MOCK_WIDGET };
+async function fetchWithRetry(url, init) {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, init);
+    if (res.ok || !RETRY_STATUSES.has(res.status) || attempt >= RETRY_DELAYS_MS.length) return res;
+    console.warn(`[extract] Gemini ${res.status}, retry ${attempt + 1}/${RETRY_DELAYS_MS.length}`);
+    await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
   }
+}
 
-  const res = await fetch(GEMINI_URL, {
+const RequestSchema = z
+  .object({
+    mimeType: z.string().refine((t) => CAPTURE_IMAGE_TYPES.includes(t), 'Unsupported image type'),
+    data: z.string().min(1),
+    primitiveIds: z.array(z.string()).min(1),
+  })
+  .strict();
+
+/** Returns ExtractResponse: { ok: true, drafts } | { ok: false, error }. */
+export async function extract(body, env) {
+  const req = RequestSchema.safeParse(body);
+  if (!req.success) return { ok: false, error: `Invalid request: ${req.error.issues[0]?.message}` };
+
+  if (!env.GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY not set (frontend/.env)' };
+
+  const primitives = extractablePrimitives().filter((p) => req.data.primitiveIds.includes(p.id));
+  if (primitives.length === 0) return { ok: false, error: 'No extractable primitives requested' };
+
+  const res = await fetchWithRetry(GEMINI_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': env.GEMINI_API_KEY,
-    },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
     body: JSON.stringify({
       contents: [
         {
-          parts: [{ inline_data: { mime_type: mimeType, data: image } }, { text: PROMPT }],
+          parts: [
+            { inline_data: { mime_type: req.data.mimeType, data: req.data.data } },
+            { text: buildExtractionPrompt(primitives) },
+          ],
         },
       ],
-      generationConfig: { responseMimeType: 'application/json' },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseJsonSchema: buildExtractionSchema(primitives),
+      },
     }),
   });
 
   if (!res.ok) {
-    return { ok: false, error: `Gemini HTTP ${res.status}`, raw: await res.text() };
+    const detail = await res.text();
+    console.error('[extract] Gemini error', res.status, detail);
+    return { ok: false, error: `Gemini HTTP ${res.status}` };
   }
 
-  const body = await res.json();
-  const text = body.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-
-  let json;
+  // Thinking models may emit thought parts; answer = remaining text parts.
+  const parts = (await res.json()).candidates?.[0]?.content?.parts ?? [];
+  const text = parts.filter((p) => p.text && !p.thought).map((p) => p.text).join('');
   try {
-    json = JSON.parse(text);
-  } catch {
-    return { ok: false, error: 'Gemini returned non-JSON', raw: text };
+    return { ok: true, drafts: parseExtraction(JSON.parse(text), primitives) };
+  } catch (err) {
+    console.error('[extract] bad Gemini output', text);
+    return { ok: false, error: err instanceof SyntaxError ? 'Gemini returned non-JSON' : err.message };
   }
-
-  const parsed = WidgetPayloadSchema.safeParse(json);
-  if (!parsed.success) {
-    return { ok: false, error: 'Schema validation failed', issues: parsed.error.issues, raw: json };
-  }
-  return { ok: true, data: parsed.data };
 }
