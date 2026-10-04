@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUpRight, FastForward, Pause, Play, Rewind } from 'lucide-react';
 import type { MusicWidgetData } from '../types/widgets';
 import { useMusicPlayback } from './useMusicPlayback';
+import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 import vinyl from '../assets/music-widget/vinyl.svg';
 import playButton from '../assets/music-widget/play-button.svg';
 import track from '../assets/music-widget/track.svg';
@@ -24,19 +25,15 @@ const DEFAULT_DATA: MusicWidgetData = {
 // designed at 357x357. All sizes scale with the widget's width (container query units)
 // so it keeps the design's proportions in a 1x1 bento cell.
 const DESIGN_WIDTH = 357;
-const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
+const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
-const CARD_GRADIENT =
-  'linear-gradient(138.62deg, rgba(255, 64, 0, 0.1) 11.72%, rgba(254, 89, 34, 0.02) 50.62%, rgba(254, 89, 34, 0.1) 89.51%)';
-const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
-const GLASS_SHADOW = `${u(1.612)} ${u(0.806)} ${u(12.735)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.806)} 0 ${u(42.639)} 0 rgba(255, 255, 255, 0.52)`;
+const CARD_GRADIENT = accentGradient('coral', 138.62);
 
 // Track bar spans 282 design px.
 const TRACK_LENGTH = 282;
 const SEEK_SECONDS = 10;
 
-const PINK = 'text-[#DA7777]';
+const PINK = 'text-accent-coral';
 
 export default function MusicWidget({ data, className = '' }: MusicWidgetProps) {
   const title = data?.title || DEFAULT_DATA.title;
@@ -63,8 +60,8 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border-solid border-[#FFD9CC] dark:border-[#FFD9CC]/30 select-none"
-        style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.834), borderRadius: u(25.009) }}
+        className="relative w-full h-full overflow-hidden border-solid border-accent-coral-edge select-none"
+        style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.834), borderRadius: radius('card') }}
       >
         {/* Vinyl, centred on the card's top edge so only its lower half shows */}
         <div
@@ -98,13 +95,13 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         <div className="absolute" style={{ left: u(38), right: u(38), top: u(149) }}>
           <h2
             className={`font-bold ${PINK} whitespace-nowrap overflow-hidden text-ellipsis`}
-            style={{ fontFamily: TITLE_FONT, fontSize: u(20), lineHeight: u(24) }}
+            style={type('title')}
           >
             {title}
           </h2>
           <p
-            className="font-[510] text-[#646464] dark:text-white whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{ fontFamily: SF_FONT, fontSize: u(14), lineHeight: u(17), marginTop: u(6) }}
+            className="font-medium text-ink-muted whitespace-nowrap overflow-hidden text-ellipsis"
+            style={{ ...type('label'), marginTop: space(2) }}
           >
             {artist}
           </p>
@@ -176,49 +173,48 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         </button>
 
         {/* Footer */}
-        <span
-          className="absolute text-[#C2BCBC] dark:text-white whitespace-nowrap"
-          style={{ left: u(25), top: u(305), fontFamily: SF_FONT, fontSize: u(16.104), lineHeight: u(19) }}
+        <div
+          className="absolute flex items-center justify-between"
+          style={{ left: space(6), right: u(26), bottom: cardInset }}
         >
-          {date}
-        </span>
-
-        <a
-          href={url || undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => {
-            // Cards open the item editor on click; this link shouldn't.
-            e.stopPropagation();
-            if (!url) e.preventDefault();
-          }}
-          aria-label="Listen on Spotify"
-          aria-disabled={!url}
-          className={`absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-[#3F3F3F] transition-all duration-200 ${
-            url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 dark:opacity-80 cursor-default'
-          }`}
-          style={{
-            left: u(248),
-            top: u(285),
-            width: u(83),
-            height: u(47),
-            borderRadius: u(62),
-            paddingLeft: u(13),
-            paddingRight: u(13),
-            boxShadow: GLASS_SHADOW,
-          }}
-        >
-          {/* Logo crop matches the design's "Spotify_App_Logo.svg 2" layer, masked to a circle. */}
-          <span className="relative block overflow-hidden rounded-full shrink-0" style={{ width: u(31), height: u(31) }}>
-            <img
-              src={spotifyLogo}
-              alt=""
-              className="absolute max-w-none pointer-events-none"
-              style={{ left: '-14.29%', top: '-13.58%', width: '128.57%', height: '130.4%' }}
-            />
+          <span className="text-ink-subtle whitespace-nowrap" style={type('body')}>
+            {date}
           </span>
-          <ArrowUpRight style={{ width: u(20), height: u(20) }} strokeWidth={1.8} />
-        </a>
+
+          <a
+            href={url || undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              // Cards open the item editor on click; this link shouldn't.
+              e.stopPropagation();
+              if (!url) e.preventDefault();
+            }}
+            aria-label="Listen on Spotify"
+            aria-disabled={!url}
+            className={`flex items-center justify-between shrink-0 rounded-full ${GLASS_CONTROL} text-control-ink transition-all duration-200 ${
+              url ? GLASS_CONTROL_HOVER : 'opacity-60 dark:opacity-80 cursor-default'
+            }`}
+            style={{
+              width: u(83),
+              height: u(47),
+              paddingLeft: space(3),
+              paddingRight: space(3),
+              boxShadow: glassShadow,
+            }}
+          >
+            {/* Logo crop matches the design's "Spotify_App_Logo.svg 2" layer, masked to a circle. */}
+            <span className="relative block overflow-hidden rounded-full shrink-0" style={{ width: u(31), height: u(31) }}>
+              <img
+                src={spotifyLogo}
+                alt=""
+                className="absolute max-w-none pointer-events-none"
+                style={{ left: '-14.29%', top: '-13.58%', width: '128.57%', height: '130.4%' }}
+              />
+            </span>
+            <ArrowUpRight style={{ width: u(20), height: u(20) }} strokeWidth={1.8} />
+          </a>
+        </div>
       </div>
     </div>
   );

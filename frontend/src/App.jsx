@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <div 
-      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-[#fafafa] dark:bg-[#1E1E1E] font-sans relative overscroll-none transition-colors duration-500`}
+      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas font-sans relative overscroll-none transition-colors duration-500`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -58,7 +58,7 @@ export default function App() {
       onDrop={handleDrop}
     >
       {/* Drag Overlay */}
-      {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-blue-400/60 pointer-events-none" />}
+      {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-primary/60 pointer-events-none" />}
 
       {/* Click-Outside Overlay */}
       {openMenu && <div className="fixed inset-0 z-40 bg-transparent" onClick={closeMenu} />}
@@ -87,7 +87,7 @@ export default function App() {
               onClick={() => setEditMode((on) => !on)}
               aria-label="Edit board"
               aria-pressed={editMode}
-              className={editMode ? '!bg-blue-500 !text-white' : ''}
+              className={editMode ? '!bg-primary !text-white' : ''}
             >
               <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
             </GlassButton>
@@ -101,9 +101,9 @@ export default function App() {
         <div className="relative">
           <div
             onClick={() => toggleMenu('profile')}
-            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
+            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-surface dark:hover:bg-ink/20 transition-colors"
           >
-            <span className="text-gray-400 dark:text-white font-bold text-lg transition-colors">AN</span>
+            <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
           </div>
           <ProfileSettingsMenu isOpen={openMenu === 'profile'} />
         </div>

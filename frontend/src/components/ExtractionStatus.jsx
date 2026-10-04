@@ -16,19 +16,19 @@ export default function ExtractionStatus() {
         >
           {status === 'pending' ? (
             <>
-              <span className="w-3 h-3 shrink-0 rounded-full border-2 border-current border-t-transparent animate-spin text-black/50 dark:text-white/60" />
-              <span className="truncate text-black/70 dark:text-white/80">Reading {name ?? 'image'}…</span>
+              <span className="w-3 h-3 shrink-0 rounded-full border-2 border-current border-t-transparent animate-spin text-ink/50 dark:text-ink/60" />
+              <span className="truncate text-ink/70 dark:text-ink/80">Reading {name ?? 'image'}…</span>
             </>
           ) : (
             <>
-              <span className="truncate text-red-500 dark:text-red-400">
+              <span className="truncate text-danger">
                 {name ? `${name}: ` : ''}
                 {error}
               </span>
               <button
                 onClick={() => dismissExtraction(id)}
                 aria-label="Dismiss"
-                className="shrink-0 opacity-60 hover:opacity-100 text-black dark:text-white"
+                className="shrink-0 opacity-60 hover:opacity-100 text-ink"
               >
                 ×
               </button>
