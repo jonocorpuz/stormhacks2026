@@ -66,6 +66,9 @@ function createPreviewPlayer(searchUrl: string, events: PlayerEvents): Player {
   const audio = new Audio();
   audio.preload = 'none';
   let destroyed = false;
+  // One abort() in destroy() detaches every listener below.
+  const listeners = new AbortController();
+  const { signal } = listeners;
 
   const update = () =>
     events.onUpdate({
@@ -74,9 +77,9 @@ function createPreviewPlayer(searchUrl: string, events: PlayerEvents): Player {
       duration: Number.isFinite(audio.duration) ? audio.duration : 0,
     });
   for (const name of ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'seeked']) {
-    audio.addEventListener(name, update);
+    audio.addEventListener(name, update, { signal });
   }
-  audio.addEventListener('error', () => !destroyed && events.onUnavailable());
+  audio.addEventListener('error', () => !destroyed && events.onUnavailable(), { signal });
 
   findPreview(searchUrl).then((src) => {
     if (destroyed) return;
@@ -98,8 +101,10 @@ function createPreviewPlayer(searchUrl: string, events: PlayerEvents): Player {
     },
     destroy() {
       destroyed = true;
+      listeners.abort();
       audio.pause();
       audio.removeAttribute('src');
+      audio.load(); // drop the buffered media now that src is gone
       if (activePlayer === player) activePlayer = null;
     },
   };
