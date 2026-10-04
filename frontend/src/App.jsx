@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { createCapture } from './model';
 import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
@@ -38,6 +38,21 @@ function getInitialDarkMode() {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }
 
+// Phone held upright (below Tailwind's md breakpoint, portrait): show the Rolodex full screen.
+const PHONE_QUERY = '(max-width: 767px) and (orientation: portrait)';
+
+// Live media-query match; re-renders when it flips (rotation, resize).
+function useMediaQuery(query) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia?.(query);
+      mql?.addEventListener('change', onChange);
+      return () => mql?.removeEventListener('change', onChange);
+    },
+    () => window.matchMedia?.(query).matches ?? false,
+  );
+}
+
 // Nav pops in after the cards, rippling outward from the search bar (order = distance from it).
 const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
 
@@ -47,8 +62,10 @@ export default function App() {
   const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | 'boards' | null
   const [editMode, setEditMode] = useState(false);
   const [query, setQuery] = useState('');
-  // 'desktop' = bento grid; 'mobile' = Rolodex inside a phone simulator.
+  // 'desktop' = bento grid; 'mobile' = Rolodex inside a phone simulator ("Force Mobile Mode").
+  // Real phones skip both and get the Rolodex full screen.
   const [viewMode, setViewMode] = useState('desktop');
+  const isPhone = useMediaQuery(PHONE_QUERY);
   const isMobile = viewMode === 'mobile';
   const toggleViewMode = () => {
     setOpenMenu(null);
@@ -75,7 +92,7 @@ export default function App() {
 
   return (
     <div 
-      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas dot-grid font-sans relative overscroll-none transition-colors duration-500`}
+      className={`${isPhone ? 'h-[100dvh]' : 'h-screen'} w-full overflow-y-auto overflow-x-hidden bg-canvas dot-grid font-sans relative overscroll-none transition-colors duration-500`}
       onDragOver={(e) => {
         // Only OS file drags, not text/link drags from inside the page.
         if (!e.dataTransfer.types.includes('Files')) return;
@@ -93,7 +110,21 @@ export default function App() {
     >
       <DropOverlay active={isDragging} />
 
-      {isMobile ? (
+      {isPhone ? (
+        // Real phone: no simulator frame, and no view toggle (nothing to force).
+        <div className="h-full">
+          {currentBoard ? (
+            <MobileRolodexView
+              query={query}
+              onQueryChange={setQuery}
+              editMode={editMode}
+              onToggleEditMode={() => setEditMode((on) => !on)}
+            />
+          ) : (
+            <BoardGate />
+          )}
+        </div>
+      ) : isMobile ? (
         // Phone simulator. translateZ makes it the containing block for fixed-position modals
         // (editor, delete confirm), so they stay inside the "screen" instead of covering the monitor.
         <div className="min-h-full flex items-center justify-center py-8 px-4">
