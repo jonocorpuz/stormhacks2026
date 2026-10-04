@@ -72,21 +72,23 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
             {date}
           </span>
 
-          {/* Edit Button: no stopPropagation, so the card's own click opens the editor too. */}
-          <button
-            type="button"
-            onClick={onEdit}
-            aria-label="Edit note"
-            className={`flex items-center justify-center shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} transition-all duration-200`}
-            style={{
-              width: u(49.923),
-              height: u(44.287),
-              borderRadius: radius('control'),
-              boxShadow: glassShadow,
-            }}
-          >
-            <Pencil className="text-control-ink" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
-          </button>
+          {/* Edit Button: only when a handler is wired (board uses the card's edit-mode button) */}
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label="Edit note"
+              className={`flex items-center justify-center shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} transition-all duration-200`}
+              style={{
+                width: u(49.923),
+                height: u(44.287),
+                borderRadius: radius('control'),
+                boxShadow: glassShadow,
+              }}
+            >
+              <Pencil className="text-control-ink" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
+            </button>
+          )}
         </div>
       </div>
     </div>

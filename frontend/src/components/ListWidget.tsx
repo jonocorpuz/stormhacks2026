@@ -202,16 +202,18 @@ export default function ListWidget({
             {date}
           </span>
 
-          {/* Edit Button */}
-          <button
-            onClick={onEdit}
-            type="button"
-            aria-label="Edit list"
-            className={`relative ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} flex items-center justify-center transition-all duration-200`}
-            style={{ width: u(49.923), height: u(44.287), borderRadius: radius('control'), boxShadow: glassShadow }}
-          >
-            <Pencil className="text-control-ink" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
-          </button>
+          {/* Edit Button: only when a handler is wired (board uses the card's edit-mode button) */}
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              type="button"
+              aria-label="Edit list"
+              className={`relative ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} flex items-center justify-center transition-all duration-200`}
+              style={{ width: u(49.923), height: u(44.287), borderRadius: radius('control'), boxShadow: glassShadow }}
+            >
+              <Pencil className="text-control-ink" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
+            </button>
+          )}
         </div>
       </div>
     </div>
