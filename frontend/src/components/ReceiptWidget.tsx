@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import GrainOverlay from './GrainOverlay';
 import { Check, Share } from 'lucide-react';
 import { receiptTotals } from '../model';
 import type { ReceiptWidgetData } from '../types/widgets';
@@ -139,6 +140,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
           paddingBottom: u(20.71),
         }}
       >
+        <GrainOverlay />
         {/* Header */}
         <h2
           className="font-bold text-[#2294FE] whitespace-nowrap overflow-hidden text-ellipsis shrink-0"

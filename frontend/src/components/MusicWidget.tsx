@@ -3,10 +3,10 @@ import { ArrowUpRight, FastForward, Pause, Play, Rewind } from 'lucide-react';
 import type { MusicWidgetData } from '../types/widgets';
 import { useMusicPlayback } from './useMusicPlayback';
 import vinyl from '../assets/music-widget/vinyl.svg';
-import playButton from '../assets/music-widget/play-button.svg';
 import track from '../assets/music-widget/track.svg';
 import progressLine from '../assets/music-widget/progress.svg';
 import spotifyLogo from '../assets/music-widget/spotify-logo.png';
+import GrainOverlay from './GrainOverlay';
 
 export interface MusicWidgetProps {
   data?: Partial<MusicWidgetData>;
@@ -66,6 +66,7 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         className="relative w-full h-full overflow-hidden border-solid border-[#FFD9CC] dark:border-[#FFD9CC]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.834), borderRadius: u(25.009) }}
       >
+        <GrainOverlay />
         {/* Vinyl, centred on the card's top edge so only its lower half shows */}
         <div
           aria-hidden
@@ -149,13 +150,11 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
           className={`absolute flex items-center justify-center ${PINK} cursor-pointer transition-all duration-200 enabled:hover:scale-105 enabled:active:scale-95 disabled:cursor-default disabled:opacity-50`}
           style={{ left: u(152), top: u(228), width: u(55), height: u(55) }}
         >
-          <img
-            src={playButton}
-            alt=""
-            width={84.6278}
-            height={84.6278}
-            className="absolute block max-w-none pointer-events-none"
-            style={{ left: u(-12.94), top: u(-13.88), width: u(84.6278), height: u(84.6278) }}
+          <div
+            className="absolute inset-0 rounded-full bg-[#DCDCDC]/20 dark:bg-white/10"
+            style={{
+              boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgba(255, 255, 255, 0.52)`
+            }}
           />
           {isPlaying ? (
             <Pause className="relative" fill="currentColor" style={{ width: u(26), height: u(26) }} strokeWidth={1.5} />

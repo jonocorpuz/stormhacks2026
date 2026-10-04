@@ -3,6 +3,8 @@ import { findPrimitive, getItemIssues } from '../../model';
 import GenericCard from './GenericCard';
 import { CARD_COMPONENTS } from './registry';
 import { DEFAULT_SIZE, FIXED_SIZES, SIZE_CLASSES } from './sizes';
+import GrainOverlay from '../GrainOverlay';
+import GlassButton from '../GlassButton';
 
 const ISSUE_TEXT = {
   missing_required: 'missing required',
@@ -41,9 +43,8 @@ export default function ItemCard({
   return (
     <div
       {...dragProps}
-      onClick={known && !editMode ? onOpen : undefined}
       style={wiggleStyle}
-      className={`w-full h-full relative transition-transform duration-500 ease-in-out ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.005] hover:-rotate-[0.5deg]'} cursor-pointer ${
+      className={`w-full h-full relative transition-transform duration-500 ease-in-out ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.005] hover:-rotate-[0.5deg]'} ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'
@@ -55,6 +56,7 @@ export default function ItemCard({
           : ''
       }`}
     >
+      {!isFullBleed && <GrainOverlay />}
       <Card item={item} primitive={primitive} />
 
       {issues.length > 0 && (
@@ -66,14 +68,34 @@ export default function ItemCard({
 
       {editMode && (
         <div className="absolute top-3 right-3 z-20 flex gap-1.5">
-          {!fixedSize && (
-            <CardButton label="Resize" onClick={onCycleSize}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
-            </CardButton>
-          )}
-          <CardButton label="Delete" onClick={onDelete} danger>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </CardButton>
+          <GlassButton 
+            className="card-action-btn !pointer-events-auto"
+            aria-label="Edit" 
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpen) onOpen();
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </GlassButton>
+          <GlassButton 
+            className="card-action-btn !pointer-events-auto !text-red-500 hover:!bg-red-500/20 dark:!text-red-400 dark:hover:!bg-red-500/20"
+            aria-label="Delete" 
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onDelete) onDelete();
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </GlassButton>
         </div>
       )}
     </div>
@@ -88,29 +110,5 @@ function UnsupportedCard({ primitive }) {
         &ldquo;{primitive.id}&rdquo; isn&rsquo;t available in this version. Delete it from edit mode.
       </span>
     </div>
-  );
-}
-
-function CardButton({ label, onClick, danger, children }) {
-  return (
-    <button
-      aria-label={label}
-      title={label}
-      onMouseDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      className={`card-action-btn !pointer-events-auto w-7 h-7 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/15 backdrop-blur-md transition-colors ${
-        danger
-          ? 'text-red-500 hover:bg-red-500/20'
-          : 'text-black/60 dark:text-white/80 hover:bg-black/10 dark:hover:bg-white/25'
-      }`}
-    >
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        {children}
-      </svg>
-    </button>
   );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import GrainOverlay from './GrainOverlay';
 import { ArrowUpRight } from 'lucide-react';
 import type { MapWidgetData } from '../types/widgets';
 
@@ -47,6 +48,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
         className="relative w-full h-full overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30 bg-[#F2EFE9] dark:bg-[#1E1E1E] select-none"
         style={{ borderRadius: u(23) }}
       >
+        <GrainOverlay />
         {/* Map */}
         <iframe
           title={`Map of ${title}`}

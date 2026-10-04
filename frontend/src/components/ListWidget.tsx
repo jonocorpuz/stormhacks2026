@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import GrainOverlay from './GrainOverlay';
 import { Check, Pencil } from 'lucide-react';
 import type { ListItem, ListWidgetData } from '../types/widgets';
-import toggleCircle from '../assets/list-widget/toggle-circle.svg';
 import scrollThumb from '../assets/list-widget/scroll-thumb.svg';
 
 export interface ListWidgetProps {
@@ -106,6 +106,7 @@ export default function ListWidget({
           padding: `${u(37)} ${u(18)} ${u(20)}`,
         }}
       >
+        <GrainOverlay />
         {/* Header */}
         <h2
           className="font-bold text-[#DA7777] whitespace-nowrap overflow-hidden text-ellipsis shrink-0"
@@ -137,13 +138,11 @@ export default function ListWidget({
               >
                 {/* Circular Toggle */}
                 <span className="relative shrink-0" style={{ width: u(39), height: u(39) }}>
-                  <img
-                    src={toggleCircle}
-                    alt=""
-                    width={60.0088}
-                    height={60.0088}
-                    className="absolute block max-w-none pointer-events-none"
-                    style={{ left: u(-9.17), top: u(-9.84), width: u(60.0088), height: u(60.0088) }}
+                  <div
+                    className="absolute inset-0 rounded-full bg-[#DCDCDC]/20 dark:bg-white/10"
+                    style={{
+                      boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgba(255, 255, 255, 0.52)`
+                    }}
                   />
                   {item.isChecked && (
                     <Check

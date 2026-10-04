@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import GrainOverlay from './GrainOverlay';
 import { ArrowUpRight, Check, Link } from 'lucide-react';
 import type { ProductWidgetData } from '../types/widgets';
 import linkCircle from '../assets/product-widget/link-circle.svg';
@@ -75,6 +76,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
         className="relative w-full h-full overflow-hidden border-solid border-[#FFD7F9] dark:border-[#FFD7F9]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
       >
+        <GrainOverlay />
         {/* Details */}
         <div
           className="absolute flex flex-col items-start"

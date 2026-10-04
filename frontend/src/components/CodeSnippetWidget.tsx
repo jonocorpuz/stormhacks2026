@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import GrainOverlay from './GrainOverlay';
 import { Check, Copy } from 'lucide-react';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import oneDark from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark';
@@ -98,6 +99,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
           paddingBottom: u(18.4),
         }}
       >
+        <GrainOverlay />
         {/* Header */}
         <div
           className="flex items-center justify-between shrink-0"

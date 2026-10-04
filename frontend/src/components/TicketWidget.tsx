@@ -1,4 +1,5 @@
 import React from 'react';
+import GrainOverlay from './GrainOverlay';
 import { ArrowUpRight } from 'lucide-react';
 import type { TicketWidgetData } from '../types/widgets';
 import divider from '../assets/ticket-widget/divider.svg';
@@ -65,6 +66,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
         className="relative w-full h-full overflow-hidden border-solid border-[#8AC6FF] dark:border-[#8AC6FF]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
       >
+        <GrainOverlay />
         {/* Vendor Badge */}
         <div
           className="absolute flex items-center justify-center bg-[rgba(220,220,220,0.2)] overflow-hidden"

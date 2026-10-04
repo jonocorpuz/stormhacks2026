@@ -1,4 +1,5 @@
 import React from 'react';
+import GrainOverlay from './GrainOverlay';
 import { Pencil } from 'lucide-react';
 import type { NoteWidgetData } from '../types/widgets';
 
@@ -40,6 +41,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
           paddingBottom: u(16.41),
         }}
       >
+        <GrainOverlay />
         {/* Header */}
         <h2
           className="font-bold text-[#DA7777] whitespace-nowrap overflow-hidden text-ellipsis shrink-0"

@@ -5,18 +5,13 @@ import PrimitiveForm from './forms/PrimitiveForm';
 
 // Modal for editing one item. Saves once on "Save" (not per keystroke).
 export default function ItemEditor({ item, onClose }) {
-  const { updateItem, deleteItem } = useActions();
+  const { updateItem } = useActions();
   const primitive = getPrimitive(item.primitiveId);
   const [values, setValues] = useState(item.fields);
   const issues = validateFields(values, primitive);
 
   const handleSave = async () => {
     await updateItem(item.id, values);
-    onClose();
-  };
-
-  const handleDelete = async () => {
-    await deleteItem(item.id);
     onClose();
   };
 
@@ -31,12 +26,6 @@ export default function ItemEditor({ item, onClose }) {
         <PrimitiveForm primitive={primitive} values={values} onChange={setValues} issues={issues} />
 
         <div className="flex gap-2 pt-1">
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2.5 rounded-full text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors"
-          >
-            Delete
-          </button>
           <div className="flex-1" />
           <button
             onClick={onClose}
