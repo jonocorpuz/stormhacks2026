@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { verticalCompactor } from 'react-grid-layout';
-import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
+import { ResponsiveGridLayout } from 'react-grid-layout';
+import { WidthProvider } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { findPrimitive, itemMatchesQuery } from '../../model';
@@ -9,7 +9,8 @@ import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
 
-const ResponsiveReactGridLayout = WidthProvider(Responsive);
+// v2 grid (not the legacy wrapper) so we can pass our own `compactor` prop.
+const ResponsiveReactGridLayout = WidthProvider(ResponsiveGridLayout);
 
 const EMPTY = {};
 
@@ -248,41 +249,35 @@ function BoardGridView({ board, query, editMode }) {
   const editingItem = board.items.find((i) => i.id === editingId);
   const deletingItem = board.items.find((i) => i.id === deletingId);
 
-  // Maintain refs for the real-time compactor so react-grid-layout's internal
-  // onDrag loop immediately displaces underlying widgets smoothly before drop.
+  // Drag state for the compactor. Written only in drag event handlers, read only inside
+  // compact() (which react-grid-layout calls during drag), so it never feeds render output.
   const activeDragRef = useRef(null);
   const baseOrderRef = useRef([]);
-  const itemsOrderRef = useRef([]);
-  const itemSizesRef = useRef(new Map());
 
-  const itemSpecs = useMemo(() => {
-    const specs = [];
-    const sizeMap = new Map();
-    items.forEach((item) => {
-      const sizeStr = sizes[item.id] || FIXED_SIZES[item.primitiveId] || DEFAULT_SIZE;
-      const [wStr, hStr] = sizeStr.split('x');
-      const w = parseInt(wStr, 10) || 1;
-      const h = parseInt(hStr, 10) || 1;
-      specs.push({ i: item.id, x: 0, y: 0, w, h });
-      sizeMap.set(item.id, { w, h });
-    });
-    itemSizesRef.current = sizeMap;
-    itemsOrderRef.current = items.map((it) => it.id);
-    return specs;
-  }, [items, sizes]);
+  const itemSpecs = useMemo(
+    () =>
+      items.map((item) => {
+        const sizeStr = sizes[item.id] || FIXED_SIZES[item.primitiveId] || DEFAULT_SIZE;
+        const [wStr, hStr] = sizeStr.split('x');
+        return { i: item.id, x: 0, y: 0, w: parseInt(wStr, 10) || 1, h: parseInt(hStr, 10) || 1 };
+      }),
+    [items, sizes],
+  );
 
-  // Hook our iOS 2D dense flow logic into verticalCompactor so compactType="vertical"
-  // performs both vertical and horizontal real-time auto-displacement during drag.
-  useEffect(() => {
-    const prevCompact = verticalCompactor.compact;
-    verticalCompactor.compact = (layout, gridCols) => {
+  // iOS-style 2D dense flow: compaction displaces widgets both vertically and horizontally
+  // in real time during drag. Built from this render's items (no render-phase ref writes),
+  // so the grid's compaction can never run against a stale order or size map.
+  const compactor = useMemo(() => {
+    const itemsOrder = itemSpecs.map((spec) => spec.i);
+    const sizeMap = new Map(itemSpecs.map((spec) => [spec.i, spec]));
+    const compact = (layout, gridCols) => {
       if (!layout || layout.length === 0) return [];
       const dragState = activeDragRef.current;
-      const orderIds = dragState ? baseOrderRef.current : itemsOrderRef.current;
+      const orderIds = dragState ? baseOrderRef.current : itemsOrder;
       const orderMap = new Map(orderIds.map((id, idx) => [id, idx]));
 
       const normalized = layout.map((l) => {
-        const spec = itemSizesRef.current.get(l.i);
+        const spec = sizeMap.get(l.i);
         return {
           ...l,
           w: Math.min(spec ? spec.w : l.w, gridCols),
@@ -312,10 +307,8 @@ function BoardGridView({ board, query, editMode }) {
       const packedMap = new Map(packed.map((p) => [p.i, p]));
       return layout.map((l) => packedMap.get(l.i) ?? { ...l, moved: false });
     };
-    return () => {
-      verticalCompactor.compact = prevCompact;
-    };
-  }, []);
+    return { type: 'vertical', allowOverlap: false, preventCollision: false, compact };
+  }, [itemSpecs]);
 
   const layoutArray = useMemo(() => packDenseLayout(itemSpecs, cols, null, null), [itemSpecs, cols]);
   const layoutMap = useMemo(
@@ -332,16 +325,19 @@ function BoardGridView({ board, query, editMode }) {
     [itemSpecs],
   );
 
-  const mountOrderRef = useRef(new Map());
-  const stableItems = useMemo(() => {
-    const map = mountOrderRef.current;
-    items.forEach((it) => {
-      if (!map.has(it.id)) {
-        map.set(it.id, map.size);
-      }
-    });
-    return [...items].sort((a, b) => (map.get(a.id) ?? 0) - (map.get(b.id) ?? 0));
-  }, [items]);
+  // Children keep first-seen order so reorders move grid positions, not DOM nodes.
+  // Held in state (adjusted during render, React's "previous render info" pattern), not a ref.
+  const [mountOrder, setMountOrder] = useState(() => new Map());
+  const unseen = items.filter((it) => !mountOrder.has(it.id));
+  if (unseen.length > 0) {
+    const next = new Map(mountOrder);
+    unseen.forEach((it) => next.set(it.id, next.size));
+    setMountOrder(next);
+  }
+  const stableItems = useMemo(
+    () => [...items].sort((a, b) => (mountOrder.get(a.id) ?? 0) - (mountOrder.get(b.id) ?? 0)),
+    [items, mountOrder],
+  );
 
   return (
     <div ref={gridRef} className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8 overflow-visible">
@@ -363,15 +359,10 @@ function BoardGridView({ board, query, editMode }) {
           rowHeight={rowHeight}
           margin={[24, 24]}
           containerPadding={[0, 0]}
-          isDraggable
           // Outside edit mode only the card's grip drags; in edit mode the whole card does.
-          draggableHandle={editMode ? undefined : '.drag-handle'}
-          isResizable={false}
-          draggableCancel=".card-action-btn"
-          compactType="vertical"
-          preventCollision={false}
-          allowOverlap={false}
-          useCSSTransforms={true}
+          dragConfig={{ enabled: true, bounded: false, handle: editMode ? undefined : '.drag-handle', cancel: '.card-action-btn' }}
+          resizeConfig={{ enabled: false }}
+          compactor={compactor}
           layouts={responsiveLayouts}
           onDragStart={(_layout, oldItem, newItem) => {
             const target = newItem || oldItem;
