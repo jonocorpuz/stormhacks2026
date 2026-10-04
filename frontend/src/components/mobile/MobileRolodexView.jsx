@@ -34,17 +34,20 @@ function backingRadius(item, sizes, cardW) {
 // Tilt-stack motion (defaults from the "Tilt stack prototype"): the focused card stands upright;
 // upcoming cards wait in a pile below, tilted toward you; flipped cards stack above, tilted away.
 const FWD_TILT = 40; // deg, waiting pile
+const FWD_SCALE = 1.15; // waiting pile sits larger, leaning out toward you
 const BACK_TILT = 14; // deg, first card behind the focused one (+7deg per card deeper); focused card is flat
 const BACK_GAP = 44; // px between flipped cards
 const PERSPECTIVE = 900;
 const STEP = 220; // scroll px per card flip
+const PUSH_MS = 380; // other cards slide off-screen when one is opened
 const FOLLOW_MS = 260; // drawn progress glides toward the scroll position with this time constant
+// Pile positions place the centre of a card's top square (w x w): square cards are centred there,
+// taller cards share the same top edge and extend downward.
 const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
 const FWD_Y = 0.8; // waiting pile centre
 const MAX_CARD_W = 330;
 const BAR_CLEARANCE = 72; // floating bottom search bar; piles are positioned between it and the top buttons
 const TOP_CLEARANCE = 64; // floating top-right buttons
-const MAX_CARD_H = 0.42; // fraction of stage height, so tall cards (1x2) don't swallow the stack
 
 // Same staggered entrance as the desktop header (App.jsx navPop) and grid cards (BoardGrid).
 const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
@@ -54,7 +57,7 @@ const lerp = (a, b, u) => a + (b - a) * u;
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 
 // Waiting pile, d cards behind the next one.
-const fwdState = (d, H) => ({ y: H * FWD_Y + d * 16, rx: -FWD_TILT, s: 1 - d * 0.035, o: d < 4 ? 1 : Math.max(0, 5 - d), dim: Math.min(d * 0.08, 0.3) });
+const fwdState = (d, H) => ({ y: H * FWD_Y + d * 16, rx: -FWD_TILT, s: FWD_SCALE - d * 0.035, o: d < 4 ? 1 : Math.max(0, 5 - d), dim: Math.min(d * 0.08, 0.3) });
 // Flipped pile, k cards below the newest. k = 0 is the focused card: flat, tilting in as it's covered.
 const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(k, 1) * BACK_TILT + Math.max(0, k - 1) * 7, s: 1 - k * 0.07, o: k < 3 ? 1 : Math.max(0, 4 - k), dim: Math.min(k * 0.22, 0.65) });
 
@@ -84,10 +87,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
   const askDelete = useCallback((id) => setDeletingId(id), []);
   const n = items.length;
 
-  // Card box: widget aspect ratio inside the prototype's card width, height-capped.
+  // Card box: every card takes the full card width; height follows the widget aspect ratio.
   const cardSize = (item) => {
     const aspect = aspectFor(item, sizes);
-    const w = Math.max(0, Math.min(MAX_CARD_W, box.w - 40, box.h * MAX_CARD_H * aspect));
+    const w = Math.max(0, Math.min(MAX_CARD_W, box.w - 40));
     return { w, h: w / aspect };
   };
 
@@ -105,11 +108,19 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
   // Drawn progress (in cards). Trails the scroll position so flips play out smoothly even on
   // a fast wheel tick or snap; null until first paint.
   const shownRef = useRef(null);
+  // Id of the tapped-open card (null when closed): it rests flat in focus while every other card
+  // is pushed off-screen, earlier cards up and later cards down. push.amt animates 0 -> 1 -> 0;
+  // push.id stays set while closing so cards slide back in from the right side.
+  const openRef = useRef(null);
+  const pushRef = useRef({ id: null, amt: 0, raf: null });
 
   const render = useCallback((p) => {
     const root = scrollRef.current;
     if (!root) return;
     const H = root.clientHeight - BAR_CLEARANCE - TOP_CLEARANCE;
+    const push = pushRef.current;
+    const openIdx = push.id === null ? -1 : cardRefs.current.findIndex((c) => c?.dataset.id === push.id);
+    const pushY = openIdx < 0 ? 0 : ease(push.amt) * root.clientHeight;
     cardRefs.current.forEach((card, i) => {
       if (!card) return;
       const t = p - i;
@@ -122,8 +133,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
         const b = backState(0, H);
         st = { y: lerp(a.y, b.y, u), rx: lerp(a.rx, b.rx, u), s: lerp(a.s, b.s, u), o: 1, dim: lerp(a.dim, b.dim, u) };
       }
-      card.style.transform = `translate3d(-50%, ${(st.y + TOP_CLEARANCE).toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
+      const dy = Math.sign(i - openIdx) * pushY;
+      card.style.transform = `translate3d(-50%, ${(st.y + TOP_CLEARANCE + dy).toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
       card.style.opacity = st.o;
+      card.style.pointerEvents = openRef.current !== null && card.dataset.id !== openRef.current ? 'none' : '';
       card.style.setProperty('--dim', st.dim.toFixed(3));
       // Waiting pile: later cards over earlier. Flipping card: between piles. Flipped pile: newest on top.
       card.style.zIndex = t <= -1 ? 2000 + Math.round((-t - 1) * 10) : t < 0 ? 1500 : 1000 - Math.round(t * 10);
@@ -146,10 +159,35 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     render(shownRef.current);
   });
 
+  // Open/close a card, animating the push of the others.
+  const setOpen = useCallback(
+    (id) => {
+      const push = pushRef.current;
+      openRef.current = id;
+      if (id !== null) push.id = id;
+      const target = id === null ? 0 : 1;
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (push.raf !== null) cancelAnimationFrame(push.raf);
+      let last = 0;
+      const tick = (now) => {
+        const dt = last ? now - last : 16;
+        last = now;
+        const step = reduce ? 1 : dt / PUSH_MS;
+        push.amt = target ? Math.min(1, push.amt + step) : Math.max(0, push.amt - step);
+        if (push.amt === 0) push.id = null;
+        render(shownRef.current);
+        push.raf = push.amt === target ? null : requestAnimationFrame(tick);
+      };
+      push.raf = requestAnimationFrame(tick);
+    },
+    [render],
+  );
+
   // On scroll, ease the drawn progress toward the scroll position each frame until it settles.
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
+    const push = pushRef.current;
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let raf = null;
     let last = 0;
@@ -170,16 +208,29 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     const onScroll = () => {
       if (raf === null) raf = requestAnimationFrame(tick);
     };
+    // Scrolling by hand closes an open card (the tap's own smooth scroll doesn't).
+    const onUserScroll = () => {
+      if (openRef.current !== null) setOpen(null);
+    };
     root.addEventListener('scroll', onScroll, { passive: true });
+    root.addEventListener('wheel', onUserScroll, { passive: true });
+    root.addEventListener('touchmove', onUserScroll, { passive: true });
     return () => {
       root.removeEventListener('scroll', onScroll);
+      root.removeEventListener('wheel', onUserScroll);
+      root.removeEventListener('touchmove', onUserScroll);
       if (raf !== null) cancelAnimationFrame(raf);
+      if (push.raf !== null) cancelAnimationFrame(push.raf);
     };
-  }, [render]);
+  }, [render, setOpen]);
 
-  // Tap a card to bring it to the top of the flipped stack (controls inside it still work).
-  const focusCard = (i) => (e) => {
+  // Tap a card to open it: it scrolls into focus (flat) and the rest are pushed off-screen.
+  // Tapping it again or the empty stage closes it. Controls inside the card still work.
+  const focusCard = (i, id) => (e) => {
     if (e.target.closest('button, a, input, textarea, select')) return;
+    e.stopPropagation();
+    if (openRef.current === id) return setOpen(null);
+    setOpen(id);
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     scrollRef.current?.scrollTo({ top: i * STEP, behavior: reduce ? 'auto' : 'smooth' });
   };
@@ -223,6 +274,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
 
       <div
         ref={scrollRef}
+        onClick={() => openRef.current !== null && setOpen(null)}
         className="flex-1 min-h-0 relative overflow-y-auto overflow-x-hidden hide-scrollbar overscroll-contain snap-y snap-mandatory"
         aria-label="Board cards. Scroll to flip through."
       >
@@ -238,9 +290,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
                   <div
                     key={item.id}
                     ref={(el) => (cardRefs.current[i] = el)}
-                    onClick={focusCard(i)}
+                    data-id={item.id}
+                    onClick={focusCard(i, item.id)}
                     className="absolute left-1/2 top-0 cursor-pointer will-change-transform [--dim:0]"
-                    style={{ width: w, height: h, marginTop: -h / 2, transformOrigin: '50% 50%' }}
+                    style={{ width: w, height: h, marginTop: -w / 2, transformOrigin: `50% ${w / 2}px` }}
                   >
                     {/* Opaque backing: widgets are translucent glass, so stacked cards would show through. */}
                     <div
