@@ -3,6 +3,7 @@
 
 import {
   addItem,
+  captureProblem,
   createBoard as newBoard,
   createItem as newItem,
   getItemIssues,
@@ -12,33 +13,48 @@ import {
   setView as mergeView,
   toSummary,
   updateItem as patchItem,
+  extractablePrimitives,
   findItem,
   type Board,
   type BoardSummary,
   type BoardView,
+  type Capture,
   type FieldValues,
   type Issue,
   type Item,
 } from '../model'
+import type { Extractor } from '../extractor'
 import type { BoardRepository } from '../persistence'
 
 export type AppStatus = 'idle' | 'loading' | 'saving' | 'error'
+
+/** In-memory only. Successful extractions are removed; failures stay until dismissed. */
+export interface Extraction {
+  id: string
+  name: string | null
+  status: 'pending' | 'failed'
+  error: string | null
+}
 
 export interface AppState {
   boards: BoardSummary[]
   currentBoard: Board | null
   status: AppStatus
   error: string | null
+  extractions: Extraction[]
 }
 
 export interface AppActions {
   /** Load board list and open most recent board. Call once at startup. */
   init(): Promise<void>
+  /** Throws while extracting (it switches to the new board). */
   createBoard(name: string): Promise<Board>
+  /** Throws while extracting (results must land on the board they were dropped on). */
   openBoard(id: string): Promise<void>
+  /** Throws while extracting. */
   closeBoard(): void
   renameBoard(id: string, name: string): Promise<void>
-  /** Deletes board and all its items. */
+  /** Deletes board and all its items. Throws for the current board while extracting. */
   deleteBoard(id: string): Promise<void>
   /** Never blocks on validation — returns issues for the UI to flag. */
   createItem(primitiveId: string, fields: FieldValues): Promise<{ item: Item; issues: Issue[] }>
@@ -46,6 +62,12 @@ export interface AppActions {
   deleteItem(itemId: string): Promise<void>
   reorderItems(fromIndex: number, toIndex: number): Promise<void>
   setView(patch: BoardView): Promise<void>
+  /**
+   * Extract items from captures onto the current board (creates "Untitled" if none open).
+   * Runs in parallel; never rejects — failures land in state.extractions.
+   */
+  ingestCaptures(captures: Capture[]): Promise<void>
+  dismissExtraction(id: string): void
 }
 
 export interface AppStore {
@@ -54,8 +76,8 @@ export interface AppStore {
   actions: AppActions
 }
 
-export function createAppStore(repo: BoardRepository): AppStore {
-  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null }
+export function createAppStore(repo: BoardRepository, extractor?: Extractor): AppStore {
+  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null, extractions: [] }
   const listeners = new Set<() => void>()
   let saveQueue: Promise<void> = Promise.resolve()
   let pendingSaves = 0
@@ -107,6 +129,39 @@ export function createAppStore(repo: BoardRepository): AppStore {
     return state.currentBoard
   }
 
+  const isExtracting = () => state.extractions.some((e) => e.status === 'pending')
+
+  const guardSwitch = () => {
+    if (isExtracting()) throw new Error("Can't switch boards while extracting")
+  }
+
+  const setExtraction = (id: string, patch: Partial<Extraction> | null) => {
+    setState({
+      extractions: patch
+        ? state.extractions.map((e) => (e.id === id ? { ...e, ...patch } : e))
+        : state.extractions.filter((e) => e.id !== id),
+    })
+  }
+
+  const ingest = async (capture: Capture): Promise<void> => {
+    const failWith = (error: string) => setExtraction(capture.id, { status: 'failed', error })
+
+    const problem = captureProblem(capture)
+    if (problem) return failWith(problem)
+    if (!extractor) return failWith('No extractor configured')
+
+    try {
+      const drafts = await extractor.extract(capture, extractablePrimitives())
+      if (drafts.length === 0) return failWith('Nothing recognised')
+      // TODO(capture): pass capture.id once captures are persisted.
+      const items = drafts.map((d) => newItem(d.primitiveId, d.fields, null))
+      await commit(items.reduce(addItem, requireBoard()))
+      setExtraction(capture.id, null)
+    } catch (err) {
+      failWith(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   const actions: AppActions = {
     async init() {
       setState({ status: 'loading', error: null })
@@ -122,6 +177,7 @@ export function createAppStore(repo: BoardRepository): AppStore {
     },
 
     async createBoard(name) {
+      guardSwitch()
       const board = newBoard(name)
       setState({ currentBoard: board })
       await commit(board)
@@ -129,6 +185,7 @@ export function createAppStore(repo: BoardRepository): AppStore {
     },
 
     async openBoard(id) {
+      guardSwitch()
       setState({ status: 'loading', error: null })
       try {
         const board = await repo.loadBoard(id)
@@ -140,6 +197,7 @@ export function createAppStore(repo: BoardRepository): AppStore {
     },
 
     closeBoard() {
+      guardSwitch()
       setState({ currentBoard: null })
     },
 
@@ -150,6 +208,7 @@ export function createAppStore(repo: BoardRepository): AppStore {
     },
 
     async deleteBoard(id) {
+      if (state.currentBoard?.id === id) guardSwitch()
       setState({
         boards: state.boards.filter((b) => b.id !== id),
         currentBoard: state.currentBoard?.id === id ? null : state.currentBoard,
@@ -183,6 +242,23 @@ export function createAppStore(repo: BoardRepository): AppStore {
 
     async setView(patch) {
       await commit(mergeView(requireBoard(), patch))
+    },
+
+    async ingestCaptures(captures) {
+      if (captures.length === 0) return
+      // Before marking pending, else the switch guard blocks it.
+      if (!state.currentBoard) await actions.createBoard('Untitled')
+      setState({
+        extractions: [
+          ...state.extractions,
+          ...captures.map((c) => ({ id: c.id, name: c.name, status: 'pending' as const, error: null })),
+        ],
+      })
+      await Promise.all(captures.map(ingest))
+    },
+
+    dismissExtraction(id) {
+      setExtraction(id, null)
     },
   }
 

@@ -39,7 +39,9 @@
                   "**/store/**",
                   "**/persistence",
                   "**/persistence/**",
-                  "**/components/**"
+                  "**/components/**",
+                  "**/extractor",
+                  "**/extractor/**"
                 ],
                 "message": "model imports nothing app-level"
               }
@@ -71,9 +73,45 @@
                 "group": [
                   "**/store",
                   "**/store/**",
-                  "**/components/**"
+                  "**/components/**",
+                  "**/extractor",
+                  "**/extractor/**"
                 ],
                 "message": "persistence imports only model"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/extractor/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "message": "extractor only turns captures into drafts"
+              },
+              {
+                "name": "react-dom",
+                "message": "extractor only turns captures into drafts"
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "**/store",
+                  "**/store/**",
+                  "**/persistence",
+                  "**/persistence/**",
+                  "**/components/**"
+                ],
+                "message": "extractor imports only model"
               }
             ]
           }
@@ -101,6 +139,12 @@
                   "**/persistence/*Repo.ts"
                 ],
                 "message": "store uses the BoardRepository interface; inject concrete repos in main.jsx"
+              },
+              {
+                "group": [
+                  "**/extractor/*"
+                ],
+                "message": "store uses the Extractor interface; inject concrete extractors in main.jsx"
               }
             ],
             "paths": [
@@ -111,6 +155,13 @@
                   "MemoryRepo"
                 ],
                 "message": "store uses the BoardRepository interface; inject concrete repos in main.jsx"
+              },
+              {
+                "name": "../extractor",
+                "importNames": [
+                  "HttpExtractor"
+                ],
+                "message": "store uses the Extractor interface; inject concrete extractors in main.jsx"
               }
             ]
           }
@@ -133,6 +184,13 @@
                   "**/persistence/**"
                 ],
                 "message": "components go through the store (useApp/useActions), never persistence"
+              },
+              {
+                "group": [
+                  "**/extractor",
+                  "**/extractor/**"
+                ],
+                "message": "components go through the store (useActions().ingestCaptures), never the extractor"
               },
               {
                 "group": [
