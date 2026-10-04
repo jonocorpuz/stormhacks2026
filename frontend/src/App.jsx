@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { createCapture } from './model';
 import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
@@ -59,6 +59,12 @@ const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
 export default function App() {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
+
+  // Tab title tracks the open board; index.html's title covers the no-board state.
+  const boardName = currentBoard?.name;
+  useEffect(() => {
+    document.title = boardName || 'Boards';
+  }, [boardName]);
   const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | 'boards' | null
   const [editMode, setEditMode] = useState(false);
   const [query, setQuery] = useState('');
