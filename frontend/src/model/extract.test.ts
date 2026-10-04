@@ -4,6 +4,7 @@ import {
   PRIMITIVES,
   buildExtractionPrompt,
   buildExtractionSchema,
+  buildMockExtraction,
   captureProblem,
   createCapture,
   extractablePrimitives,
@@ -31,17 +32,37 @@ describe('extract', () => {
     expect(prompt).toContain('body (Body, longtext)')
   })
 
-  it('schema locks primitiveId + field keys; one primitive needs no anyOf', () => {
+  it('schema locks primitiveId + field keys for one primitive', () => {
     const schema = buildExtractionSchema([NOTE]) as any
     const item = schema.properties.items.items
     expect(item.properties.primitiveId.enum).toEqual(['note'])
     expect(Object.keys(item.properties.fields.properties)).toEqual(['title', 'body'])
-    expect(item.properties.fields.additionalProperties).toBe(false)
   })
 
-  it('schema uses anyOf for several primitives', () => {
-    const schema = buildExtractionSchema([NOTE, PLACE]) as any
-    expect(schema.properties.items.items.anyOf).toHaveLength(2)
+  it('schema avoids keywords Gemini rejects (anyOf, additionalProperties)', () => {
+    const json = JSON.stringify(buildExtractionSchema(extractablePrimitives()))
+    expect(json).not.toContain('anyOf')
+    expect(json).not.toContain('additionalProperties')
+  })
+
+  it('several primitives: one enum, fields nested per primitive', () => {
+    const item = (buildExtractionSchema([NOTE, PLACE]) as any).properties.items.items
+    expect(item.properties.primitiveId.enum).toEqual(['note', 'place'])
+    expect(Object.keys(item.properties.fields.properties)).toEqual(['note', 'place'])
+    expect(Object.keys(item.properties.fields.properties.place.properties)).toEqual(['address'])
+  })
+
+  it('parses nested fields.<primitiveId>', () => {
+    const raw = { items: [{ primitiveId: 'place', fields: { place: { address: '1 Main St' } } }] }
+    expect(parseExtraction(raw, [NOTE, PLACE])).toEqual([{ primitiveId: 'place', fields: { address: '1 Main St' } }])
+  })
+
+  it('mock extraction prefers note and passes parse', () => {
+    const drafts = buildMockExtraction([PLACE, NOTE])
+    expect(drafts).toHaveLength(1)
+    expect(drafts[0].primitiveId).toBe('note')
+    expect(drafts[0].fields.title).toBeTruthy()
+    expect(buildMockExtraction([PLACE])[0]).toEqual({ primitiveId: 'place', fields: { address: 'Offline capture' } })
   })
 
   it('parses drafts, omits empty values, keeps others as-is', () => {

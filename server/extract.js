@@ -7,6 +7,7 @@ import {
   CAPTURE_IMAGE_TYPES,
   buildExtractionPrompt,
   buildExtractionSchema,
+  buildMockExtraction,
   extractablePrimitives,
   parseExtraction,
 } from '../frontend/src/model/index.ts';
@@ -41,29 +42,40 @@ export async function extract(body, env) {
   const problem = requestProblem(body);
   if (problem) return { ok: false, error: `Invalid request: ${problem}` };
 
-  if (!env.GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY not set' };
-
   const primitives = extractablePrimitives().filter((p) => body.primitiveIds.includes(p.id));
   if (primitives.length === 0) return { ok: false, error: 'No extractable primitives requested' };
 
-  const res = await fetchWithRetry(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { inline_data: { mime_type: body.mimeType, data: body.data } },
-            { text: buildExtractionPrompt(primitives) },
-          ],
+  // Offline fallback: no key or MOCK_LLM_RESPONSES=true → placeholder draft, no network.
+  if (!env.GEMINI_API_KEY || env.MOCK_LLM_RESPONSES === 'true') {
+    console.warn('[extract] mock response (no GEMINI_API_KEY or MOCK_LLM_RESPONSES=true)');
+    return { ok: true, drafts: buildMockExtraction(primitives) };
+  }
+
+  let res;
+  try {
+    res = await fetchWithRetry(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { inlineData: { mimeType: body.mimeType, data: body.data } },
+              { text: buildExtractionPrompt(primitives) },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseJsonSchema: buildExtractionSchema(primitives),
         },
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseJsonSchema: buildExtractionSchema(primitives),
-      },
-    }),
-  });
+      }),
+    });
+  } catch (err) {
+    // Network down (offline, DNS) → fall back instead of crashing the request.
+    console.warn('[extract] Gemini unreachable, mock response:', err.message);
+    return { ok: true, drafts: buildMockExtraction(primitives) };
+  }
 
   if (!res.ok) {
     const detail = await res.text();

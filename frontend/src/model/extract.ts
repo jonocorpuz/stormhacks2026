@@ -54,7 +54,7 @@ export function buildExtractionPrompt(primitives: readonly PrimitiveDef[]): stri
 
   return `You are given an image a user saved. Map it onto the known item types below.
 Pick the single best-matching type, even if none fits well, and fill its fields from what is visible.
-Return exactly one item. Only use the listed field keys. Omit fields you cannot fill — never guess or invent.
+Return exactly one item. Only use the listed field keys.${primitives.length > 1 ? ' Put them under fields.<primitiveId> (e.g. fields.note.title).' : ''} Omit fields you cannot fill — never guess or invent.
 text = short single line; longtext = multi-line, preserve useful detail; list = one entry per line item;
 number = plain number, no units or symbols; line_items = one entry per purchased item with its price as a number.
 
@@ -62,36 +62,57 @@ Item types:
 ${types}`
 }
 
-/** JSON Schema (Gemini responseJsonSchema subset) for `{ items: [{ primitiveId, fields }] }`. */
+const fieldsSchema = (p: PrimitiveDef) => ({
+  type: 'object',
+  properties: Object.fromEntries(
+    p.fields.map((f) => [f.key, { ...BLOCK_JSON_SCHEMA[f.block], description: f.description ?? f.label }]),
+  ),
+})
+
+/**
+ * JSON Schema (Gemini responseJsonSchema subset) for `{ items: [{ primitiveId, fields }] }`.
+ * No anyOf / additionalProperties — Gemini 400s on them. Several primitives → fields nested
+ * per primitive (`fields.<primitiveId>`) since keys collide across types (e.g. `items`: list vs line_items).
+ */
 export function buildExtractionSchema(primitives: readonly PrimitiveDef[]): Record<string, unknown> {
-  const variants = primitives.map((p) => ({
-    type: 'object',
-    properties: {
-      primitiveId: { type: 'string', enum: [p.id] },
-      fields: {
-        type: 'object',
-        properties: Object.fromEntries(
-          p.fields.map((f) => [
-            f.key,
-            { ...BLOCK_JSON_SCHEMA[f.block], description: f.description ?? f.label },
-          ]),
-        ),
-        additionalProperties: false,
-      },
-    },
-    required: ['primitiveId', 'fields'],
-  }))
+  const fields =
+    primitives.length === 1
+      ? fieldsSchema(primitives[0])
+      : {
+          type: 'object',
+          description: 'Fill only the property matching primitiveId',
+          properties: Object.fromEntries(primitives.map((p) => [p.id, fieldsSchema(p)])),
+        }
 
   return {
     type: 'object',
     properties: {
       items: {
         type: 'array',
-        items: variants.length === 1 ? variants[0] : { anyOf: variants },
+        items: {
+          type: 'object',
+          properties: {
+            primitiveId: { type: 'string', enum: primitives.map((p) => p.id) },
+            fields,
+          },
+          required: ['primitiveId', 'fields'],
+        },
       },
     },
     required: ['items'],
   }
+}
+
+/** Offline / no-key stand-in for the AI: one draft for the best fallback primitive. */
+export function buildMockExtraction(primitives: readonly PrimitiveDef[]): ExtractionDraft[] {
+  const def = primitives.find((p) => p.id === 'note') ?? primitives[0]
+  if (!def) return []
+  const textKey = def.fields.find((f) => f.block === 'text')?.key
+  const longKey = def.fields.find((f) => f.block === 'longtext')?.key
+  const fields: FieldValues = {}
+  if (textKey) fields[textKey] = 'Offline capture'
+  if (longKey) fields[longKey] = 'AI extraction unavailable (offline or no API key). Edit this item manually.'
+  return [{ primitiveId: def.id, fields }]
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -115,8 +136,12 @@ export function parseExtraction(raw: unknown, primitives: readonly PrimitiveDef[
     const def = primitives.find((p) => p.id === entry.primitiveId)
     if (!def) throw new Error(`Extraction: unknown primitive ${entry.primitiveId}`)
 
+    // Multi-primitive schema nests fields under fields.<primitiveId>; unwrap it.
+    const nested = entry.fields[def.id]
+    const rawFields = isRecord(nested) && !def.fields.some((f) => f.key === def.id) ? nested : entry.fields
+
     const fields: FieldValues = {}
-    for (const [key, value] of Object.entries(entry.fields)) {
+    for (const [key, value] of Object.entries(rawFields)) {
       const field = def.fields.find((f) => f.key === key)
       const empty = field
         ? getBlock(field.block).isEmpty(value)
