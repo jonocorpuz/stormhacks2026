@@ -233,6 +233,14 @@
   transform: scale(1.02);
 }
 
+/* Scrollable but no visible scrollbar (mobile Rolodex) */
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hide grid drop placeholder and remove dragging transparency */
 .react-grid-placeholder {
   display: none !important;
