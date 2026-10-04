@@ -158,11 +158,12 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               ref={scrollRef}
               onScroll={handleScroll}
               className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: space(4) }}
+              // Row pitch snapped to whole px so every number circle lands on the same subpixel offset (else some blur).
+              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: `round(${space(4)}, 1px)` }}
             >
               {items.map((line, i) => (
                 <li key={line.id ?? i} className="flex items-center shrink-0 text-ink-muted" style={{ gap: space(3) }}>
-                  <span className="relative shrink-0 flex items-center justify-center" style={{ width: u(31.403), height: u(31.403) }}>
+                  <span className="relative shrink-0 flex items-center justify-center" style={{ width: `round(${u(31.403)}, 1px)`, height: `round(${u(31.403)}, 1px)` }}>
                     <div
                       className="absolute inset-0 rounded-full bg-control/20 dark:bg-ink/10"
                       style={{
