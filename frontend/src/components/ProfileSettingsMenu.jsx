@@ -98,7 +98,7 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
           </li>
         )}
 
-        <hr className="border-ink/10 my-1 mx-2" />
+        <hr className="border-line dark:border-ink/10 my-1 mx-2" />
         
         {/* Logout: no accounts yet, so it clears the local profile (name → default avatar) */}
         <li

@@ -22,6 +22,7 @@ export default {
           ink: token('control-ink'),
         },
         sunken: 'var(--sunken)',
+        line: token('line'),
         primary: {
           DEFAULT: token('primary'),
           strong: token('primary-strong'),

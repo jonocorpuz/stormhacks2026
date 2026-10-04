@@ -41,7 +41,7 @@ export default function BoardGate() {
         </button>
 
         {boards.length > 0 && (
-          <ul className="flex flex-col pt-2 border-t border-ink/10">
+          <ul className="flex flex-col pt-2 border-t border-line dark:border-ink/10">
             {boards.map((b) => (
               <li key={b.id}>
                 <button

@@ -46,6 +46,8 @@
     --control: 220 220 220;
     --control-ink: 100 100 100;
     --sunken: rgb(217 217 217);
+    /* Neutral borders/dividers (light only; dark overrides via dark: classes). */
+    --line: 220 220 220;
 
     /* Status */
     --primary: 59 130 246;
@@ -111,7 +113,7 @@
 @layer components {
   .apple-glass {
     @apply backdrop-blur-2xl 
-           bg-surface/80 border border-surface/50 shadow-md shadow-black/[0.03] text-ink-subtle
+           bg-surface/80 border border-line shadow-md shadow-black/[0.03] text-ink-subtle
            dark:bg-ink/10 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
            transition-colors duration-500;
   }

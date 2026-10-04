@@ -72,7 +72,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
             ))}
           </ul>
 
-          <hr className="border-ink/10 my-1 mx-2" />
+          <hr className="border-line dark:border-ink/10 my-1 mx-2" />
 
           <form onSubmit={handleCreate} className="p-2">
             <input

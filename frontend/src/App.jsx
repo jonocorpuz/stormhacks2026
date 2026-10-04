@@ -118,7 +118,7 @@ export default function App() {
       {openMenu && <div className="fixed inset-0 z-40 bg-transparent" onClick={closeMenu} />}
 
       {/* Fog behind the header once content scrolls under it */}
-      <div aria-hidden className={`nav-fog fixed inset-x-0 top-0 h-44 z-40 pointer-events-none ${scrolled ? 'is-on' : ''}`}>
+      <div aria-hidden className={`nav-fog fixed inset-x-0 top-0 h-32 z-40 pointer-events-none ${scrolled ? 'is-on' : ''}`}>
         {Array.from({ length: 6 }, (_, i) => <div key={i} />)}
       </div>
 
