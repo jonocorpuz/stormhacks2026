@@ -31,7 +31,7 @@ function backingRadius(item, sizes, cardW) {
 // Tilt-stack motion (defaults from the "Tilt stack prototype"): the focused card stands upright;
 // upcoming cards wait in a pile below, tilted toward you; flipped cards stack above, tilted away.
 const FWD_TILT = 58; // deg, waiting pile
-const BACK_TILT = 14; // deg, top of flipped pile (+7deg per card deeper)
+const BACK_TILT = 14; // deg, first card behind the focused one (+7deg per card deeper); focused card is flat
 const BACK_GAP = 26; // px between flipped cards
 const PERSPECTIVE = 900;
 const STEP = 150; // scroll px per card flip
@@ -46,8 +46,8 @@ const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 
 // Waiting pile, d cards behind the next one.
 const fwdState = (d, H) => ({ y: H * FWD_Y + d * 16, rx: -FWD_TILT, s: 1 - d * 0.035, o: d < 4 ? 1 : Math.max(0, 5 - d), dim: Math.min(d * 0.08, 0.3) });
-// Flipped pile, k cards below the newest.
-const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: BACK_TILT + k * 7, s: 1 - k * 0.07, o: k < 3 ? 1 : Math.max(0, 4 - k), dim: Math.min(k * 0.22, 0.65) });
+// Flipped pile, k cards below the newest. k = 0 is the focused card: flat, tilting in as it's covered.
+const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(k, 1) * BACK_TILT + Math.max(0, k - 1) * 7, s: 1 - k * 0.07, o: k < 3 ? 1 : Math.max(0, 4 - k), dim: Math.min(k * 0.22, 0.65) });
 
 // Scroll-driven 3D tilt stack of the current board's cards. A sticky stage holds every card;
 // scroll progress (1 card per STEP px, snapped) flips cards from the waiting pile into the
