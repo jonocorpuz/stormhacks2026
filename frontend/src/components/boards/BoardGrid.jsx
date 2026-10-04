@@ -6,7 +6,7 @@ import 'react-resizable/css/styles.css';
 import { findPrimitive, itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
-import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
+import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
