@@ -18,10 +18,13 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 // Overload / rate-limit / transient errors: retry with backoff (1s, 2s, 4s).
 const RETRY_STATUSES = new Set([429, 500, 503]);
 const RETRY_DELAYS_MS = [1000, 2000, 4000];
+// Per attempt. A stalled connection (spotty Wi-Fi, DNS hang) throws TimeoutError instead of
+// hanging forever; thrown errors aren't retried, so extract() falls back to mock data.
+const ATTEMPT_TIMEOUT_MS = 15000;
 
 async function fetchWithRetry(url, init) {
   for (let attempt = 0; ; attempt++) {
-    const res = await fetch(url, init);
+    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS) });
     if (res.ok || !RETRY_STATUSES.has(res.status) || attempt >= RETRY_DELAYS_MS.length) return res;
     console.warn(`[extract] Gemini ${res.status}, retry ${attempt + 1}/${RETRY_DELAYS_MS.length}`);
     await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
@@ -51,7 +54,7 @@ export async function extract(body, env) {
     return { ok: true, drafts: buildMockExtraction(primitives) };
   }
 
-  let res;
+  let res, raw;
   try {
     res = await fetchWithRetry(GEMINI_URL, {
       method: 'POST',
@@ -71,22 +74,23 @@ export async function extract(body, env) {
         },
       }),
     });
+    raw = await res.text(); // inside the try: the timeout also covers a body that stalls mid-stream
   } catch (err) {
-    // Network down (offline, DNS) → fall back instead of crashing the request.
+    // Network down (offline, DNS) or attempt timed out → fall back instead of crashing/hanging.
     console.warn('[extract] Gemini unreachable, mock response:', err.message);
     return { ok: true, drafts: buildMockExtraction(primitives) };
   }
 
   if (!res.ok) {
-    const detail = await res.text();
-    console.error('[extract] Gemini error', res.status, detail);
+    console.error('[extract] Gemini error', res.status, raw);
     return { ok: false, error: `Gemini HTTP ${res.status}` };
   }
 
-  // Thinking models may emit thought parts; answer = remaining text parts.
-  const parts = (await res.json()).candidates?.[0]?.content?.parts ?? [];
-  const text = parts.filter((p) => p.text && !p.thought).map((p) => p.text).join('');
+  let text = '';
   try {
+    // Thinking models may emit thought parts; answer = remaining text parts.
+    const parts = JSON.parse(raw).candidates?.[0]?.content?.parts ?? [];
+    text = parts.filter((p) => p.text && !p.thought).map((p) => p.text).join('');
     return { ok: true, drafts: parseExtraction(JSON.parse(text), primitives) };
   } catch (err) {
     console.error('[extract] bad Gemini output', text);
