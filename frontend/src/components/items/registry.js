@@ -3,10 +3,12 @@ import NoteCard from './NoteCard';
 import ListCard from './ListCard';
 import CodeSnippetCard from './CodeSnippetCard';
 import MapCard from './MapCard';
+import ProductCard from './ProductCard';
 
 export const CARD_COMPONENTS = {
   note: NoteCard,
   recommendation_list: ListCard,
   code_snippet: CodeSnippetCard,
   map_location: MapCard,
+  product: ProductCard,
 };
