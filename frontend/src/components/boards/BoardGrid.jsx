@@ -13,6 +13,34 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const EMPTY = {};
 
+// Container-width breakpoints (Tailwind scale). WidthProvider measures the grid itself.
+const BREAKPOINTS = { lg: 1024, md: 768, sm: 640, xs: 480, xxs: 0 };
+const COLS = { lg: 3, md: 2, sm: 2, xs: 1, xxs: 1 };
+const GAP = 24;
+
+/**
+ * Per-breakpoint size of a card whose desktop size is w x h.
+ * Multi-column: clamp width to the column count (3x1 -> 2x1 on tablet).
+ * Single column: full width, rows are half-width (see rowHeightFor), so the card keeps its
+ * designed aspect ratio (1x1 -> square, 2x1 -> 2:1, 1x2 -> 1:2). The Figma widgets scale off
+ * their width, so a preserved aspect ratio means nothing clips.
+ */
+function sizeForCols(w, h, cols) {
+  if (cols > 1) return { w: Math.min(w, cols), h };
+  return { w: 1, h: Math.max(1, Math.round((2 * h) / w)) };
+}
+
+// Square cells on multi-column grids; half-width rows on a single column (2 rows + gap = width).
+function rowHeightFor(width, cols) {
+  if (cols === 1) return Math.max(1, (width - GAP) / 2);
+  return Math.max(1, (width - GAP * (cols - 1)) / cols);
+}
+
+function colsForWidth(width) {
+  const bp = Object.keys(BREAKPOINTS).find((key) => width >= BREAKPOINTS[key]) ?? 'xxs';
+  return COLS[bp];
+}
+
 /**
  * Cell-first (row-major) dense bin-packing pass.
  * Scans (y, x) top-to-bottom, left-to-right and fills each open cell with the first
@@ -196,36 +224,12 @@ export default function BoardGrid({ query, editMode }) {
   const [settlingId, setSettlingId] = useState(null);
   const settleTimerRef = useRef(null);
 
-  // Square cells: 1 row height = 1 column width (3 cols, 2 gaps of 24px)
-  const gridRef = useRef(null);
-  const [rowHeight, setRowHeight] = useState(200);
-  const [cols, setCols] = useState(
-    window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1,
+  // WidthProvider reports the grid's width and active column count; row height follows.
+  // Seeded from the window so the first paint is close before the first measurement.
+  const [cols, setCols] = useState(() => colsForWidth(window.innerWidth));
+  const [rowHeight, setRowHeight] = useState(() =>
+    rowHeightFor(Math.min(window.innerWidth, 1280), colsForWidth(window.innerWidth)),
   );
-
-  useEffect(() => {
-    if (!gridRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        let newCols = 1;
-        let gaps = 0;
-        if (window.innerWidth >= 1024) {
-          newCols = 3;
-          gaps = 48; // 2 * 24px gap
-        } else if (window.innerWidth >= 768) {
-          newCols = 2;
-          gaps = 24; // 1 * 24px gap
-        }
-        setCols(newCols);
-        if (width > 0) {
-          setRowHeight((width - gaps) / newCols);
-        }
-      }
-    });
-    observer.observe(gridRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => () => clearTimeout(settleTimerRef.current), []);
 
@@ -269,11 +273,7 @@ export default function BoardGrid({ query, editMode }) {
 
       const normalized = layout.map((l) => {
         const spec = itemSizesRef.current.get(l.i);
-        return {
-          ...l,
-          w: Math.min(spec ? spec.w : l.w, gridCols),
-          h: spec ? spec.h : l.h,
-        };
+        return { ...l, ...(spec ? sizeForCols(spec.w, spec.h, gridCols) : { w: Math.min(l.w, gridCols) }) };
       });
 
       const ordered = [...normalized].sort((a, b) => {
@@ -303,20 +303,22 @@ export default function BoardGrid({ query, editMode }) {
     };
   }, []);
 
-  const layoutArray = useMemo(() => packDenseLayout(itemSpecs, cols, null, null), [itemSpecs, cols]);
-  const layoutMap = useMemo(
-    () => new Map(layoutArray.map((pos) => [pos.i, pos])),
-    [layoutArray],
-  );
-  const currentBreakpoint = cols === 3 ? 'lg' : cols === 2 ? 'md' : 'sm';
-  const responsiveLayouts = useMemo(
-    () => ({
-      lg: packDenseLayout(itemSpecs, 3, null, null),
-      md: packDenseLayout(itemSpecs, 2, null, null),
-      sm: packDenseLayout(itemSpecs, 1, null, null),
-    }),
-    [itemSpecs],
-  );
+  // One packed layout per breakpoint, with cards resized for that column count.
+  const responsiveLayouts = useMemo(() => {
+    const packFor = (n) =>
+      packDenseLayout(
+        itemSpecs.map((s) => ({ ...s, ...sizeForCols(s.w, s.h, n) })),
+        n,
+        null,
+        null,
+      );
+    const byCols = { 3: packFor(3), 2: packFor(2), 1: packFor(1) };
+    return Object.fromEntries(Object.entries(COLS).map(([bp, n]) => [bp, byCols[n]]));
+  }, [itemSpecs]);
+  const layoutMap = useMemo(() => {
+    const bp = Object.keys(COLS).find((key) => COLS[key] === cols) ?? 'lg';
+    return new Map(responsiveLayouts[bp].map((pos) => [pos.i, pos]));
+  }, [responsiveLayouts, cols]);
 
   const mountOrderRef = useRef(new Map());
   const stableItems = useMemo(() => {
@@ -330,7 +332,7 @@ export default function BoardGrid({ query, editMode }) {
   }, [items]);
 
   return (
-    <div ref={gridRef} className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8 overflow-visible">
+    <div className="w-full max-w-7xl mx-auto pt-32 pb-10 px-4 sm:px-8 overflow-visible">
       {board.items.length === 0 && (
         <p className="text-center text-black/40 dark:text-white/40 pt-24 text-sm">
           Nothing here yet — hit + to add something.
@@ -342,14 +344,20 @@ export default function BoardGrid({ query, editMode }) {
 
       {items.length > 0 && (
         <ResponsiveReactGridLayout
-          className="layout overflow-visible"
-          breakpoint={currentBreakpoint}
-          breakpoints={{ lg: 1024, md: 768, sm: 0 }}
-          cols={{ lg: 3, md: 2, sm: 1 }}
+          className="layout overflow-visible transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          breakpoints={BREAKPOINTS}
+          cols={COLS}
+          measureBeforeMount={false}
+          onBreakpointChange={(_bp, newCols) => setCols(newCols)}
+          onWidthChange={(width, _margin, newCols) => {
+            setCols(newCols);
+            if (width > 0) setRowHeight(rowHeightFor(width, newCols));
+          }}
           rowHeight={rowHeight}
-          margin={[24, 24]}
+          margin={[GAP, GAP]}
           containerPadding={[0, 0]}
-          isDraggable={editMode}
+          // Single column = touch layout: no dragging, so scrolling never picks up a card.
+          isDraggable={editMode && cols > 1}
           isResizable={false}
           draggableCancel=".card-action-btn"
           compactType="vertical"
