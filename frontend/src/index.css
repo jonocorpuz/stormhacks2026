@@ -74,6 +74,15 @@
     --map-paper: 242 239 233;
     --code-bg: 22 25 22;
     --code-ink: 255 255 255;
+    /* Syntax colours on the (always dark) code panel; muted One Dark. Used by .code-highlight. */
+    --code-keyword: 198 120 221;
+    --code-string: 152 195 121;
+    --code-number: 209 154 102;
+    --code-function: 97 175 239;
+    --code-type: 229 192 123;
+    --code-operator: 86 182 194;
+    --code-comment: 127 132 142;
+    --code-punctuation: 171 178 191;
 
     /* Shadow colors */
     --shadow: 0 0 0;
@@ -165,6 +174,34 @@
 .modal-pop {
   animation: modalPop 650ms var(--spring) backwards;
 }
+
+/* Syntax highlighting (components/HighlightedCode.tsx): Prism token classes → code tokens.
+   Unmatched text keeps the panel's white. */
+.code-highlight .token.comment,
+.code-highlight .token.prolog,
+.code-highlight .token.doctype { color: rgb(var(--code-comment)); font-style: italic; }
+.code-highlight .token.keyword,
+.code-highlight .token.atrule,
+.code-highlight .token.important { color: rgb(var(--code-keyword)); }
+.code-highlight .token.string,
+.code-highlight .token.char,
+.code-highlight .token.template-string,
+.code-highlight .token.attr-value,
+.code-highlight .token.regex { color: rgb(var(--code-string)); }
+.code-highlight .token.number,
+.code-highlight .token.boolean,
+.code-highlight .token.constant,
+.code-highlight .token.symbol { color: rgb(var(--code-number)); }
+.code-highlight .token.function,
+.code-highlight .token.function-variable { color: rgb(var(--code-function)); }
+.code-highlight .token.class-name,
+.code-highlight .token.builtin,
+.code-highlight .token.tag,
+.code-highlight .token.selector { color: rgb(var(--code-type)); }
+.code-highlight .token.operator,
+.code-highlight .token.attr-name,
+.code-highlight .token.property { color: rgb(var(--code-operator)); }
+.code-highlight .token.punctuation { color: rgb(var(--code-punctuation)); }
 
 /* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
    Keeps the color fade that Tailwind's transition-colors would otherwise provide. */

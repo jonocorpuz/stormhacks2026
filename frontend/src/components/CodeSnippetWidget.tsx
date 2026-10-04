@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CodeSnippetData, WidgetDisplayProps } from '../types/widgets';
+import HighlightedCode from './HighlightedCode';
 import WidgetShell, { ShellIconButton, SolidPanel, Watermark } from './WidgetShell';
 import { FONT, ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
@@ -82,7 +83,7 @@ export default function CodeSnippetWidget({ data, className = '', isCompact = fa
                 WebkitMaskImage: CODE_FADE,
               }}
             >
-              <code style={{ fontFamily: 'inherit' }}>{code}</code>
+              <HighlightedCode code={code} language={language} />
             </pre>
           </SolidPanel>
         </div>
@@ -123,7 +124,7 @@ export default function CodeSnippetWidget({ data, className = '', isCompact = fa
           </span>
         </div>
 
-        {/* Code Block: grey inset panel, plain white mono. */}
+        {/* Code Block: grey inset panel, white mono with Prism syntax colours (HighlightedCode). */}
         <SolidPanel designWidth={DESIGN_WIDTH} accent="grey" className="flex-1 min-h-0">
           <Watermark designWidth={DESIGN_WIDTH} glyph="{i++}" size={200} />
           <pre
@@ -136,7 +137,7 @@ export default function CodeSnippetWidget({ data, className = '', isCompact = fa
               lineHeight: 'normal',
             }}
           >
-            <code style={{ fontFamily: 'inherit' }}>{code}</code>
+            <HighlightedCode code={code} language={language} />
           </pre>
         </SolidPanel>
 
