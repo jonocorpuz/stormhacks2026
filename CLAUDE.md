@@ -4,6 +4,11 @@ Sacrifice grammar for the sake of concision.
 
 Express, prod only (Render single web service, `render.yaml`): serves `frontend/dist` + `POST /api/extract`. Runs via `tsx` to import TS model. `server/extract.js` = Gemini proxy shared w/ Vite dev middleware → keep it dependency-free. Local prod run: `npm --prefix frontend run build && GEMINI_API_KEY=… npm --prefix server start`.
 
+**Gemini quota is scarce — save it for real use.**
+- Agents/Claude: never call Gemini (no curl to `/api/extract` or Gemini, no app drops w/ key loaded) unless user explicitly asks for that specific call. Verify via tests, typecheck, request validation, missing-key error path.
+- Tests never hit network: inject inline fake `Extractor`. No live-API tests, no CI calling it.
+- If a live check is approved: one request, no retry loops.
+
 ## Architecture (frontend/src)
 
 Initial Plan (May change): `documents/initial-build-plan.md`. Model is center.
