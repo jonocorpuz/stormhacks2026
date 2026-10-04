@@ -1,0 +1,67 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="282.28" height="282.28" viewBox="0 0 282.28 282.28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 34">
+<g id="Ellipse 30" filter="url(#filter0_in_0_4)">
+<circle cx="141.14" cy="141.14" r="141.14" fill="#522A2A"/>
+</g>
+<g id="Mask group">
+<mask id="mask0_0_4" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="-1" y="0" width="284" height="283">
+<circle id="Ellipse 39" cx="141.14" cy="141.14" r="141.14" fill="#522A2A"/>
+</mask>
+<g mask="url(#mask0_0_4)">
+<g id="Group 35">
+<g id="Vector 21" filter="url(#filter1_f_0_4)">
+<path d="M197.872 -15.5364L142.062 142.934L87.1738 -10.6535L197.872 -15.5364Z" fill="white" fill-opacity="0.1" style="mix-blend-mode:soft-light"/>
+</g>
+<g id="Vector 22" filter="url(#filter2_f_0_4)">
+<path d="M83.9454 296.966L139.756 138.495L194.643 292.083L83.9454 296.966Z" fill="white" fill-opacity="0.1" style="mix-blend-mode:soft-light"/>
+</g>
+</g>
+</g>
+</g>
+<circle id="Ellipse 31" cx="140.679" cy="140.679" r="125.419" stroke="#703B3B"/>
+<circle id="Ellipse 32" cx="140.678" cy="140.679" r="113.427" stroke="#703B3B"/>
+<circle id="Ellipse 33" cx="140.678" cy="140.679" r="100.512" stroke="#703B3B"/>
+<circle id="Ellipse 34" cx="140.678" cy="140.679" r="89.4421" stroke="#703B3B"/>
+<circle id="Ellipse 37" cx="140.679" cy="140.679" r="79.2948" stroke="#703B3B"/>
+<circle id="Ellipse 38" cx="140.679" cy="140.679" r="65.4575" stroke="#703B3B"/>
+<circle id="Ellipse 35" cx="141.14" cy="141.14" r="38.7443" fill="#DA7777"/>
+<circle id="Ellipse 36" cx="141.14" cy="141.14" r="12.9148" fill="#EBDEDE"/>
+</g>
+<defs>
+<filter id="filter0_in_0_4" x="0" y="0" width="282.28" height="288.28" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="6"/>
+<feGaussianBlur stdDeviation="5.4"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.732478 0 0 0 0 0.732478 0 0 0 0 0.732478 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="shape" result="effect1_innerShadow_0_4"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.66666668653488159 0.66666668653488159" stitchTiles="stitch" numOctaves="3" result="noise" seed="2759" />
+<feComponentTransfer in="noise" result="coloredNoise1">
+<feFuncR type="linear" slope="2" intercept="-0.5" />
+<feFuncG type="linear" slope="2" intercept="-0.5" />
+<feFuncB type="linear" slope="2" intercept="-0.5" />
+<feFuncA type="discrete" tableValues="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "/>
+</feComponentTransfer>
+<feComposite operator="in" in2="effect1_innerShadow_0_4" in="coloredNoise1" result="noise1Clipped" />
+<feComponentTransfer in="noise1Clipped" result="color1">
+<feFuncA type="table" tableValues="0 0.12" />
+</feComponentTransfer>
+<feMerge result="effect2_noise_0_4">
+<feMergeNode in="effect1_innerShadow_0_4" />
+<feMergeNode in="color1" />
+</feMerge>
+</filter>
+<filter id="filter1_f_0_4" x="49.9738" y="-52.7364" width="185.098" height="232.871" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="18.6" result="effect1_foregroundBlur_0_4"/>
+</filter>
+<filter id="filter2_f_0_4" x="46.7454" y="101.295" width="185.098" height="232.871" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="18.6" result="effect1_foregroundBlur_0_4"/>
+</filter>
+</defs>
+</svg>
