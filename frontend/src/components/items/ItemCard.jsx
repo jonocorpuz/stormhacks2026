@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { findPrimitive, getItemIssues } from '../../model';
 import GenericCard from './GenericCard';
 import { CARD_COMPONENTS } from './registry';
@@ -12,7 +12,8 @@ const ISSUE_TEXT = {
 
 // Glass card shell for any item. Picks the primitive's card (or GenericCard),
 // flags validation issues, and shows edit-mode controls. Pure: all changes go up via props.
-export default function ItemCard({
+// Handlers take the item id so the parent can pass stable callbacks; memo skips unchanged cards.
+export default memo(function ItemCard({
   item,
   size = DEFAULT_SIZE,
   editMode,
@@ -41,7 +42,7 @@ export default function ItemCard({
   return (
     <div
       {...dragProps}
-      onClick={known && !editMode ? onOpen : undefined}
+      onClick={known && !editMode ? () => onOpen(item.id) : undefined}
       style={wiggleStyle}
       className={`w-full h-full relative transition-transform duration-500 ease-in-out ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.005] hover:-rotate-[0.5deg]'} cursor-pointer ${
         isFullBleed
@@ -67,18 +68,18 @@ export default function ItemCard({
       {editMode && (
         <div className="absolute top-3 right-3 z-20 flex gap-1.5">
           {!fixedSize && (
-            <CardButton label="Resize" onClick={onCycleSize}>
+            <CardButton label="Resize" onClick={() => onCycleSize(item.id)}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
             </CardButton>
           )}
-          <CardButton label="Delete" onClick={onDelete} danger>
+          <CardButton label="Delete" onClick={() => onDelete(item.id)} danger>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </CardButton>
         </div>
       )}
     </div>
   );
-}
+});
 
 function UnsupportedCard({ primitive }) {
   return (
