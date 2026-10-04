@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Menu } from 'lucide-react';
 import logoCircle from '../assets/widget-shell/logo-circle.svg';
 import { SHELL, SOLID_PANEL, type Accent, widgetScale } from './widgetKit';
 
@@ -62,10 +62,17 @@ export default function WidgetShell({
           </div>
         )}
 
-        {footer && (
+        {footer ? (
           <div className="flex items-center shrink-0" style={{ height: u(SHELL.control), gap: u(SHELL.footerGap) }}>
             {footer}
+            <DragHandle designWidth={designWidth} className="ml-auto text-shell-control-ink" />
           </div>
+        ) : (
+          <DragHandle
+            designWidth={designWidth}
+            className="absolute text-white/70"
+            style={{ right: u(SHELL.inset + 6), bottom: u(SHELL.inset + 6) }}
+          />
         )}
       </div>
     </div>
@@ -99,6 +106,29 @@ export function SolidPanel({
         style={{ boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)` }}
       />
     </div>
+  );
+}
+
+// Grip that rearranges the card on the board without edit mode (BoardGrid's draggableHandle).
+export function DragHandle({
+  designWidth,
+  className = '',
+  style,
+}: {
+  designWidth: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const { u } = widgetScale(designWidth);
+  return (
+    <span
+      aria-label="Drag to rearrange"
+      title="Drag to rearrange"
+      className={`drag-handle shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none hover:opacity-100 opacity-80 ${className}`}
+      style={{ width: u(36), height: u(36), ...style }}
+    >
+      <Menu style={{ width: u(22), height: u(22) }} strokeWidth={2} />
+    </span>
   );
 }
 
