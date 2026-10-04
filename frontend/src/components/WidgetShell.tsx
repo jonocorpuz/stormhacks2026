@@ -10,7 +10,8 @@ import { SHELL, SOLID_PANEL, type Accent, widgetScale } from './widgetKit';
 
 export interface WidgetShellProps {
   designWidth: number;
-  accent: Accent;
+  // Solid panel colour. Omit to lay content straight on the shell (place your own SolidPanel inside).
+  accent?: Accent;
   // Huge 5% mark in the panel's top-right corner.
   watermark?: React.ReactNode;
   // Footer controls (ShellIconButton / ShellPill). Omit to let the panel fill the shell.
@@ -45,19 +46,21 @@ export default function WidgetShell({
           gap: u(SHELL.footerGap),
         }}
       >
-        <div
-          className={`relative flex-1 min-h-0 overflow-hidden text-white ${SOLID_PANEL[accent]} ${panelClassName}`}
-          style={{ borderRadius: u(SHELL.panelRadius), ...panelStyle }}
-        >
-          {watermark}
-          {children}
-          {/* Inset shadow above content, like Figma's overlay layer. */}
-          <div
-            aria-hidden
-            className="absolute inset-0 pointer-events-none rounded-[inherit]"
-            style={{ boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)` }}
-          />
-        </div>
+        {accent ? (
+          <SolidPanel
+            designWidth={designWidth}
+            accent={accent}
+            className={`flex-1 min-h-0 ${panelClassName}`}
+            style={panelStyle}
+          >
+            {watermark}
+            {children}
+          </SolidPanel>
+        ) : (
+          <div className={`relative flex-1 min-h-0 text-ink ${panelClassName}`} style={panelStyle}>
+            {children}
+          </div>
+        )}
 
         {footer && (
           <div className="flex items-center shrink-0" style={{ height: u(SHELL.control), gap: u(SHELL.footerGap) }}>
@@ -65,6 +68,36 @@ export default function WidgetShell({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Solid accent panel with Figma's inset shadow drawn above its content.
+export function SolidPanel({
+  designWidth,
+  accent,
+  className = '',
+  style,
+  children,
+}: {
+  designWidth: number;
+  accent: Accent;
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const { u } = widgetScale(designWidth);
+  return (
+    <div
+      className={`relative overflow-hidden text-white ${SOLID_PANEL[accent]} ${className}`}
+      style={{ borderRadius: u(SHELL.panelRadius), ...style }}
+    >
+      {children}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none rounded-[inherit]"
+        style={{ boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)` }}
+      />
     </div>
   );
 }

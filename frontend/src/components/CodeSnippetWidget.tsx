@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CodeSnippetData } from '../types/widgets';
-import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
+import WidgetShell, { ShellIconButton, SolidPanel, Watermark } from './WidgetShell';
 import { FONT, ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface CodeSnippetWidgetProps {
@@ -18,7 +18,7 @@ const DEFAULT_DATA: CodeSnippetData = {
 // Figma "Project Code Snippet" (stormhacks-27, nodes 55:397 / 55:398 / 55:452) on the solid-panel
 // shell (node 120:1121). Designed at 730px wide (2x2); sizes scale with the widget's width.
 const DESIGN_WIDTH = 730;
-const { u, space, radius, type, insetShadow } = widgetScale(DESIGN_WIDTH);
+const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
 const COPIED_RESET_MS = 1600;
 
@@ -55,33 +55,30 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
   return (
     <WidgetShell
       designWidth={DESIGN_WIDTH}
-      accent="grey"
       className={className}
-      watermark={<Watermark designWidth={DESIGN_WIDTH} glyph="{i++}" size={200} />}
       footer={footer}
     >
-      <div
-        className="absolute flex flex-col"
-        style={{ left: u(SHELL.padX), right: u(SHELL.padX), top: u(SHELL.padY), bottom: u(SHELL.padX), gap: space(3) }}
-      >
+      {/* Only the code is inset; header and date sit on the shell surface. */}
+      <div className="absolute inset-0 flex flex-col" style={{ gap: space(3) }}>
         {/* Header */}
-        <div className="flex items-baseline justify-between shrink-0" style={{ gap: space(4) }}>
+        <div
+          className="flex items-baseline justify-between shrink-0"
+          style={{ gap: space(4), paddingLeft: u(SHELL.padX), paddingRight: u(SHELL.padX), paddingTop: u(SHELL.padY / 2) }}
+        >
           <h2
-            className={`font-bold ${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`}
+            className="font-bold text-ink whitespace-nowrap overflow-hidden text-ellipsis"
             style={type('display')}
           >
             {title}
           </h2>
-          <span className={`${ON_PANEL.secondary} whitespace-nowrap shrink-0`} style={type('body')}>
+          <span className="text-ink-subtle whitespace-nowrap shrink-0" style={type('body')}>
             {language}
           </span>
         </div>
 
-        {/* Code Block: plain white mono, no syntax colours on the solid panel. */}
-        <div
-          className={`relative flex-1 min-h-0 ${ON_PANEL.well}`}
-          style={{ borderRadius: radius('control'), boxShadow: insetShadow }}
-        >
+        {/* Code Block: grey inset panel, plain white mono. */}
+        <SolidPanel designWidth={DESIGN_WIDTH} accent="grey" className="flex-1 min-h-0">
+          <Watermark designWidth={DESIGN_WIDTH} glyph="{i++}" size={200} />
           <pre
             className={`absolute inset-0 m-0 overflow-auto whitespace-pre-wrap break-words ${ON_PANEL.primary} [scrollbar-width:thin] [scrollbar-color:rgb(var(--glow)/0.3)_transparent]`}
             style={{
@@ -94,9 +91,9 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
           >
             <code style={{ fontFamily: 'inherit' }}>{code}</code>
           </pre>
-        </div>
+        </SolidPanel>
 
-        <span className={`${ON_PANEL.faint} whitespace-nowrap shrink-0`} style={type('caption')}>
+        <span className="text-ink-subtle whitespace-nowrap shrink-0" style={{ ...type('caption'), paddingLeft: u(SHELL.padX) }}>
           {date}
         </span>
       </div>
