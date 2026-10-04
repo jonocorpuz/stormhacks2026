@@ -29,7 +29,7 @@ export default function ItemEditor({ item, onClose }) {
         {primitive ? (
           <PrimitiveForm primitive={primitive} values={values} onChange={setValues} issues={issues} />
         ) : (
-          <p className="text-sm text-ink/70 px-1">
+          <p className="text-sm text-ink/85 dark:text-ink/70 px-1">
             Unknown item type “{item.primitiveId}”. It can’t be edited here; delete it with the card’s × in edit mode.
           </p>
         )}
@@ -38,7 +38,7 @@ export default function ItemEditor({ item, onClose }) {
           <div className="flex-1" />
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-full text-sm font-semibold bg-ink/5 text-ink/70 hover:bg-ink/10 dark:bg-ink/10 dark:text-ink/80 dark:hover:bg-ink/20 transition-colors"
+            className="px-4 py-2.5 rounded-full text-sm font-semibold bg-ink/5 text-ink/85 hover:bg-ink/10 dark:bg-ink/10 dark:text-ink/80 dark:hover:bg-ink/20 transition-colors"
           >
             Cancel
           </button>

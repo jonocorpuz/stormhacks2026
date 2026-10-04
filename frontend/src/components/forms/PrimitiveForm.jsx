@@ -20,7 +20,7 @@ export default function PrimitiveForm({ primitive, values, onChange, issues = []
         const issue = issueFor(field.key);
         return (
           <label key={`${primitive.id}-${field.key}`} className="flex flex-col space-y-1.5">
-            <span className="px-1 text-xs font-medium text-ink/60">
+            <span className="px-1 text-xs font-medium text-ink/75 dark:text-ink/60">
               {field.label}
               {field.required && <span className="text-warning"> *</span>}
               {issue && ISSUE_TEXT[issue.kind] && (

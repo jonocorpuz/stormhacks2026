@@ -50,7 +50,7 @@ export default function BoardGate() {
                   className="w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 transition-colors text-sm text-ink"
                 >
                   <span>{b.name}</span>
-                  <span className="text-ink/40">{b.itemCount}</span>
+                  <span className="text-ink/55 dark:text-ink/40">{b.itemCount}</span>
                 </button>
               </li>
             ))}

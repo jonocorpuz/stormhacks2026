@@ -61,7 +61,7 @@ export default function CreateItemMenu({ isOpen, onClose }) {
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               primitiveId === p.id
                 ? 'bg-primary text-white shadow-md'
-                : 'bg-ink/5 text-ink/70 hover:bg-ink/10 hover:text-ink dark:bg-ink/10 dark:hover:bg-ink/20'
+                : 'bg-ink/5 text-ink/85 dark:text-ink/70 hover:bg-ink/10 hover:text-ink dark:bg-ink/10 dark:hover:bg-ink/20'
             }`}
           >
             {p.name}

@@ -497,7 +497,7 @@ export function DeleteConfirmModal({ item, onCancel, onConfirm }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-ink">Delete {label}?</h3>
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-ink/75 dark:text-ink/60">
           This item will be permanently removed from your board.
         </p>
         <div className="flex justify-end gap-2 pt-2">
