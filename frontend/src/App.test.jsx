@@ -4,7 +4,9 @@ import React from 'react';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import App from './App';
-import { packDenseLayout } from './components/boards/BoardGrid';
+import BoardGrid, { packDenseLayout } from './components/boards/BoardGrid';
+import ItemEditor from './components/ItemEditor';
+import MobileRolodexView from './components/mobile/MobileRolodexView';
 import { MemoryRepo } from './persistence';
 import { createAppStore, StoreProvider } from './store';
 
@@ -255,3 +257,58 @@ describe('App', () => {
   });
 });
 
+
+describe('crash guards', () => {
+  async function renderWith(ui) {
+    const store = createAppStore(new MemoryRepo());
+    await store.actions.init();
+    await store.actions.createBoard('B');
+    await store.actions.createItem('note', { title: 'Hi' });
+    render(<StoreProvider store={store}>{ui}</StoreProvider>);
+    return store;
+  }
+
+  it.each([
+    ['BoardGrid', <BoardGrid query="" editMode={false} />],
+    ['MobileRolodexView', <MobileRolodexView query="" />],
+  ])('%s renders nothing (no crash) when the board closes or is deleted', async (_name, ui) => {
+    const store = await renderWith(ui);
+    await act(async () => store.actions.closeBoard());
+    expect(store.getState().currentBoard).toBeNull();
+    await act(async () => store.actions.createBoard('C'));
+    await act(async () => store.actions.deleteBoard(store.getState().currentBoard.id));
+    expect(store.getState().currentBoard).toBeNull();
+  });
+
+  it('ItemEditor handles an unknown primitive', async () => {
+    const item = { id: 'x', primitiveId: 'custom_thing', fields: { a: 1 } };
+    await renderWith(<ItemEditor item={item} onClose={() => {}} />);
+    expect(screen.getByText(/Unknown item type/)).toBeTruthy();
+    expect(screen.queryByText('Save')).toBeNull();
+    expect(screen.getByText('Delete')).toBeTruthy();
+  });
+});
+
+describe('profile menu', () => {
+  it('sets a name shown as avatar initials; logout clears it', async () => {
+    const store = await mount(new MemoryRepo());
+    await act(async () => store.actions.createBoard('B'));
+    const avatar = () => screen.getByLabelText('Settings');
+
+    await click(avatar());
+    expect(screen.queryByText('Change Profile Photo')).toBeNull();
+    await click(screen.getByText('Set Name'));
+    await type(screen.getByLabelText('Name'), 'Ada Lovelace');
+    await act(async () => fireEvent.submit(screen.getByLabelText('Name').closest('form')));
+    expect(avatar().textContent).toBe('AL');
+
+    await click(screen.getByText('Change Name'));
+    await type(screen.getByLabelText('Name'), 'Prince');
+    await act(async () => fireEvent.submit(screen.getByLabelText('Name').closest('form')));
+    expect(avatar().textContent).toBe('P');
+
+    await click(screen.getByText('Logout'));
+    expect(avatar().textContent).toBe('');
+    expect(store.getState().name).toBeNull();
+  });
+});

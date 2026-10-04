@@ -26,7 +26,9 @@ export default function NoteCard({ item }) {
     if (!pending.current) return;
     const patch = pending.current;
     pending.current = null;
-    updateItem(item.id, patch).finally(() => setDraft((d) => (pending.current ? d : null)));
+    updateItem(item.id, patch)
+      .catch(() => {}) // failure shown by SaveStatus
+      .finally(() => setDraft((d) => (pending.current ? d : null)));
   };
   const flushRef = useRef(flush);
   useEffect(() => {

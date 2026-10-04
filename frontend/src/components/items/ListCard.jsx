@@ -1,21 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ListWidget from '../ListWidget';
 import { useActions } from '../../store';
+import { toListEntries } from './listEntries';
 
-export default function ListCard({ item, primitive }) {
+export default function ListCard({ item }) {
   const { updateItem } = useActions();
 
-  // Try parsing in case we stored JSON, otherwise use as array or fallback to empty
-  let items = [];
-  if (Array.isArray(item.fields.items)) {
-    items = item.fields.items;
-  } else if (typeof item.fields.items === 'string') {
-    try {
-      items = JSON.parse(item.fields.items);
-    } catch (e) {
-      items = [];
-    }
-  }
+  // Normalized: tolerates corrupted shapes (JSON string, bare strings) without spreading strings.
+  // Memoized: ListWidget resyncs its local state whenever data.items changes identity.
+  const items = useMemo(() => toListEntries(item.fields.items), [item.fields.items]);
 
   const data = {
     title: item.fields.title,
@@ -27,7 +20,7 @@ export default function ListCard({ item, primitive }) {
     const newItems = items.map((i) =>
       i.id === id ? { ...i, isChecked: !i.isChecked } : i
     );
-    updateItem(item.id, { items: newItems });
+    updateItem(item.id, { items: newItems }).catch(() => {}); // failure shown by SaveStatus
   };
 
   return <ListWidget data={data} onToggleItem={handleToggleItem} />;

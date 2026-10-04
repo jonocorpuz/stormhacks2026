@@ -9,9 +9,8 @@ export default function ProductCard({ item }) {
     brand: item.fields.brand,
     model: item.fields.model,
     url: item.fields.url,
-    imageUrl: item.fields.imageUrl,
     date: item.fields.date,
   };
 
-  return <ProductWidget key={data.imageUrl} data={data} />;
+  return <ProductWidget data={data} />;
 }

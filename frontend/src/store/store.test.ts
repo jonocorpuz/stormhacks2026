@@ -10,6 +10,25 @@ const setup = () => {
 }
 
 describe('app store', () => {
+  it('profile name: saved to prefs, restored on init, cleared by null/blank', async () => {
+    const prefsRepo = new MemoryRepo()
+    const store = createAppStore(new MemoryRepo(), undefined, { prefsRepo })
+    await store.actions.init()
+    expect(store.getState().name).toBeNull()
+
+    await store.actions.setName('  Ada Lovelace ')
+    expect(store.getState().name).toBe('Ada Lovelace')
+    const again = createAppStore(new MemoryRepo(), undefined, { prefsRepo })
+    await again.actions.init()
+    expect(again.getState().name).toBe('Ada Lovelace')
+
+    await store.actions.setName(null)
+    expect(store.getState().name).toBeNull()
+    expect(await prefsRepo.loadPrefs()).toEqual({ theme: null })
+    await store.actions.setName('   ')
+    expect(store.getState().name).toBeNull()
+  })
+
   it('theme follows browser until toggled, then saves choice', async () => {
     const prefsRepo = new MemoryRepo()
     const store = createAppStore(new MemoryRepo(), undefined, { prefsRepo, systemDark: true })
@@ -127,8 +146,58 @@ describe('app store', () => {
       },
     }
     const store = createAppStore(repo)
-    await store.actions.createBoard('Trip')
+    await expect(store.actions.createBoard('Trip')).rejects.toThrow('disk full')
     expect(store.getState()).toMatchObject({ status: 'error', error: 'disk full' })
+  })
+
+  it('recovers from a transient save failure; next save persists the missed change', async () => {
+    const repo = new MemoryRepo()
+    const rawSave = repo.saveBoard.bind(repo)
+    let failNext = false
+    repo.saveBoard = async (b) => {
+      if (failNext) {
+        failNext = false
+        throw new Error('QuotaExceededError')
+      }
+      return rawSave(b)
+    }
+    const store = createAppStore(repo)
+    const board = await store.actions.createBoard('Trip')
+
+    failNext = true
+    await expect(store.actions.createItem('note', { title: 'lost?' })).rejects.toThrow('QuotaExceededError')
+    expect(store.getState()).toMatchObject({ status: 'error', error: 'QuotaExceededError' })
+
+    await store.actions.createItem('note', { title: 'next' })
+    expect(store.getState()).toMatchObject({ status: 'idle', error: null })
+    const titles = (await repo.loadBoard(board.id))!.items.map((i) => i.fields.title)
+    expect(titles).toEqual(expect.arrayContaining(['lost?', 'next']))
+  })
+
+  it("keeps the error while another board's failed save is unrecovered", async () => {
+    const repo = new MemoryRepo()
+    const rawSave = repo.saveBoard.bind(repo)
+    let failing: string | null = null
+    repo.saveBoard = async (b) => {
+      if (b.id === failing) throw new Error('disk full')
+      return rawSave(b)
+    }
+    const store = createAppStore(repo)
+    const a = await store.actions.createBoard('A')
+    failing = a.id
+    await expect(store.actions.createItem('note', { title: 'x' })).rejects.toThrow()
+    failing = null
+
+    await store.actions.createBoard('B')
+    await store.actions.createItem('note', { title: 'y' })
+    expect(store.getState()).toMatchObject({ status: 'error', error: 'disk full' })
+
+    // Reopening uses the unsaved version, so the next save persists 'x' instead of dropping it.
+    await store.actions.openBoard(a.id)
+    expect(store.getState().currentBoard!.items.map((i) => i.fields.title)).toContain('x')
+    await store.actions.renameBoard(a.id, 'A2')
+    expect(store.getState()).toMatchObject({ status: 'idle', error: null })
+    expect((await repo.loadBoard(a.id))!.items.map((i) => i.fields.title)).toContain('x')
   })
 
   describe('ingestCaptures', () => {
@@ -164,6 +233,38 @@ describe('app store', () => {
       const items = (await repo.loadBoard(board.id))!.items
       expect(items.at(-1)).toMatchObject({ primitiveId: 'note', fields: { title: 'From image' }, captureId: null })
       expect(store.getState().extractions).toEqual([])
+    })
+
+    it('multi-drop: out-of-order extractions all land (state + repo)', async () => {
+      // Slow async saves, so commits overlap with in-flight writes.
+      const repo = new MemoryRepo()
+      const rawSave = repo.saveBoard.bind(repo)
+      repo.saveBoard = async (b) => {
+        await new Promise((r) => setTimeout(r, 5))
+        return rawSave(b)
+      }
+      const gates = new Map<string, () => void>()
+      const extractor: Extractor = {
+        extract: (capture) =>
+          new Promise((resolve) =>
+            gates.set(capture.name!, () => resolve([{ primitiveId: 'note', fields: { title: capture.name } }])),
+          ),
+      }
+      const store = createAppStore(repo, extractor)
+      const board = await store.actions.createBoard('Trip')
+
+      const done = store.actions.ingestCaptures([png('a.png'), png('b.png'), png('c.png')])
+      for (const name of ['c.png', 'a.png', 'b.png']) {
+        gates.get(name)!()
+        await new Promise((r) => setTimeout(r, 0))
+        if (name === 'a.png') await store.actions.createItem('note', { title: 'manual' })
+      }
+      await done
+
+      const titles = (items: { fields: Record<string, unknown> }[]) => items.map((i) => i.fields.title).sort()
+      const expected = ['a.png', 'b.png', 'c.png', 'manual']
+      expect(titles(store.getState().currentBoard!.items)).toEqual(expected)
+      expect(titles((await repo.loadBoard(board.id))!.items)).toEqual(expected)
     })
 
     it('creates an Untitled board when none is open', async () => {

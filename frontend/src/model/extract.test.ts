@@ -4,6 +4,7 @@ import {
   PRIMITIVES,
   buildExtractionPrompt,
   buildExtractionSchema,
+  buildMockExtraction,
   captureProblem,
   createCapture,
   extractablePrimitives,
@@ -74,5 +75,13 @@ describe('extract', () => {
     expect(captureProblem(createCapture('image', 'image/png', 'abc'))).toBeNull()
     expect(captureProblem(createCapture('image', 'application/pdf', 'abc'))).toMatch(/Not supported/)
     expect(captureProblem(createCapture('image', 'image/png', 'a'.repeat(28 * 1024 * 1024)))).toMatch(/Too large/)
+  })
+
+  it('mock extraction prefers note, else fills the first text field', () => {
+    const drafts = buildMockExtraction([PLACE, NOTE])
+    expect(drafts).toHaveLength(1)
+    expect(drafts[0].primitiveId).toBe('note')
+    expect(drafts[0].fields.title).toBeTruthy()
+    expect(buildMockExtraction([PLACE])[0]).toEqual({ primitiveId: 'place', fields: { address: 'Offline capture' } })
   })
 })

@@ -18,7 +18,6 @@ const DEFAULT_DATA: ProductWidgetData = {
   brand: 'Seiko',
   model: 'Seiko Type II',
   url: '',
-  imageUrl: '',
   date: '03 / 10 / 26',
 };
 
@@ -38,7 +37,8 @@ const isEbay = (url: string) => {
 };
 
 export default function ProductWidget({ data, className = '' }: ProductWidgetProps) {
-  const pick = <K extends keyof ProductWidgetData>(key: K) => data?.[key] || DEFAULT_DATA[key];
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const pick = <K extends keyof ProductWidgetData>(key: K) => (data ? (data[key] ?? '') : DEFAULT_DATA[key]);
   const title = pick('title');
   const description = pick('description');
   const date = pick('date');

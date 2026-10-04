@@ -12,7 +12,7 @@ export default function ExtractionStatus() {
       {extractions.map(({ id, name, status, error }) => (
         <div
           key={id}
-          className="apple-glass px-5 py-2.5 rounded-full text-sm shadow-2xl flex items-center gap-3 max-w-full"
+          className={`apple-glass px-5 py-2.5 text-sm shadow-2xl flex items-center gap-3 max-w-full ${status === 'pending' ? 'rounded-full' : 'rounded-2xl'}`}
         >
           {status === 'pending' ? (
             <>
@@ -21,9 +21,10 @@ export default function ExtractionStatus() {
             </>
           ) : (
             <>
-              <span className="truncate text-danger">
-                {name ? `${name}: ` : ''}
-                {error}
+              {/* Full error, wrapped: it's the only clue to what went wrong. Filename may truncate. */}
+              <span className="min-w-0 flex flex-col text-danger" title={error}>
+                {name && <span className="truncate font-semibold">{name}</span>}
+                <span className="break-words select-text">{error}</span>
               </span>
               <button
                 onClick={() => dismissExtraction(id)}

@@ -7,6 +7,7 @@ import ItemEditor from '../ItemEditor';
 import CreateItemMenu from '../CreateItemMenu';
 import GlassButton from '../GlassButton';
 import GlassInput from '../GlassInput';
+import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
@@ -67,8 +68,14 @@ const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(MAX_B
 // scroll progress (1 card per STEP px, snapped) flips cards from the waiting pile into the
 // flipped pile. Transforms are written straight to the DOM from a scroll-linked rAF, so
 // scrolling never re-renders React.
-export default function MobileRolodexView({ query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
+// Null-board guard here so the view's hooks stay unconditional (see BoardGrid).
+export default function MobileRolodexView(props) {
   const board = useApp((s) => s.currentBoard);
+  if (!board) return null;
+  return <RolodexStack board={board} {...props} />;
+}
+
+function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -274,7 +281,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
               aria-label="Settings"
               className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
             >
-              <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+              <ProfileAvatar />
             </div>
           </div>
           <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
@@ -357,7 +364,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
           item={deletingItem}
           onCancel={() => setDeletingId(null)}
           onConfirm={() => {
-            deleteItem(deletingItem.id);
+            deleteItem(deletingItem.id).catch(() => {}); // failure shown by SaveStatus
             setDeletingId(null);
           }}
         />

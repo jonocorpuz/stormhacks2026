@@ -32,9 +32,11 @@ const MAP_ZOOM = 17;
 const PIN_WATERMARK = { src: pin, width: 50, height: 71.9812, hole: { cx: 24.5, cy: 24.5, r: 13.5 } };
 
 export default function MapWidget({ data, className = '' }: MapWidgetProps) {
-  const title = data?.title || DEFAULT_DATA.title;
-  const address = data?.address || DEFAULT_DATA.address;
-  const date = data?.date || DEFAULT_DATA.date;
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const src = data ?? DEFAULT_DATA;
+  const title = src.title ?? '';
+  const address = src.address ?? '';
+  const date = src.date ?? '';
 
   const query = encodeURIComponent([title, address].filter(Boolean).join(', '));
   const embedUrl = `https://maps.google.com/maps?q=${query}&z=${MAP_ZOOM}&output=embed`;
