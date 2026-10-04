@@ -89,7 +89,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
               boxShadow: `${u(1.51)} ${u(0.755)} ${u(11.928)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.755)} 0 ${u(39.939)} ${u(10.468)} rgba(255, 255, 255, 0.52)`,
             }}
           >
-            <Pencil className="text-[#8E8E8E]" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
+            <Pencil className="text-[#8E8E8E] dark:text-[#3F3F3F]" style={{ width: u(18), height: u(18) }} strokeWidth={2.2} />
           </button>
         </div>
       </div>

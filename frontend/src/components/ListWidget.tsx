@@ -207,7 +207,7 @@ export default function ListWidget({
             className="relative bg-[rgba(220,220,220,0.2)] shadow-[1.875px_0.938px_14.814px_0px_rgba(0,0,0,0.07),inset_-0.938px_0px_49.6px_13px_rgba(255,255,255,0.52)] flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{ width: u(62), height: u(55), borderRadius: u(18.752) }}
           >
-            <Pencil className="text-[#8E8E8E]" style={{ width: u(22), height: u(22) }} strokeWidth={2.2} />
+            <Pencil className="text-[#8E8E8E] dark:text-[#3F3F3F]" style={{ width: u(22), height: u(22) }} strokeWidth={2.2} />
           </button>
         </div>
       </div>

@@ -252,7 +252,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             type="button"
             onClick={handleShare}
             aria-label={copied ? 'Receipt copied' : 'Share receipt'}
-            className="flex items-center justify-center shrink-0 bg-[rgba(220,220,220,0.2)] text-[#8E8E8E] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className="flex items-center justify-center shrink-0 bg-[rgba(220,220,220,0.2)] text-[#8E8E8E] dark:text-[#3F3F3F] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{
               width: u(49.923),
               height: u(44.287),

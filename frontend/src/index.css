@@ -4,7 +4,7 @@
 
 @layer base {
   html, body {
-    @apply bg-white text-black dark:bg-black dark:text-white overscroll-none transition-colors duration-500;
+    @apply bg-white text-black dark:bg-[#1E1E1E] dark:text-white overscroll-none transition-colors duration-500;
   }
 }
 

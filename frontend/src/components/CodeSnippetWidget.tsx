@@ -179,7 +179,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
             type="button"
             onClick={handleCopy}
             aria-label={copied ? 'Code copied' : 'Copy code'}
-            className="flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className="flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-[#3F3F3F] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
             style={{
               width: u(155.596),
               height: u(47.281),

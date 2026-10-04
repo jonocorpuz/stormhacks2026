@@ -106,7 +106,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           >
             {details.map(([label, value]) => (
               <React.Fragment key={label}>
-                <dt className="font-bold">{label}</dt>
+                <dt className="font-bold dark:text-[#BDBDBD]">{label}</dt>
                 <dd className="whitespace-nowrap overflow-hidden text-ellipsis">{value}</dd>
               </React.Fragment>
             ))}
@@ -119,7 +119,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
               onClick={handleCopyLink}
               disabled={!url}
               aria-label={copied ? 'Link copied' : 'Copy product link'}
-              className="relative shrink-0 flex items-center justify-center text-[#646464] cursor-pointer transition-transform active:scale-95 disabled:cursor-default disabled:opacity-60"
+              className="relative shrink-0 flex items-center justify-center text-[#646464] dark:text-[#3F3F3F] cursor-pointer transition-transform active:scale-95 disabled:cursor-default disabled:opacity-60"
               style={{ width: u(50.388), height: u(50.388) }}
             >
               <img
@@ -146,8 +146,8 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
                 if (!url) e.preventDefault();
               }}
               aria-disabled={!url}
-              className={`flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] transition-all duration-200 ${
-                url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 cursor-default'
+              className={`flex items-center justify-between shrink-0 bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-[#3F3F3F] transition-all duration-200 ${
+                url ? 'hover:bg-[rgba(220,220,220,0.35)] active:scale-95' : 'opacity-60 dark:opacity-80 cursor-default'
               }`}
               style={{
                 width: u(242.778),
@@ -175,7 +175,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
 
         {/* Image */}
         <div
-          className="absolute overflow-hidden bg-[#D9D9D9] flex items-center justify-center"
+          className="absolute overflow-hidden bg-[#D9D9D9] dark:bg-white/[0.08] flex items-center justify-center"
           style={{ left: u(377), top: u(18), right: u(21), bottom: u(24), borderRadius: u(16.491) }}
         >
           {showImage ? (
@@ -186,7 +186,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
               onError={() => setImageFailed(true)}
             />
           ) : (
-            <span className="text-[#646464]" style={{ fontFamily: BODY_FONT, fontSize: u(18.323) }}>
+            <span className="text-[#646464] dark:text-[#8A8A8A]" style={{ fontFamily: BODY_FONT, fontSize: u(18.323) }}>
               IMAGE
             </span>
           )}
