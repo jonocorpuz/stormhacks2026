@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { verticalCompactor } from 'react-grid-layout';
-import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
+import ReactGridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { itemMatchesQuery } from '../../model';
@@ -8,8 +8,6 @@ import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
-
-const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const EMPTY = {};
 
@@ -30,16 +28,60 @@ function sizeForCols(w, h, cols) {
   return { w: 1, h: Math.max(1, Math.round((2 * h) / w)) };
 }
 
-// Square cells on multi-column grids; half-width rows on a single column (2 rows + gap = width).
-function rowHeightFor(width, cols) {
-  if (cols === 1) return Math.max(1, (width - GAP) / 2);
-  return Math.max(1, (width - GAP * (cols - 1)) / cols);
-}
-
 function colsForWidth(width) {
   const bp = Object.keys(BREAKPOINTS).find((key) => width >= BREAKPOINTS[key]) ?? 'xxs';
   return COLS[bp];
 }
+
+/*
+ * The grid engine runs on a fixed lattice of UNITS square columns (lcm of 3/2/1) and only the
+ * logical column count changes per breakpoint. react-grid-layout syncs its layout prop in an
+ * effect, so changing `cols` + `layout` together paints one frame of the old layout on the new
+ * column geometry — cards animate toward a wrong slot, then snap back (resize stutter).
+ * With `cols` constant, width/rowHeight update in the same render and the stale frame is just
+ * the old arrangement scaled a few percent.
+ * Logical -> units: 3 cols = 2 units/cell, 2 cols = 3 units/cell, 1 col = 6 wide x 3 tall
+ * (half-width rows, see sizeForCols).
+ */
+const UNITS = 6;
+
+function unitScale(cols) {
+  const sx = UNITS / cols;
+  return { sx, sy: cols === 1 ? sx / 2 : sx };
+}
+
+function toUnits(l, cols) {
+  const { sx, sy } = unitScale(cols);
+  return { ...l, x: l.x * sx, y: l.y * sy, w: l.w * sx, h: l.h * sy };
+}
+
+function unitRowHeight(width) {
+  return Math.max(1, (width - GAP * (UNITS - 1)) / UNITS);
+}
+
+// WidthProvider injects the measured width; breakpoint, row height and layout all derive from
+// it in this one render, so geometry and positions never disagree mid-resize.
+function FluidGridBase({ width, layoutFor, colsRef, editMode, ...rest }) {
+  const cols = colsForWidth(width);
+  const layout = useMemo(() => layoutFor(cols), [layoutFor, cols]);
+  // Before RGL's effects re-run the compactor against the new layout.
+  useLayoutEffect(() => {
+    colsRef.current = cols;
+  }, [colsRef, cols]);
+  return (
+    <ReactGridLayout
+      {...rest}
+      width={width}
+      cols={UNITS}
+      rowHeight={unitRowHeight(width)}
+      layout={layout}
+      // Single column = touch layout: no dragging, so scrolling never picks up a card.
+      isDraggable={editMode && cols > 1}
+    />
+  );
+}
+
+const FluidGrid = WidthProvider(FluidGridBase);
 
 /**
  * Cell-first (row-major) dense bin-packing pass.
@@ -224,12 +266,8 @@ export default function BoardGrid({ query, editMode }) {
   const [settlingId, setSettlingId] = useState(null);
   const settleTimerRef = useRef(null);
 
-  // WidthProvider reports the grid's width and active column count; row height follows.
-  // Seeded from the window so the first paint is close before the first measurement.
-  const [cols, setCols] = useState(() => colsForWidth(window.innerWidth));
-  const [rowHeight, setRowHeight] = useState(() =>
-    rowHeightFor(Math.min(window.innerWidth, 1280), colsForWidth(window.innerWidth)),
-  );
+  // Logical column count of the rendered breakpoint (set by FluidGrid) for the compactor.
+  const colsRef = useRef(3);
 
   useEffect(() => () => clearTimeout(settleTimerRef.current), []);
 
@@ -265,15 +303,19 @@ export default function BoardGrid({ query, editMode }) {
   // performs both vertical and horizontal real-time auto-displacement during drag.
   useEffect(() => {
     const prevCompact = verticalCompactor.compact;
-    verticalCompactor.compact = (layout, gridCols) => {
+    // RGL hands us unit coordinates; pack in logical columns, then scale back to units.
+    verticalCompactor.compact = (layout) => {
       if (!layout || layout.length === 0) return [];
+      const gridCols = colsRef.current;
+      const { sx, sy } = unitScale(gridCols);
       const dragState = activeDragRef.current;
       const orderIds = dragState ? baseOrderRef.current : itemsOrderRef.current;
       const orderMap = new Map(orderIds.map((id, idx) => [id, idx]));
 
       const normalized = layout.map((l) => {
         const spec = itemSizesRef.current.get(l.i);
-        return { ...l, ...(spec ? sizeForCols(spec.w, spec.h, gridCols) : { w: Math.min(l.w, gridCols) }) };
+        const size = spec ? sizeForCols(spec.w, spec.h, gridCols) : { w: 1, h: 1 };
+        return { ...l, x: Math.round(l.x / sx), y: Math.round(l.y / sy), ...size };
       });
 
       const ordered = [...normalized].sort((a, b) => {
@@ -288,14 +330,14 @@ export default function BoardGrid({ query, editMode }) {
         if (draggedItem) {
           pinned = {
             ...draggedItem,
-            x: dragState.rawX ?? draggedItem.x,
-            y: dragState.rawY ?? draggedItem.y,
+            x: dragState.rawX != null ? Math.round(dragState.rawX / sx) : draggedItem.x,
+            y: dragState.rawY != null ? Math.round(dragState.rawY / sy) : draggedItem.y,
           };
         }
       }
 
       const packed = packDenseLayout(ordered, gridCols, pinned, dragState?.dirX ?? null);
-      const packedMap = new Map(packed.map((p) => [p.i, p]));
+      const packedMap = new Map(packed.map((p) => [p.i, toUnits(p, gridCols)]));
       return layout.map((l) => packedMap.get(l.i) ?? { ...l, moved: false });
     };
     return () => {
@@ -303,22 +345,17 @@ export default function BoardGrid({ query, editMode }) {
     };
   }, []);
 
-  // One packed layout per breakpoint, with cards resized for that column count.
-  const responsiveLayouts = useMemo(() => {
-    const packFor = (n) =>
+  // Packed layout for a logical column count, with cards resized for it, in grid units.
+  const layoutFor = useCallback(
+    (n) =>
       packDenseLayout(
         itemSpecs.map((s) => ({ ...s, ...sizeForCols(s.w, s.h, n) })),
         n,
         null,
         null,
-      );
-    const byCols = { 3: packFor(3), 2: packFor(2), 1: packFor(1) };
-    return Object.fromEntries(Object.entries(COLS).map(([bp, n]) => [bp, byCols[n]]));
-  }, [itemSpecs]);
-  const layoutMap = useMemo(() => {
-    const bp = Object.keys(COLS).find((key) => COLS[key] === cols) ?? 'lg';
-    return new Map(responsiveLayouts[bp].map((pos) => [pos.i, pos]));
-  }, [responsiveLayouts, cols]);
+      ).map((l) => toUnits(l, n)),
+    [itemSpecs],
+  );
 
   const mountOrderRef = useRef(new Map());
   const stableItems = useMemo(() => {
@@ -343,28 +380,20 @@ export default function BoardGrid({ query, editMode }) {
       )}
 
       {items.length > 0 && (
-        <ResponsiveReactGridLayout
+        <FluidGrid
           className="layout overflow-visible transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
-          breakpoints={BREAKPOINTS}
-          cols={COLS}
           measureBeforeMount={false}
-          onBreakpointChange={(_bp, newCols) => setCols(newCols)}
-          onWidthChange={(width, _margin, newCols) => {
-            setCols(newCols);
-            if (width > 0) setRowHeight(rowHeightFor(width, newCols));
-          }}
-          rowHeight={rowHeight}
+          layoutFor={layoutFor}
+          colsRef={colsRef}
+          editMode={editMode}
           margin={[GAP, GAP]}
           containerPadding={[0, 0]}
-          // Single column = touch layout: no dragging, so scrolling never picks up a card.
-          isDraggable={editMode && cols > 1}
           isResizable={false}
           draggableCancel=".card-action-btn"
           compactType="vertical"
           preventCollision={false}
           allowOverlap={false}
           useCSSTransforms={true}
-          layouts={responsiveLayouts}
           onDragStart={(_layout, oldItem, newItem) => {
             const target = newItem || oldItem;
             if (!target) return;
@@ -434,15 +463,13 @@ export default function BoardGrid({ query, editMode }) {
             }
           }}
         >
-          {stableItems.map((item, i) => {
-            const layoutPos = layoutMap.get(item.id) || { x: 0, y: i, w: 1, h: 1 };
+          {stableItems.map((item) => {
             const isDragging = editMode && dragId === item.id;
             const isSettling = settlingId === item.id;
 
             return (
               <div
                 key={item.id}
-                data-grid={{ x: layoutPos.x, y: layoutPos.y, w: layoutPos.w, h: layoutPos.h }}
                 className={
                   isDragging
                     ? '!z-50 shadow-2xl shadow-black/50 rounded-[2rem]'
@@ -465,7 +492,7 @@ export default function BoardGrid({ query, editMode }) {
               </div>
             );
           })}
-        </ResponsiveReactGridLayout>
+        </FluidGrid>
       )}
 
       {editingItem && <ItemEditor key={editingItem.id} item={editingItem} onClose={() => setEditingId(null)} />}
