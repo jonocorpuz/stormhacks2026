@@ -49,7 +49,13 @@ export const RECOMMENDATION_LIST: PrimitiveDef = {
   fields: [],
 }
 
-export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST]
+export const CODE_SNIPPET: PrimitiveDef = {
+  id: 'code_snippet',
+  name: 'Code Snippet',
+  fields: [],
+}
+
+export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET]
 
 export function findPrimitive(id: string): PrimitiveDef | undefined {
   return PRIMITIVES.find((p) => p.id === id)
