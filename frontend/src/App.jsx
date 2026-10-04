@@ -9,6 +9,7 @@ import ProfileSettingsMenu from './components/ProfileSettingsMenu';
 import BoardMenu from './components/boards/BoardMenu';
 import BoardGate from './components/boards/BoardGate';
 import BoardGrid from './components/boards/BoardGrid';
+import MobileRolodexView from './components/mobile/MobileRolodexView';
 import SaveStatus from './components/SaveStatus';
 import ExtractionStatus from './components/ExtractionStatus';
 
@@ -44,6 +45,13 @@ export default function App() {
   const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | 'boards' | null
   const [editMode, setEditMode] = useState(false);
   const [query, setQuery] = useState('');
+  // 'desktop' = bento grid; 'mobile' = Rolodex inside a phone simulator.
+  const [viewMode, setViewMode] = useState('desktop');
+  const isMobile = viewMode === 'mobile';
+  const toggleViewMode = () => {
+    setOpenMenu(null);
+    setViewMode((mode) => (mode === 'desktop' ? 'mobile' : 'desktop'));
+  };
 
   const [isDragging, setIsDragging] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -79,6 +87,27 @@ export default function App() {
       {/* Drag Overlay */}
       {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-primary/60 pointer-events-none" />}
 
+      {isMobile ? (
+        // Phone simulator. translateZ makes it the containing block for fixed-position modals
+        // (editor, delete confirm), so they stay inside the "screen" instead of covering the monitor.
+        <div className="min-h-full flex items-center justify-center py-8 px-4">
+          <div className="w-full max-w-[400px] h-[min(850px,calc(100vh-4rem))] mx-auto relative overflow-hidden rounded-[3rem] border-8 border-black shadow-2xl bg-canvas [transform:translateZ(0)]">
+            {currentBoard ? (
+              <MobileRolodexView
+                query={query}
+                onQueryChange={setQuery}
+                editMode={editMode}
+                onToggleEditMode={() => setEditMode((on) => !on)}
+                viewMode={viewMode}
+                onToggleViewMode={toggleViewMode}
+              />
+            ) : (
+              <BoardGate />
+            )}
+          </div>
+        </div>
+      ) : (
+      <>
       {/* Click-Outside Overlay */}
       {openMenu && <div className="fixed inset-0 z-40 bg-transparent" onClick={closeMenu} />}
 
@@ -135,18 +164,18 @@ export default function App() {
           >
             <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
           </div>
-          <ProfileSettingsMenu isOpen={openMenu === 'profile'} />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
         </div>
       </div>
 
       {currentBoard ? (
         <div className="relative">
           <BoardGrid query={query} editMode={editMode} />
-          
-
         </div>
       ) : (
         <BoardGate />
+      )}
+      </>
       )}
 
       <SaveStatus />
