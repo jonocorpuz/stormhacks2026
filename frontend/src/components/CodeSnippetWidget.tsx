@@ -23,10 +23,12 @@ const { u, space, type } = widgetScale(DESIGN_WIDTH);
 const COPIED_RESET_MS = 1600;
 
 export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetWidgetProps) {
-  const title = data?.title ?? DEFAULT_DATA.title;
-  const language = data?.language ?? DEFAULT_DATA.language;
-  const code = data?.code ?? DEFAULT_DATA.code;
-  const date = data?.date ?? DEFAULT_DATA.date;
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const src = data ?? DEFAULT_DATA;
+  const title = src.title ?? '';
+  const language = src.language ?? '';
+  const code = src.code ?? '';
+  const date = src.date ?? '';
 
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);

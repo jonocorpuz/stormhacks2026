@@ -42,18 +42,16 @@ const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD
 const formatMoney = (n: number) => money.format(n);
 
 export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetProps) {
-  // Fall back to the design sample only when the whole receipt is empty, so a real receipt
-  // without a tax rate doesn't inherit the sample's 12%.
-  const isEmpty = !data?.title && !data?.items?.length && data?.taxRate === undefined;
-  const source = isEmpty ? DEFAULT_DATA : data;
-  const title = source?.title || DEFAULT_DATA.title;
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const source = data ?? DEFAULT_DATA;
+  const title = source.title ?? '';
   // Skip malformed entries (validation is soft; bad values are flagged, not dropped from storage).
-  const items = (Array.isArray(source?.items) ? source.items : []).filter(
+  const items = (Array.isArray(source.items) ? source.items : []).filter(
     (item) => item && typeof item.name === 'string',
   );
-  const taxRate = typeof source?.taxRate === 'number' ? source.taxRate : 0;
+  const taxRate = typeof source.taxRate === 'number' ? source.taxRate : 0;
   const { tax, total } = receiptTotals(items, taxRate);
-  const date = data?.date || DEFAULT_DATA.date;
+  const date = source.date ?? '';
 
   const scrollRef = useRef<HTMLOListElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);

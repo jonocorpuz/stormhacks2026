@@ -142,4 +142,13 @@ describe('itemMatchesQuery', () => {
   it('empty query matches all', () => {
     expect(itemMatchesQuery(item, '  ')).toBe(true)
   })
+  it('matches checklist entries, line items and numbers; ignores entry ids', () => {
+    const list = createItem('recommendation_list', { items: [{ id: 'abc123', title: 'Matcha latte', isChecked: false }] })
+    const receipt = createItem('receipt', { items: [{ id: 'def456', name: 'Gyoza', price: 6.5 }], taxRate: 12 })
+    expect(itemMatchesQuery(list, 'matcha')).toBe(true)
+    expect(itemMatchesQuery(receipt, 'gyoza')).toBe(true)
+    expect(itemMatchesQuery(receipt, '6.5')).toBe(true)
+    expect(itemMatchesQuery(receipt, '12')).toBe(true)
+    expect(itemMatchesQuery(list, 'abc123')).toBe(false)
+  })
 })

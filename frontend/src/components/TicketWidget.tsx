@@ -39,7 +39,8 @@ const LABEL = `${ON_PANEL.secondary} font-bold`;
 const VALUE = `${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`;
 
 export default function TicketWidget({ data, className = '' }: TicketWidgetProps) {
-  const pick = <K extends keyof TicketWidgetData>(key: K) => data?.[key] || DEFAULT_DATA[key];
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const pick = <K extends keyof TicketWidgetData>(key: K) => (data ? (data[key] ?? '') : DEFAULT_DATA[key]);
   const vendor = pick('vendor');
   const url = ticketHref(data?.url, vendor);
   const isTicketmaster = /ticketmaster/i.test(vendor);

@@ -29,9 +29,11 @@ const RECORD = { size: 256, right: -17, top: -62, label: 84, ring: 28 } as const
 const SEEK_SECONDS = 10;
 
 export default function MusicWidget({ data, className = '' }: MusicWidgetProps) {
-  const title = data?.title || DEFAULT_DATA.title;
-  const artist = data?.artist || DEFAULT_DATA.artist;
-  const date = data?.date || DEFAULT_DATA.date;
+  // Sample data only for previews (no data). Real items show their own values, even empty ones.
+  const src = data ?? DEFAULT_DATA;
+  const title = src.title ?? '';
+  const artist = src.artist ?? '';
+  const date = src.date ?? '';
   const url = data?.url ?? '';
   // The song's own Spotify link, else a Spotify search for it.
   const spotifyUrl = spotifyUri(url)
