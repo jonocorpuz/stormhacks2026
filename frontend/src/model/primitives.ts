@@ -106,7 +106,35 @@ export const CODE_SNIPPET: PrimitiveDef = {
   ],
 }
 
-export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET]
+export const MAP_LOCATION: PrimitiveDef = {
+  id: 'map_location',
+  name: 'Map',
+  fields: [
+    {
+      key: 'title',
+      label: 'Place',
+      block: 'text',
+      required: false,
+      description: 'Name of the place, e.g. a store or venue',
+    },
+    {
+      key: 'address',
+      label: 'Address',
+      block: 'text',
+      required: false,
+      description: 'Street address used to locate the place on the map',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Date the place was saved',
+    },
+  ],
+}
+
+export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION]
 
 export function findPrimitive(id: string): PrimitiveDef | undefined {
   return PRIMITIVES.find((p) => p.id === id)
