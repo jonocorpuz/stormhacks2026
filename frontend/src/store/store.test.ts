@@ -166,6 +166,38 @@ describe('app store', () => {
       expect(store.getState().extractions).toEqual([])
     })
 
+    it('multi-drop: out-of-order extractions all land (state + repo)', async () => {
+      // Slow async saves, so commits overlap with in-flight writes.
+      const repo = new MemoryRepo()
+      const rawSave = repo.saveBoard.bind(repo)
+      repo.saveBoard = async (b) => {
+        await new Promise((r) => setTimeout(r, 5))
+        return rawSave(b)
+      }
+      const gates = new Map<string, () => void>()
+      const extractor: Extractor = {
+        extract: (capture) =>
+          new Promise((resolve) =>
+            gates.set(capture.name!, () => resolve([{ primitiveId: 'note', fields: { title: capture.name } }])),
+          ),
+      }
+      const store = createAppStore(repo, extractor)
+      const board = await store.actions.createBoard('Trip')
+
+      const done = store.actions.ingestCaptures([png('a.png'), png('b.png'), png('c.png')])
+      for (const name of ['c.png', 'a.png', 'b.png']) {
+        gates.get(name)!()
+        await new Promise((r) => setTimeout(r, 0))
+        if (name === 'a.png') await store.actions.createItem('note', { title: 'manual' })
+      }
+      await done
+
+      const titles = (items: { fields: Record<string, unknown> }[]) => items.map((i) => i.fields.title).sort()
+      const expected = ['a.png', 'b.png', 'c.png', 'manual']
+      expect(titles(store.getState().currentBoard!.items)).toEqual(expected)
+      expect(titles((await repo.loadBoard(board.id))!.items)).toEqual(expected)
+    })
+
     it('creates an Untitled board when none is open', async () => {
       const { extractor, release } = deferredExtractor([note])
       const store = createAppStore(new MemoryRepo(), extractor)
