@@ -9,6 +9,10 @@ import ItemEditor from './components/ItemEditor';
 import MobileRolodexView from './components/mobile/MobileRolodexView';
 import { MemoryRepo } from './persistence';
 import { createAppStore, StoreProvider } from './store';
+import { EXIT_MS } from './components/useExiting';
+
+// Popups stay mounted while their exit animation plays (useExiting).
+const settle = () => act(() => new Promise((r) => setTimeout(r, EXIT_MS + 20)));
 
 beforeAll(() => {
   globalThis.ResizeObserver = class {
@@ -80,6 +84,7 @@ describe('App', () => {
     await type(screen.getByPlaceholderText(/Short headline/), 'Ramen spots');
     await type(screen.getByPlaceholderText(/Free-form content/), 'Ichiran, Afuri');
     await click(screen.getByText('Create Note'));
+    await settle();
     // Notes are typable in place: their text lives in inputs.
     expect(screen.getByDisplayValue('Ramen spots')).toBeTruthy();
     expect(screen.getByDisplayValue('Ichiran, Afuri')).toBeTruthy();
@@ -94,6 +99,7 @@ describe('App', () => {
     await click(screen.getByLabelText('Edit'));
     await type(screen.getByPlaceholderText(/Short headline/), 'Best ramen');
     await click(screen.getByText('Save'));
+    await settle();
     await click(screen.getByLabelText('Edit board'));
     expect(screen.getByDisplayValue('Best ramen')).toBeTruthy();
 
@@ -124,11 +130,12 @@ describe('App', () => {
 
     // Confirmation dialog opens; item is not deleted yet
     expect(screen.getByRole('dialog')).toBeTruthy();
-    expect(screen.getByText('Delete Recommendations?')).toBeTruthy();
+    expect(screen.getByText('Delete List?')).toBeTruthy();
     expect(screen.getByText('Temp')).toBeTruthy();
 
     // Cancel keeps the item
     await click(screen.getByText('Cancel'));
+    await settle();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByText('Temp')).toBeTruthy();
 
@@ -136,6 +143,7 @@ describe('App', () => {
     const deleteButtonsAfterCancel = screen.getAllByLabelText('Delete');
     await click(deleteButtonsAfterCancel[deleteButtonsAfterCancel.length - 1]);
     await click(screen.getByText('Delete'));
+    await settle();
 
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByText('Temp')).toBeNull();
@@ -285,7 +293,8 @@ describe('crash guards', () => {
     await renderWith(<ItemEditor item={item} onClose={() => {}} />);
     expect(screen.getByText(/Unknown item type/)).toBeTruthy();
     expect(screen.queryByText('Save')).toBeNull();
-    expect(screen.getByText('Delete')).toBeTruthy();
+    expect(screen.queryByText('Delete')).toBeNull(); // deleting is the card's × in edit mode
+    expect(screen.getByText('Cancel')).toBeTruthy();
   });
 });
 

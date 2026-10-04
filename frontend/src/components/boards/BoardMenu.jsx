@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useActions, useApp } from '../../store';
 import { INPUT_CLASS } from '../blocks/styles';
+import { useExiting } from '../useExiting';
 
 // Header pill showing the current board; dropdown to switch, create, rename, delete.
 export default function BoardMenu({ isOpen, onToggle, onClose }) {
@@ -11,6 +12,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
   const { openBoard, createBoard, renameBoard, deleteBoard } = useActions();
   const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(null);
+  const [shown, closing] = useExiting(isOpen || null);
 
   if (!currentBoard) return null;
 
@@ -47,8 +49,8 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
         </svg>
       </button>
 
-      {isOpen && (
-        <div className="absolute top-full mt-4 left-0 w-64 p-2 apple-glass rounded-2xl origin-top animate-slide-down-fade z-50 flex flex-col">
+      {shown && (
+        <div className={`absolute top-full mt-4 left-0 w-64 p-2 apple-glass rounded-2xl origin-top menu-pop ${closing ? 'is-closing' : ''} z-50 flex flex-col`}>
           {extracting && (
             <p className="px-4 py-2 text-xs opacity-60">Extracting… board switching paused</p>
           )}

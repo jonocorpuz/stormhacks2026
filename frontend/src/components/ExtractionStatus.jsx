@@ -17,7 +17,7 @@ export default function ExtractionStatus() {
           {status === 'pending' ? (
             <>
               <span className="w-3 h-3 shrink-0 rounded-full border-2 border-current border-t-transparent animate-spin text-ink/50 dark:text-ink/60" />
-              <span className="truncate text-ink/70 dark:text-ink/80">Reading {name ?? 'image'}…</span>
+              <span className="truncate text-ink/85 dark:text-ink/80">Reading {name ?? 'image'}…</span>
             </>
           ) : (
             <>

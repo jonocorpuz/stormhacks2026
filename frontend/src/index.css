@@ -74,8 +74,20 @@
     --map-paper: 242 239 233;
     --code-bg: 22 25 22;
     --code-ink: 255 255 255;
+    /* Syntax colours on the (always dark) code panel; muted One Dark. Used by .code-highlight. */
+    --code-keyword: 198 120 221;
+    --code-string: 152 195 121;
+    --code-number: 209 154 102;
+    --code-function: 97 175 239;
+    --code-type: 229 192 123;
+    --code-operator: 86 182 194;
+    --code-comment: 127 132 142;
+    --code-punctuation: 171 178 191;
 
     /* Shadow colors */
+    /* Dark-mode glass fill only (see .dark); light mode uses bg-surface. */
+    --glass: 255 255 255;
+
     --shadow: 0 0 0;
     --glow: 255 255 255;
     --haze: 144 144 144;
@@ -97,6 +109,10 @@
 
     --shell: 42 42 42;
 
+    /* Dark glass fill (.apple-glass): the grey a 10% white tint gives over the canvas, made mostly
+       opaque so menus/modals stay readable over cards. Opacity set in .apple-glass. */
+    --glass: 52 52 52;
+
   }
 
   /* Global UI scale: 1rem = 14.4px. Everything is rem-based (Tailwind) or scales with the
@@ -113,8 +129,8 @@
 @layer components {
   .apple-glass {
     @apply backdrop-blur-2xl 
-           bg-surface/80 border border-line shadow-md shadow-black/[0.03] text-ink-subtle
-           dark:bg-ink/10 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
+           bg-surface/65 border border-line shadow-md shadow-black/[0.03] text-ink/80 dark:text-ink-subtle
+           dark:bg-glass/65 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
            transition-colors duration-500;
   }
 
@@ -148,6 +164,44 @@
 
 .pop-in {
   animation: popIn 700ms var(--spring) backwards;
+}
+
+/* Popups: dropdowns (+ / settings / board menus) and modals (item editor, delete confirm) bubble in
+   on the same spring as cards (.pop-in). .is-closing (useExiting) plays a quick shrink-fade before
+   unmount; keep its duration in sync with EXIT_MS in components/useExiting.js. */
+@keyframes modalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes popupIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes popupOut {
+  from { transform: none; opacity: 1; }
+  to { transform: scale(0.85); opacity: 0; }
+}
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.menu-pop {
+  animation: popupIn 650ms var(--spring) backwards;
+}
+.modal-backdrop {
+  animation: modalFade 300ms ease-out backwards;
+}
+.modal-pop {
+  animation: popupIn 750ms var(--spring) backwards;
+}
+.menu-pop.is-closing,
+.is-closing .modal-pop {
+  animation: popupOut 240ms ease-in forwards;
+  pointer-events: none;
+}
+.modal-backdrop.is-closing {
+  animation: modalFadeOut 240ms ease-in forwards;
+  pointer-events: none;
 }
 
 /* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
@@ -204,6 +258,8 @@
   .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
   .buoyant { transition: transform 200ms ease-out; }
   .pop-in { animation: none; }
+  .modal-pop, .menu-pop { animation: modalFade 200ms ease-out backwards; }
+  .menu-pop.is-closing, .is-closing .modal-pop { animation: modalFadeOut 200ms ease-out forwards; }
 }
 
 /* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.

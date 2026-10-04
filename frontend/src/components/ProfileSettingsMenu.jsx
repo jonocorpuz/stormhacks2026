@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useActions, useApp } from '../store';
+import demoBoard from '../fixtures/demoBoard.json';
+import { useExiting } from './useExiting';
 
 export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode, onSignOut }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
   const name = useApp((s) => s.name);
-  const { toggleTheme, setName } = useActions();
+  const { toggleTheme, setName, importBoard } = useActions();
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState('');
-  if (!isOpen) {
-    if (editingName) setEditingName(false); // reopening starts from the menu, not a stale field
-    return null;
-  }
+  const [shown, closing] = useExiting(isOpen || null);
+  if (!isOpen && editingName) setEditingName(false); // reopening starts from the menu, not a stale field
+  if (!shown) return null;
 
   const saveName = (e) => {
     e.preventDefault();
@@ -19,7 +20,7 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
   };
 
   return (
-    <div className="absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right animate-slide-down-fade z-50">
+    <div className={`absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right menu-pop ${closing ? 'is-closing' : ''} z-50`}>
       <ul className="flex flex-col">
         {/* Change Name: inline field; the avatar shows its initials */}
         {editingName ? (
@@ -93,6 +94,18 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
             </div>
           </li>
         )}
+
+        {/* Load Data: adds a pre-set demo board (fixtures/demoBoard.json) and opens it */}
+        <li
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            importBoard(demoBoard).catch(() => {}); // throws while extracting; save failure shown by SaveStatus
+          }}
+        >
+          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+          <span>Load Data</span>
+        </li>
 
         <hr className="border-line dark:border-ink/10 my-1 mx-2" />
         

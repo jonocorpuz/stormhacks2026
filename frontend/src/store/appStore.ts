@@ -18,6 +18,8 @@ import {
   updateItem as patchItem,
   extractablePrimitives,
   findItem,
+  parseExtraction,
+  PRIMITIVES,
   type Board,
   type BoardSummary,
   type BoardView,
@@ -58,6 +60,12 @@ export interface AppActions {
   init(): Promise<void>
   /** Throws while extracting (it switches to the new board). */
   createBoard(name: string): Promise<Board>
+  /**
+   * New board from seed data (e.g. fixtures/demoBoard.json), opened like createBoard. Items are
+   * { primitiveId, fields }; ids are fresh each time, so loading twice gives two boards.
+   * Throws on unknown primitives or malformed items, and while extracting.
+   */
+  importBoard(seed: { name: string; items: unknown[] }): Promise<Board>
   /** Throws while extracting (results must land on the board they were dropped on). */
   openBoard(id: string): Promise<void>
   /** Throws while extracting. */
@@ -240,6 +248,16 @@ export function createAppStore(
     async createBoard(name) {
       guardSwitch()
       const board = newBoard(name)
+      setState({ currentBoard: board })
+      await commit(board)
+      return board
+    },
+
+    async importBoard(seed) {
+      guardSwitch()
+      // Same shape as AI drafts: reuse its parsing (adds list/line-item ids, drops empty values).
+      const drafts = parseExtraction({ items: seed.items }, PRIMITIVES)
+      const board = drafts.map((d) => newItem(d.primitiveId, d.fields)).reduce(addItem, newBoard(seed.name))
       setState({ currentBoard: board })
       await commit(board)
       return board

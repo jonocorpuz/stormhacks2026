@@ -4,9 +4,9 @@ import { useActions } from '../store';
 import PrimitiveForm from './forms/PrimitiveForm';
 
 // Modal for editing one item. Saves once on "Save" (not per keystroke).
-export default function ItemEditor({ item, onClose }) {
-  const { updateItem, deleteItem } = useActions();
-  // Unknown/custom primitive (stale data, removed type): show a notice, still allow delete.
+export default function ItemEditor({ item, onClose, closing = false }) {
+  const { updateItem } = useActions();
+  // Unknown/custom primitive (stale data, removed type): show a notice. Deleting is the card's × (edit mode).
   const primitive = findPrimitive(item.primitiveId);
   const [values, setValues] = useState(item.fields);
   const issues = primitive ? validateFields(values, primitive) : [];
@@ -17,38 +17,28 @@ export default function ItemEditor({ item, onClose }) {
     onClose();
   };
 
-  const handleDelete = async () => {
-    await deleteItem(item.id).catch(() => {});
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    // p-4 + max-h-full: a form taller than the screen (or the phone simulator) scrolls inside the card.
+    <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop ${closing ? 'is-closing' : ''} bg-black/20 dark:bg-black/50 backdrop-blur-sm`} onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-[28rem] max-w-[calc(100vw-2rem)] p-6 apple-glass rounded-sheet animate-slide-down-fade flex flex-col space-y-5"
+        className="w-[28rem] max-w-[calc(100vw-2rem)] max-h-full overflow-y-auto overscroll-contain p-6 apple-glass rounded-sheet modal-pop flex flex-col space-y-5"
       >
         <h3 className="text-ink font-bold text-sm px-1">Edit {primitive?.name ?? 'Item'}</h3>
 
         {primitive ? (
           <PrimitiveForm primitive={primitive} values={values} onChange={setValues} issues={issues} />
         ) : (
-          <p className="text-sm text-ink/70 px-1">
-            Unknown item type “{item.primitiveId}”. It can’t be edited here, but you can delete it.
+          <p className="text-sm text-ink/85 dark:text-ink/70 px-1">
+            Unknown item type “{item.primitiveId}”. It can’t be edited here; delete it with the card’s × in edit mode.
           </p>
         )}
 
         <div className="flex gap-2 pt-1">
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2.5 rounded-full text-sm font-semibold text-danger hover:bg-danger/10 transition-colors"
-          >
-            Delete
-          </button>
           <div className="flex-1" />
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-full text-sm font-semibold bg-ink/5 text-ink/70 hover:bg-ink/10 dark:bg-ink/10 dark:text-ink/80 dark:hover:bg-ink/20 transition-colors"
+            className="px-4 py-2.5 rounded-full text-sm font-semibold bg-ink/5 text-ink/85 hover:bg-ink/10 dark:bg-ink/10 dark:text-ink/80 dark:hover:bg-ink/20 transition-colors"
           >
             Cancel
           </button>
