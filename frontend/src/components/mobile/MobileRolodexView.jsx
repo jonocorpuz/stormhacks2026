@@ -109,8 +109,10 @@ function useBoardSwipe() {
     const show = (text) => setToast((prev) => ({ text, key: (prev?.key ?? 0) + 1 }));
     // Store refuses board switches mid-extraction; say so instead of surfacing an error.
     if (extracting) return show('Extracting… board switching paused');
+    // iOS only plays the haptic from a gesture; this touchend counts because useClaimHorizontalSwipe
+    // stopped the swipe becoming a native pan.
+    hapticTick();
     openBoard(next.id);
-    hapticTick(); // inside touchend, a real gesture, so this one should land on iOS too
     show(`${next.name} · ${boards.indexOf(next) + 1}/${boards.length}`);
   };
 
@@ -126,6 +128,44 @@ const blocksSwipe = (el, stage) => {
   }
   return false;
 };
+
+const SWIPE_DECIDE_PX = 8;
+
+// Once a touch is clearly horizontal, cancel its touchmoves so iOS never turns it into a native pan.
+// A touch iOS panned isn't a user gesture, so the board-switch haptic in its touchend would be dropped.
+// Needs a native non-passive listener: React's touch listeners are passive.
+function useClaimHorizontalSwipe(ref) {
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    let sx = 0;
+    let sy = 0;
+    let axis = null; // null (undecided) | 'h' | 'v' | 'skip'
+    const onStart = (e) => {
+      const t = e.touches[0];
+      sx = t.clientX;
+      sy = t.clientY;
+      axis = e.touches.length === 1 && !blocksSwipe(e.target, root) ? null : 'skip';
+    };
+    const onMove = (e) => {
+      if (axis === 'skip' || axis === 'v') return;
+      const t = e.touches[0];
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      if (axis === null) {
+        if (Math.abs(dx) < SWIPE_DECIDE_PX && Math.abs(dy) < SWIPE_DECIDE_PX) return;
+        axis = Math.abs(dx) > Math.abs(dy) * SWIPE_RATIO ? 'h' : 'v';
+      }
+      if (axis === 'h' && e.cancelable) e.preventDefault();
+    };
+    root.addEventListener('touchstart', onStart, { passive: true });
+    root.addEventListener('touchmove', onMove, { passive: false });
+    return () => {
+      root.removeEventListener('touchstart', onStart);
+      root.removeEventListener('touchmove', onMove);
+    };
+  }, [ref]);
+}
 
 function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
   const { deleteItem } = useActions();
@@ -301,6 +341,8 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
       if (push.raf !== null) cancelAnimationFrame(push.raf);
     };
   }, [render, setOpen, showHapticDebug]);
+
+  useClaimHorizontalSwipe(scrollRef);
 
   // Tap a card to open it: it scrolls into focus (flat, vertically centred) and the rest are pushed off-screen.
   // Tapping it again or the empty stage closes it. Controls inside the card still work.
