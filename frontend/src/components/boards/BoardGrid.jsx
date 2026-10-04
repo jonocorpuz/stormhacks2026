@@ -483,7 +483,7 @@ export default function BoardGrid({ query, editMode }) {
   );
 }
 
-function DeleteConfirmModal({ item, onCancel, onConfirm }) {
+export function DeleteConfirmModal({ item, onCancel, onConfirm }) {
   const label = findPrimitive(item.primitiveId)?.name ?? 'Item';
   return (
     <div
