@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useActions, useApp } from '../store';
+import demoBoard from '../fixtures/demoBoard.json';
 
 export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
   const name = useApp((s) => s.name);
-  const { toggleTheme, setName } = useActions();
+  const { toggleTheme, setName, importBoard } = useActions();
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState('');
   if (!isOpen) {
@@ -93,6 +94,18 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
             </div>
           </li>
         )}
+
+        {/* Load Data: adds a pre-set demo board (fixtures/demoBoard.json) and opens it */}
+        <li
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            importBoard(demoBoard).catch(() => {}); // throws while extracting; save failure shown by SaveStatus
+          }}
+        >
+          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+          <span>Load Data</span>
+        </li>
 
         <hr className="border-line dark:border-ink/10 my-1 mx-2" />
         

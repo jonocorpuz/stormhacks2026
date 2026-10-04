@@ -1,0 +1,92 @@
+{
+  "name": "Demo Board",
+  "items": [
+    {
+      "primitiveId": "note",
+      "fields": {
+        "title": "Trip ideas",
+        "body": "Book the ferry to Victoria early.\nPack the rain jacket.\nAsk Sam about the cabin dates."
+      }
+    },
+    {
+      "primitiveId": "recommendation_list",
+      "fields": {
+        "title": "Watchlist",
+        "date": "10/04/2026",
+        "items": [
+          { "title": "Argo", "isChecked": true },
+          { "title": "Peaky Blinders", "isChecked": false },
+          { "title": "28 Days Later", "isChecked": false },
+          { "title": "The Bear", "isChecked": false },
+          { "title": "Severance", "isChecked": true }
+        ]
+      }
+    },
+    {
+      "primitiveId": "ticket",
+      "fields": {
+        "vendor": "Ticketmaster",
+        "title": "Bruno Mars - The Romantic Tour",
+        "eventDate": "Oct 14, 2026",
+        "location": "BC Place",
+        "entryInfo": "LEVEL 4 * ANY GATE",
+        "section": "416",
+        "row": "B",
+        "seat": "110",
+        "url": "https://www.ticketmaster.ca"
+      }
+    },
+    {
+      "primitiveId": "product",
+      "fields": {
+        "title": "Rare SEIKO Type II",
+        "description": "7559-6010 \"The Light\" Quartz Japanese Day-Date",
+        "price": "$280.00",
+        "brand": "Seiko",
+        "model": "Type II",
+        "url": "https://www.ebay.com/",
+        "date": "10/03/2026"
+      }
+    },
+    {
+      "primitiveId": "receipt",
+      "fields": {
+        "title": "McDonald's",
+        "items": [
+          { "name": "Medium Fries", "price": 3.99 },
+          { "name": "Skor McFlurry", "price": 4.29 },
+          { "name": "McChicken", "price": 6.49 },
+          { "name": "Large Coke", "price": 2.79 }
+        ],
+        "taxRate": 5,
+        "date": "10/02/2026"
+      }
+    },
+    {
+      "primitiveId": "map_location",
+      "fields": {
+        "title": "Nintendo Store",
+        "address": "10 Rockefeller Plaza, New York, NY",
+        "date": "09/28/2026"
+      }
+    },
+    {
+      "primitiveId": "music_track",
+      "fields": {
+        "title": "Die With A Smile",
+        "artist": "Lady Gaga, Bruno Mars",
+        "url": "https://open.spotify.com/",
+        "date": "10/01/2026"
+      }
+    },
+    {
+      "primitiveId": "code_snippet",
+      "fields": {
+        "title": "Debounce hook",
+        "language": "ts",
+        "code": "export function useDebounce<T>(value: T, ms = 300) {\n  const [v, setV] = useState(value);\n  useEffect(() => {\n    const t = setTimeout(() => setV(value), ms);\n    return () => clearTimeout(t);\n  }, [value, ms]);\n  return v;\n}",
+        "date": "10/04/2026"
+      }
+    }
+  ]
+}

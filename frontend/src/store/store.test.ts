@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Extractor } from '../extractor'
-import { createCapture, type ExtractionDraft } from '../model'
+import { createCapture, getItemIssues, type ExtractionDraft } from '../model'
 import { MemoryRepo, type BoardRepository } from '../persistence'
 import { createAppStore } from './appStore'
 
@@ -315,5 +315,33 @@ describe('app store', () => {
       await store.actions.openBoard(other.id)
       expect(store.getState().currentBoard?.id).toBe(other.id)
     })
+  })
+
+  it('importBoard creates and opens a board from seed data, with fresh ids', async () => {
+    const { repo, store } = setup()
+    const seed = {
+      name: 'Demo',
+      items: [
+        { primitiveId: 'note', fields: { title: 'Hi', body: '' } },
+        { primitiveId: 'recommendation_list', fields: { title: 'L', items: [{ title: 'a', isChecked: false }] } },
+      ],
+    }
+    const a = await store.actions.importBoard(seed)
+    const b = await store.actions.importBoard(seed)
+    expect(a.id).not.toBe(b.id)
+    expect(store.getState().currentBoard?.id).toBe(b.id)
+    expect(a.items.map((i) => i.primitiveId)).toEqual(['note', 'recommendation_list'])
+    expect(a.items[0].fields).toEqual({ title: 'Hi' }) // empty body dropped
+    const entries = a.items[1].fields.items as { id: string }[]
+    expect(typeof entries[0].id).toBe('string')
+    expect(await repo.loadBoard(a.id)).toEqual(a)
+    await expect(store.actions.importBoard({ name: 'x', items: [{ primitiveId: 'nope', fields: {} }] })).rejects.toThrow()
+  })
+
+  it('demo fixture loads every item', async () => {
+    const { default: demo } = await import('../fixtures/demoBoard.json')
+    const board = await setup().store.actions.importBoard(demo)
+    expect(board.items).toHaveLength(demo.items.length)
+    expect(board.items.flatMap((i) => getItemIssues(i))).toEqual([])
   })
 })
