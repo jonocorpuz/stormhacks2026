@@ -188,9 +188,9 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     <div className="relative h-full w-full flex flex-col">
       {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
-      {/* Top-right actions: same glass buttons and pop-in as the desktop header. Menus anchor to the
-          cluster's right edge so they stay inside the phone screen. */}
-      <div className="absolute top-4 right-4 z-[3001] flex items-center gap-2">
+      {/* Top actions: same glass buttons and pop-in as the desktop header. New + Edit top left
+          (create menu opens from the left edge), profile top right (settings menu from the right). */}
+      <div className="absolute top-4 left-4 z-[3001] flex items-center gap-2">
         <div className="pop-in" style={navPop(2)}>
           <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
@@ -206,7 +206,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
             <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </GlassButton>
         </div>
-        <div className="pop-in" style={navPop(0)}>
+        <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} />
+      </div>
+      <div className="absolute top-4 right-4 z-[3001]">
+        <div className="pop-in" style={navPop(1)}>
           <div
             onClick={() => toggleMenu('profile')}
             aria-label="Settings"
@@ -215,7 +218,6 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
             <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
           </div>
         </div>
-        <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} align="right" />
         <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
       </div>
 

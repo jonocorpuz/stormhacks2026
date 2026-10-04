@@ -7,8 +7,7 @@ import PrimitiveForm from './forms/PrimitiveForm';
 const VIEWPORT_MARGIN = 16;
 
 // "+ New" dropdown. Primitive pills + form come straight from model PRIMITIVES.
-// align="right" anchors it to the parent's right edge (mobile top-right cluster).
-export default function CreateItemMenu({ isOpen, onClose, align = 'left' }) {
+export default function CreateItemMenu({ isOpen, onClose }) {
   const { createItem } = useActions();
   const [primitiveId, setPrimitiveId] = useState(PRIMITIVES[0].id);
   const [values, setValues] = useState({});
@@ -45,7 +44,7 @@ export default function CreateItemMenu({ isOpen, onClose, align = 'left' }) {
   return (
     <div
       ref={menuRef}
-      className={`absolute top-full mt-4 ${align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top'} w-80 p-5 apple-glass rounded-sheet animate-slide-down-fade z-50 flex flex-col space-y-5 overflow-y-auto overscroll-contain`}
+      className="absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-sheet origin-top animate-slide-down-fade z-50 flex flex-col space-y-5 overflow-y-auto overscroll-contain"
       style={{ maxHeight }}
     >
       <h3 className="text-ink font-bold text-sm px-1">New</h3>
