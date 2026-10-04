@@ -21,9 +21,9 @@ const DEFAULT_DATA: ProductWidgetData = {
 };
 
 // Figma product card (stormhacks-27, "MacBook Pro 14" - 8", node 55:429 "Frame 2"),
-// designed at 732x355. All sizes scale with the widget's width (container query units)
-// so it keeps the design's proportions in a 2x1 bento cell.
-const DESIGN_WIDTH = 732;
+// laid out at 357px square like the other 1x1 widgets (no image, so the 732x355 frame's
+// details column alone). All sizes scale with the widget's width (container query units).
+const DESIGN_WIDTH = 357;
 const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
 // Figma draws the card flipped horizontally, which mirrors its 156.86deg gradient to 203.14deg.
@@ -70,7 +70,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
         {/* Details */}
         <div
           className="absolute flex flex-col items-start"
-          style={{ left: space(6), top: cardInset, right: space(6), gap: space(4) }}
+          style={{ left: space(6), top: cardInset, right: space(6), bottom: cardInset, gap: space(4) }}
         >
           <h2
             className="font-bold text-accent-pink whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
@@ -103,7 +103,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </dl>
 
           {/* Actions */}
-          <div className="flex items-center" style={{ gap: space(4) }}>
+          <div className="mt-auto flex items-center w-full" style={{ gap: space(4) }}>
             <button
               type="button"
               onClick={handleCopyLink}
@@ -136,11 +136,10 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
                 if (!url) e.preventDefault();
               }}
               aria-disabled={!url}
-              className={`flex items-center justify-between shrink-0 ${GLASS_CONTROL} text-control-ink transition-all duration-200 ${
+              className={`flex items-center justify-between flex-1 min-w-0 ${GLASS_CONTROL} text-control-ink transition-all duration-200 ${
                 url ? GLASS_CONTROL_HOVER : 'opacity-60 dark:opacity-80 cursor-default'
               }`}
               style={{
-                width: u(242.778),
                 height: u(50.388),
                 borderRadius: radius('control'),
                 paddingLeft: space(6),
