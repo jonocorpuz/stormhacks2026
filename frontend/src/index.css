@@ -54,16 +54,18 @@
     --danger-strong: 220 38 38;
     --warning: 245 158 11;
 
-    /* Widget shell (outer card + footer controls) follows the theme. */
-    --shell: 255 255 255;
-    --shell-control: 238 238 238;
-    --shell-control-ink: 60 60 60;
+    /* Widget shell (outer card + footer controls): dark in both themes, frame lighter in light. */
+    --shell: 85 85 85;
+    --shell-control: 26 25 25;
+    --shell-control-ink: 200 200 200;
 
-    /* Solid accent panels: theme-independent, deep enough for white text. */
-    --blue-solid: 42 123 240;
-    --green-solid: 46 158 30;
-    --coral-solid: 245 53 53;
-    --pink-solid: 225 48 198;
+    /* Solid accent panels (Figma palette, node 133:103): theme-independent. */
+    --red-solid: 240 0 66;
+    --purple-solid: 92 73 222;
+    --green-solid: 0 180 0;
+    --orange-solid: 255 95 22;
+    --blue-solid: 9 147 194;
+    --yellow-solid: 255 197 25;
     --grey-solid: 26 25 25;
 
     /* One-offs */
@@ -92,8 +94,7 @@
     --map-paper: 30 30 30;
 
     --shell: 42 42 42;
-    --shell-control: 26 25 25;
-    --shell-control-ink: 200 200 200;
+
   }
 
   /* Global UI scale: 1rem = 14.4px. Everything is rem-based (Tailwind) or scales with the

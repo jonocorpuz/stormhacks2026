@@ -32,7 +32,7 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
   return (
     <WidgetShell
       designWidth={DESIGN_WIDTH}
-      accent="coral"
+      accent="orange"
       className={className}
       watermark={<Watermark designWidth={DESIGN_WIDTH} icon={Pencil} />}
       footer={footer}

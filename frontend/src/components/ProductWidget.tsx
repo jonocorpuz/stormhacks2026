@@ -114,7 +114,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   return (
     <WidgetShell
       designWidth={DESIGN_WIDTH}
-      accent="pink"
+      accent="purple"
       className={className}
       watermark={<Watermark designWidth={DESIGN_WIDTH} glyph="$" />}
       footer={footer}

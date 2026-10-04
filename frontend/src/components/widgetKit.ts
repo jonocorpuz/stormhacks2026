@@ -1,6 +1,6 @@
 // Design tokens for the Figma-ported widgets. Each widget is drawn at a fixed design width and
 // scales with its container (cqw), so sizes here are design px, converted by `widgetScale`.
-// Colors come from the CSS variables in index.css. Shell follows the theme; accent panels don't.
+// Colors come from the CSS variables in index.css. Shell and accent panels are theme-independent.
 
 // Alte Haas everywhere; mono only for code and figures.
 export const FONT = {
@@ -29,7 +29,7 @@ export const RADIUS = {
 const SPACE_UNIT = 4;
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16;
 
-export type Accent = 'blue' | 'green' | 'coral' | 'pink' | 'grey';
+export type Accent = 'red' | 'purple' | 'green' | 'orange' | 'blue' | 'yellow' | 'grey';
 export type Font = keyof typeof FONT;
 export type TypeSize = keyof typeof TYPE;
 
@@ -55,10 +55,12 @@ export const SHELL = {
 
 // Solid accent panels. Literal class names so Tailwind picks them up.
 export const SOLID_PANEL: Record<Accent, string> = {
-  blue: 'bg-accent-blue-solid',
+  red: 'bg-accent-red-solid',
+  purple: 'bg-accent-purple-solid',
   green: 'bg-accent-green-solid',
-  coral: 'bg-accent-coral-solid',
-  pink: 'bg-accent-pink-solid',
+  orange: 'bg-accent-orange-solid',
+  blue: 'bg-accent-blue-solid',
+  yellow: 'bg-accent-yellow-solid',
   grey: 'bg-accent-grey-solid',
 };
 

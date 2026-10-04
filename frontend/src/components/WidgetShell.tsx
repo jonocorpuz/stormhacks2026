@@ -4,7 +4,7 @@ import { ArrowUpRight, Menu } from 'lucide-react';
 import logoCircle from '../assets/widget-shell/logo-circle.svg';
 import { SHELL, SOLID_PANEL, type Accent, widgetScale } from './widgetKit';
 
-// Figma "Group 54" (stormhacks-27, node 120:1121): themed shell → solid accent panel → footer
+// Figma "Group 54" (stormhacks-27, node 120:1121): dark shell → solid accent panel → footer
 // of dark round controls. Shell sizes are in 1x1 design px (357 wide); pass the widget's own
 // design width so a 2x1 card keeps the same physical shell.
 
@@ -57,7 +57,7 @@ export default function WidgetShell({
             {children}
           </SolidPanel>
         ) : (
-          <div className={`relative flex-1 min-h-0 text-ink ${panelClassName}`} style={panelStyle}>
+          <div className={`relative flex-1 min-h-0 text-white ${panelClassName}`} style={panelStyle}>
             {children}
           </div>
         )}
@@ -167,7 +167,7 @@ export function Watermark({
 
 const CONTROL_CLASS =
   'relative shrink-0 flex items-center bg-shell-control text-shell-control-ink rounded-full transition-all duration-200';
-const CONTROL_ACTIVE = 'cursor-pointer hover:brightness-110 dark:hover:brightness-125 active:scale-95';
+const CONTROL_ACTIVE = 'cursor-pointer hover:brightness-125 active:scale-95';
 const CONTROL_DISABLED = 'opacity-60 cursor-default';
 
 const controlShadow = (u: (px: number) => string) => `${u(1.7)} ${u(0.85)} ${u(6.7)} 0 rgb(var(--shadow) / 0.07)`;

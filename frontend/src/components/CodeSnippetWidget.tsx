@@ -66,12 +66,12 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
           style={{ gap: space(4), paddingLeft: u(SHELL.padX), paddingRight: u(SHELL.padX), paddingTop: u(SHELL.padY / 2) }}
         >
           <h2
-            className="font-bold text-ink whitespace-nowrap overflow-hidden text-ellipsis"
+            className="font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis"
             style={type('display')}
           >
             {title}
           </h2>
-          <span className="text-ink-subtle whitespace-nowrap shrink-0" style={type('body')}>
+          <span className="text-white whitespace-nowrap shrink-0" style={type('body')}>
             {language}
           </span>
         </div>
@@ -93,7 +93,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
           </pre>
         </SolidPanel>
 
-        <span className="text-ink-subtle whitespace-nowrap shrink-0" style={{ ...type('caption'), paddingLeft: u(SHELL.padX) }}>
+        <span className="text-white whitespace-nowrap shrink-0" style={{ ...type('caption'), paddingLeft: u(SHELL.padX) }}>
           {date}
         </span>
       </div>

@@ -48,7 +48,7 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   const skipStyle = { width: u(22), height: u(22) };
 
   return (
-    <WidgetShell designWidth={DESIGN_WIDTH} accent="coral" className={className}>
+    <WidgetShell designWidth={DESIGN_WIDTH} accent="red" className={className}>
       {/* Flat record (Figma node 120:1169): panel-tinted disc + label ring, cropped top-right. */}
       <div
         aria-hidden
@@ -56,7 +56,7 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
         style={{ right: u(RECORD.right), top: u(RECORD.top), width: u(RECORD.size), height: u(RECORD.size) }}
       >
         <div
-          className="rounded-full border-solid border-black/[0.22] bg-accent-coral-solid"
+          className="rounded-full border-solid border-black/[0.22] bg-accent-red-solid"
           style={{ width: u(RECORD.label), height: u(RECORD.label), borderWidth: u(RECORD.ring) }}
         />
       </div>
@@ -120,7 +120,7 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
             aria-label={playLabel}
             title={status === 'unavailable' ? 'No playable version of this song found' : undefined}
             aria-pressed={isPlaying}
-            className={`${CONTROL} enabled:hover:scale-105 rounded-full bg-white !text-accent-coral-solid`}
+            className={`${CONTROL} enabled:hover:scale-105 rounded-full bg-white !text-accent-red-solid`}
             style={{ width: u(SHELL.control), height: u(SHELL.control) }}
           >
             {isPlaying ? (

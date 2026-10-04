@@ -81,7 +81,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
   return (
     <WidgetShell
       designWidth={DESIGN_WIDTH}
-      accent="blue"
+      accent="yellow"
       className={className}
       watermark={<Watermark designWidth={DESIGN_WIDTH} icon={Ticket} />}
       footer={footer}

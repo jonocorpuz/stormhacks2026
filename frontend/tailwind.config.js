@@ -32,10 +32,12 @@ export default {
         },
         warning: token('warning'),
         accent: {
-          blue: accent('blue'),
+          red: accent('red'),
+          purple: accent('purple'),
           green: accent('green'),
-          coral: accent('coral'),
-          pink: accent('pink'),
+          orange: accent('orange'),
+          blue: accent('blue'),
+          yellow: accent('yellow'),
           grey: accent('grey'),
         },
         shell: {
