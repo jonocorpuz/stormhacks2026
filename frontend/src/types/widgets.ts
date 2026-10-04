@@ -17,3 +17,16 @@ export interface CodeSnippetData {
   code: string;
   date: string;
 }
+
+export interface MapWidgetData {
+  /** Place name, e.g. "Nintendo Store". */
+  title: string;
+  address: string;
+  date: string;
+}
+
+export interface NoteWidgetData {
+  title: string;
+  body: string;
+  date: string;
+}
