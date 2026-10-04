@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import { createCapture } from './model';
 import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
@@ -14,15 +13,7 @@ import MobileRolodexView from './components/mobile/MobileRolodexView';
 import SaveStatus from './components/SaveStatus';
 import ExtractionStatus from './components/ExtractionStatus';
 import DropOverlay from './components/DropOverlay';
-
-// File → base64 (no data-URL prefix).
-const readBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1] ?? '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+import { filesToCaptures } from './components/filesToCaptures';
 
 const THEME_KEY = 'theme';
 
@@ -87,10 +78,7 @@ export default function App() {
     setIsDragging(false);
     const files = [...e.dataTransfer.files];
     if (!files.length) return;
-    const captures = await Promise.all(
-      files.map(async (f) => createCapture('image', f.type, await readBase64(f), f.name)),
-    );
-    ingestCaptures(captures);
+    ingestCaptures(await filesToCaptures(files));
   };
 
   const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
