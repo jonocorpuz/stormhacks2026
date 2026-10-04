@@ -19,7 +19,9 @@ const PLACE: PrimitiveDef = {
 
 describe('extract', () => {
   it('only targets primitives with fields', () => {
-    expect(extractablePrimitives(PRIMITIVES).map((p) => p.id)).toEqual(['note'])
+    const empty: PrimitiveDef = { id: 'empty', name: 'Empty', fields: [] }
+    expect(extractablePrimitives([NOTE, empty])).toEqual([NOTE])
+    expect(extractablePrimitives().length).toBe(PRIMITIVES.filter((p) => p.fields.length).length)
   })
 
   it('prompt lists primitive ids, field keys and descriptions', () => {
@@ -45,6 +47,21 @@ describe('extract', () => {
   it('parses drafts, omits empty values, keeps others as-is', () => {
     const raw = { items: [{ primitiveId: 'note', fields: { title: 'Hi', body: '  ', extra: 3 } }] }
     expect(parseExtraction(raw, [NOTE])).toEqual([{ primitiveId: 'note', fields: { title: 'Hi', extra: 3 } }])
+  })
+
+  it('list block: array schema, entries get ids', () => {
+    const TODO: PrimitiveDef = {
+      id: 'todo',
+      name: 'Todo',
+      fields: [{ key: 'items', label: 'Items', block: 'list', required: false }],
+    }
+    const schema = buildExtractionSchema([TODO]) as any
+    expect(schema.properties.items.items.properties.fields.properties.items.type).toBe('array')
+    const [draft] = parseExtraction(
+      { items: [{ primitiveId: 'todo', fields: { items: [{ title: 'Milk', isChecked: false }] } }] },
+      [TODO],
+    )
+    expect(draft.fields.items).toEqual([{ id: expect.any(String), title: 'Milk', isChecked: false }])
   })
 
   it('throws on unknown primitive or malformed output', () => {

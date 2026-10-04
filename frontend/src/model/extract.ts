@@ -17,9 +17,19 @@ export function extractablePrimitives(primitives: readonly PrimitiveDef[] = PRIM
   return primitives.filter((p) => p.fields.length > 0)
 }
 
-const BLOCK_JSON_TYPE: Record<BlockId, 'string'> = {
-  text: 'string',
-  longtext: 'string',
+/** JSON Schema per block = storage shape the AI must produce. */
+const BLOCK_JSON_SCHEMA: Record<BlockId, Record<string, unknown>> = {
+  text: { type: 'string' },
+  longtext: { type: 'string' },
+  // Entries: { id, title, isChecked } (see components/blocks/ListBlock). id added in parse.
+  list: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: { title: { type: 'string' }, isChecked: { type: 'boolean' } },
+      required: ['title', 'isChecked'],
+    },
+  },
 }
 
 export function buildExtractionPrompt(primitives: readonly PrimitiveDef[]): string {
@@ -35,7 +45,7 @@ export function buildExtractionPrompt(primitives: readonly PrimitiveDef[]): stri
   return `You are given an image a user saved. Map it onto the known item types below.
 Pick the single best-matching type, even if none fits well, and fill its fields from what is visible.
 Return exactly one item. Only use the listed field keys. Omit fields you cannot fill — never guess or invent.
-text = short single line; longtext = multi-line, preserve useful detail.
+text = short single line; longtext = multi-line, preserve useful detail; list = one entry per line item.
 
 Item types:
 ${types}`
@@ -52,7 +62,7 @@ export function buildExtractionSchema(primitives: readonly PrimitiveDef[]): Reco
         properties: Object.fromEntries(
           p.fields.map((f) => [
             f.key,
-            { type: BLOCK_JSON_TYPE[f.block], description: f.description ?? f.label },
+            { ...BLOCK_JSON_SCHEMA[f.block], description: f.description ?? f.label },
           ]),
         ),
         additionalProperties: false,
@@ -76,6 +86,10 @@ export function buildExtractionSchema(primitives: readonly PrimitiveDef[]): Reco
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 
+/** List entries need ids for the UI; AI doesn't produce them. */
+const withId = (entry: unknown) =>
+  isRecord(entry) && typeof entry.id !== 'string' ? { id: crypto.randomUUID(), ...entry } : entry
+
 /**
  * Turn raw AI output into drafts. Throws on malformed shape or unknown primitiveId
  * (schema-enforced, so that's a bug). Empty values omitted; everything else kept as-is.
@@ -96,7 +110,8 @@ export function parseExtraction(raw: unknown, primitives: readonly PrimitiveDef[
       const empty = field
         ? getBlock(field.block).isEmpty(value)
         : value === null || value === undefined || value === ''
-      if (!empty) fields[key] = value
+      if (empty) continue
+      fields[key] = field?.block === 'list' && Array.isArray(value) ? value.map(withId) : value
     }
     return { primitiveId: def.id, fields }
   })
