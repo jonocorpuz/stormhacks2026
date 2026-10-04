@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { TicketWidgetData } from '../types/widgets';
 import divider from '../assets/ticket-widget/divider.svg';
 import ticketmasterLogo from '../assets/ticket-widget/ticketmaster-logo.png';
+import { ticketHref } from './ticketHref';
 import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 
 export interface TicketWidgetProps {
@@ -42,7 +43,7 @@ const LABEL = `${BLUE} font-medium dark:text-ink-subtle dark:font-bold`;
 export default function TicketWidget({ data, className = '' }: TicketWidgetProps) {
   const pick = <K extends keyof TicketWidgetData>(key: K) => data?.[key] || DEFAULT_DATA[key];
   const vendor = pick('vendor');
-  const url = data?.url ?? '';
+  const url = ticketHref(data?.url, vendor);
   const seating = [
     ['SECTION', pick('section')],
     ['ROW', pick('row')],
