@@ -6,6 +6,7 @@ import MapCard from './MapCard';
 import ProductCard from './ProductCard';
 import ReceiptCard from './ReceiptCard';
 import TicketCard from './TicketCard';
+import MusicCard from './MusicCard';
 
 export const CARD_COMPONENTS = {
   note: NoteCard,
@@ -15,4 +16,5 @@ export const CARD_COMPONENTS = {
   product: ProductCard,
   receipt: ReceiptCard,
   ticket: TicketCard,
+  music_track: MusicCard,
 };

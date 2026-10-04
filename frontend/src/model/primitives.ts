@@ -302,7 +302,42 @@ export const TICKET: PrimitiveDef = {
   ],
 }
 
-export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION, PRODUCT, RECEIPT, TICKET]
+export const MUSIC_TRACK: PrimitiveDef = {
+  id: 'music_track',
+  name: 'Music Track',
+  fields: [
+    {
+      key: 'title',
+      label: 'Song',
+      block: 'text',
+      required: false,
+      description: 'Song title, e.g. Brazil',
+    },
+    {
+      key: 'artist',
+      label: 'Artist',
+      block: 'text',
+      required: false,
+      description: 'Artist or band name',
+    },
+    {
+      key: 'url',
+      label: 'Listen URL',
+      block: 'text',
+      required: false,
+      description: 'Link to the song, e.g. on Spotify',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Date shown on the card, MM/DD/YYYY',
+    },
+  ],
+}
+
+export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION, PRODUCT, RECEIPT, TICKET, MUSIC_TRACK]
 
 export function findPrimitive(id: string): PrimitiveDef | undefined {
   return PRIMITIVES.find((p) => p.id === id)
