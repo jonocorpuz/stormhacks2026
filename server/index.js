@@ -1,11 +1,13 @@
-// Production server (Render, single web service): built frontend + /api/extract.
-// Dev doesn't use this — Vite middleware (frontend/vite.config.js) calls the same extract().
+// Production server (Render, single web service): built frontend + /api/extract + /api/boards.
+// Dev doesn't use this — Vite middleware (frontend/vite.config.js) calls the same handlers.
 // Run via tsx so extract.js can import the TS model from frontend/src/model.
 
+import { neon } from '@neondatabase/serverless';
 import express from 'express';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createBoardsApi, neonBoardsDb } from './boards.js';
 import { extract } from './extract.js';
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '../frontend/dist');
@@ -20,6 +22,24 @@ app.post('/api/extract', express.json({ limit: '30mb' }), async (req, res) => {
     res.status(result.ok ? 200 : 502).json(result);
   } catch (err) {
     console.error('[api/extract] crashed', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+const boardsApi = createBoardsApi(
+  process.env.DATABASE_URL ? neonBoardsDb(neon(process.env.DATABASE_URL)) : null,
+);
+app.use('/api/boards', express.json({ limit: '5mb' }), async (req, res) => {
+  try {
+    const result = await boardsApi({
+      method: req.method,
+      path: req.path,
+      email: req.get('x-user-email'),
+      body: req.body,
+    });
+    res.status(result.status).json(result.json);
+  } catch (err) {
+    console.error('[api/boards] crashed', err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });

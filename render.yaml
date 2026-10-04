@@ -1,4 +1,4 @@
-# Render Blueprint. One Web Service: Express (server/) serves built frontend (frontend/dist) + /api/extract.
+# Render Blueprint. One Web Service: Express (server/) serves built frontend (frontend/dist) + /api/extract + /api/boards.
 services:
   - type: web
     name: stormhacks2026
@@ -11,3 +11,5 @@ services:
         value: "22"
       - key: GEMINI_API_KEY
         sync: false # set in Render dashboard; never committed
+      - key: DATABASE_URL
+        sync: false # Neon pooled connection string; set in Render dashboard
