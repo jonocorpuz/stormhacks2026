@@ -3,3 +3,4 @@
 export type { BoardRepository, PrefsRepository } from './repository'
 export { MemoryRepo } from './memoryRepo'
 export { LocalStorageRepo } from './localStorageRepo'
+export { HttpRepo } from './httpRepo'

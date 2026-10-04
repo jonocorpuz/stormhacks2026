@@ -58,7 +58,7 @@ export default function MobileRolodexView(props) {
   return <RolodexStack board={board} {...props} />;
 }
 
-function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
+function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -249,7 +249,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
               <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
             </GlassButton>
           </div>
-          <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} />
+          <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} photoPicker />
         </div>
         <div className="pop-in flex-1 min-w-0" style={navPop(0)}>
           <GlassInput placeholder="Search" value={query} onChange={(e) => onQueryChange(e.target.value)} className="!w-full" />
@@ -264,7 +264,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
               <ProfileAvatar />
             </div>
           </div>
-          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} onSignOut={onSignOut} />
         </div>
       </div>
 

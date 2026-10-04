@@ -9,6 +9,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "express": "^5.2.1",
     "tsx": "^4.23.15"
   }

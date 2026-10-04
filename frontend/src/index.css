@@ -370,3 +370,13 @@
   --wiggle-amp: 1;
   transition: transform 900ms var(--spring), --wiggle-amp 500ms ease-in-out;
 }
+
+/* iOS Safari zooms the page when a focused field's text is under 16px (e.g. the create form's
+   autofocused first input). Touch-only devices get 16px fields; desktop keeps its sizes. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

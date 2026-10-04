@@ -3,7 +3,7 @@ import { useActions, useApp } from '../store';
 import demoBoard from '../fixtures/demoBoard.json';
 import { useExiting } from './useExiting';
 
-export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode }) {
+export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode, onSignOut }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
   const name = useApp((s) => s.name);
   const { toggleTheme, setName, importBoard } = useActions();
@@ -109,11 +109,12 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
 
         <hr className="border-line dark:border-ink/10 my-1 mx-2" />
         
-        {/* Logout: no accounts yet, so it clears the local profile (name → default avatar) */}
+        {/* Logout: clears the local name, then drops the profile email (back to sign-in) */}
         <li
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
-            setName(null);
+            await setName(null);
+            onSignOut?.();
           }}
           className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-danger/10 cursor-pointer transition-colors text-sm text-danger">
           <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>

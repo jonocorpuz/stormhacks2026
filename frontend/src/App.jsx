@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import { createCapture } from './model';
 import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
@@ -14,15 +13,7 @@ import MobileRolodexView from './components/mobile/MobileRolodexView';
 import SaveStatus from './components/SaveStatus';
 import ExtractionStatus from './components/ExtractionStatus';
 import DropOverlay from './components/DropOverlay';
-
-// File → base64 (no data-URL prefix).
-const readBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1] ?? '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+import { filesToCaptures } from './components/filesToCaptures';
 
 const THEME_KEY = 'theme';
 
@@ -56,7 +47,7 @@ function useMediaQuery(query) {
 // Nav pops in after the cards, rippling outward from the search bar (order = distance from it).
 const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
 
-export default function App() {
+export default function App({ onSignOut }) {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
 
@@ -87,10 +78,7 @@ export default function App() {
     setIsDragging(false);
     const files = [...e.dataTransfer.files];
     if (!files.length) return;
-    const captures = await Promise.all(
-      files.map(async (f) => createCapture('image', f.type, await readBase64(f), f.name)),
-    );
-    ingestCaptures(captures);
+    ingestCaptures(await filesToCaptures(files));
   };
 
   const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
@@ -125,6 +113,7 @@ export default function App() {
               onQueryChange={setQuery}
               editMode={editMode}
               onToggleEditMode={() => setEditMode((on) => !on)}
+              onSignOut={onSignOut}
             />
           ) : (
             <BoardGate />
@@ -141,6 +130,7 @@ export default function App() {
                 onQueryChange={setQuery}
                 editMode={editMode}
                 onToggleEditMode={() => setEditMode((on) => !on)}
+                onSignOut={onSignOut}
                 viewMode={viewMode}
                 onToggleViewMode={toggleViewMode}
               />
@@ -208,7 +198,7 @@ export default function App() {
           >
             <ProfileAvatar />
           </div>
-          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
+          <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} onSignOut={onSignOut} />
         </div>
       </div>
 
