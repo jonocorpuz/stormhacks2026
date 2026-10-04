@@ -34,7 +34,8 @@ const FWD_TILT = 40; // deg, waiting pile
 const BACK_TILT = 14; // deg, first card behind the focused one (+7deg per card deeper); focused card is flat
 const BACK_GAP = 44; // px between flipped cards
 const PERSPECTIVE = 900;
-const STEP = 150; // scroll px per card flip
+const STEP = 220; // scroll px per card flip
+const FOLLOW_MS = 260; // drawn progress glides toward the scroll position with this time constant
 const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
 const FWD_Y = 0.8; // waiting pile centre
 const MAX_CARD_W = 330;
@@ -91,11 +92,14 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     return () => ro.disconnect();
   }, []);
 
-  const update = useCallback(() => {
+  // Drawn progress (in cards). Trails the scroll position so flips play out smoothly even on
+  // a fast wheel tick or snap; null until first paint.
+  const shownRef = useRef(null);
+
+  const render = useCallback((p) => {
     const root = scrollRef.current;
     if (!root) return;
     const H = root.clientHeight - BAR_CLEARANCE;
-    const p = root.scrollTop / STEP;
     cardRefs.current.forEach((card, i) => {
       if (!card) return;
       const t = p - i;
@@ -124,24 +128,44 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
     if (hintRef.current) hintRef.current.style.opacity = p > 0.15 ? 0 : 1;
   }, []);
 
-  // Re-apply after every render (new items, resize, edit mode) and on scroll.
-  useLayoutEffect(update);
+  // Re-apply after every render (new items, resize, edit mode) at the current drawn progress.
+  useLayoutEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    if (shownRef.current === null) shownRef.current = root.scrollTop / STEP;
+    render(shownRef.current);
+  });
+
+  // On scroll, ease the drawn progress toward the scroll position each frame until it settles.
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let raf = null;
-    const onScroll = () => {
-      if (raf === null) raf = requestAnimationFrame(() => {
+    let last = 0;
+    const tick = (now) => {
+      const target = root.scrollTop / STEP;
+      const dt = last ? now - last : 16;
+      last = now;
+      const cur = shownRef.current ?? target;
+      const next = reduce ? target : cur + (target - cur) * (1 - Math.exp(-dt / FOLLOW_MS));
+      shownRef.current = Math.abs(target - next) < 0.001 ? target : next;
+      render(shownRef.current);
+      if (shownRef.current !== target) raf = requestAnimationFrame(tick);
+      else {
         raf = null;
-        update();
-      });
+        last = 0;
+      }
+    };
+    const onScroll = () => {
+      if (raf === null) raf = requestAnimationFrame(tick);
     };
     root.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       root.removeEventListener('scroll', onScroll);
       if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, [update]);
+  }, [render]);
 
   // Tap a card to bring it to the top of the flipped stack (controls inside it still work).
   const focusCard = (i) => (e) => {
