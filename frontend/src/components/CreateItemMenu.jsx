@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { PRIMITIVES, getPrimitive, validateFields } from '../model';
 import { useActions } from '../store';
 import PrimitiveForm from './forms/PrimitiveForm';
+import { useExiting } from './useExiting';
 
 // Gap kept between the menu's bottom edge and the viewport.
 const VIEWPORT_MARGIN = 16;
@@ -13,6 +14,7 @@ export default function CreateItemMenu({ isOpen, onClose }) {
   const [values, setValues] = useState({});
   const menuRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState();
+  const [shown, closing] = useExiting(isOpen || null);
 
   // Cap height to the space below the menu's top so tall forms scroll instead of overflowing.
   useLayoutEffect(() => {
@@ -29,7 +31,7 @@ export default function CreateItemMenu({ isOpen, onClose }) {
     return () => window.removeEventListener('resize', fit);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!shown) return null;
 
   const primitive = getPrimitive(primitiveId);
   // Shown as flags only; creation is never blocked. Orphans can't happen from this form.
@@ -45,7 +47,7 @@ export default function CreateItemMenu({ isOpen, onClose }) {
   return (
     <div
       ref={menuRef}
-      className="absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-sheet origin-top animate-slide-down-fade z-50 flex flex-col space-y-5 overflow-y-auto overscroll-contain"
+      className={`absolute top-full mt-4 left-0 w-80 p-5 apple-glass rounded-sheet origin-top menu-pop ${closing ? 'is-closing' : ''} z-50 flex flex-col space-y-5 overflow-y-auto overscroll-contain`}
       style={{ maxHeight }}
     >
       <h3 className="text-ink font-bold text-sm px-1">New</h3>

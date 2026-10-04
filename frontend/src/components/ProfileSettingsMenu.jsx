@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useActions, useApp } from '../store';
 import demoBoard from '../fixtures/demoBoard.json';
+import { useExiting } from './useExiting';
 
 export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
@@ -8,10 +9,9 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
   const { toggleTheme, setName, importBoard } = useActions();
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState('');
-  if (!isOpen) {
-    if (editingName) setEditingName(false); // reopening starts from the menu, not a stale field
-    return null;
-  }
+  const [shown, closing] = useExiting(isOpen || null);
+  if (!isOpen && editingName) setEditingName(false); // reopening starts from the menu, not a stale field
+  if (!shown) return null;
 
   const saveName = (e) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
   };
 
   return (
-    <div className="absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right animate-slide-down-fade z-50">
+    <div className={`absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right menu-pop ${closing ? 'is-closing' : ''} z-50`}>
       <ul className="flex flex-col">
         {/* Change Name: inline field; the avatar shows its initials */}
         {editingName ? (

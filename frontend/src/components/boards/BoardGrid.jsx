@@ -8,6 +8,7 @@ import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
+import { useExiting } from '../useExiting';
 
 // v2 grid (not the legacy wrapper) so we can pass our own `compactor` prop.
 const ResponsiveReactGridLayout = WidthProvider(ResponsiveGridLayout);
@@ -246,8 +247,9 @@ function BoardGridView({ board, query, editMode }) {
   // Stable per-id handlers so memoized cards skip re-render during drag/settle state changes.
   const openItem = useCallback((id) => setEditingId(id), []);
   const askDelete = useCallback((id) => setDeletingId(id), []);
-  const editingItem = board.items.find((i) => i.id === editingId);
-  const deletingItem = board.items.find((i) => i.id === deletingId);
+  // Kept through the exit animation (the deleted item is already gone from the board by then).
+  const [editingItem, editorClosing] = useExiting(board.items.find((i) => i.id === editingId));
+  const [deletingItem, deleteClosing] = useExiting(board.items.find((i) => i.id === deletingId));
 
   // Drag state for the compactor. Written only in drag event handlers, read only inside
   // compact() (which react-grid-layout calls during drag), so it never feeds render output.
@@ -467,11 +469,12 @@ function BoardGridView({ board, query, editMode }) {
         </ResponsiveReactGridLayout>
       )}
 
-      {editingItem && <ItemEditor key={editingItem.id} item={editingItem} onClose={() => setEditingId(null)} />}
+      {editingItem && <ItemEditor key={editingItem.id} item={editingItem} closing={editorClosing} onClose={() => setEditingId(null)} />}
 
       {deletingItem && (
         <DeleteConfirmModal
           item={deletingItem}
+          closing={deleteClosing}
           onCancel={() => setDeletingId(null)}
           onConfirm={() => {
             deleteItem(deletingItem.id).catch(() => {}); // failure shown by SaveStatus
@@ -483,13 +486,13 @@ function BoardGridView({ board, query, editMode }) {
   );
 }
 
-export function DeleteConfirmModal({ item, onCancel, onConfirm }) {
+export function DeleteConfirmModal({ item, onCancel, onConfirm, closing = false }) {
   const label = findPrimitive(item.primitiveId)?.name ?? 'Item';
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop bg-black/40 backdrop-blur-sm"
+      className={`fixed inset-0 z-50 flex items-center justify-center modal-backdrop ${closing ? 'is-closing' : ''} bg-black/40 backdrop-blur-sm`}
       onClick={onCancel}
     >
       <div

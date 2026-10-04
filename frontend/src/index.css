@@ -166,49 +166,43 @@
   animation: popIn 700ms var(--spring) backwards;
 }
 
-/* Modals (item editor, delete confirm): backdrop fades in, sheet bubbles up on the same spring. */
+/* Popups: dropdowns (+ / settings / board menus) and modals (item editor, delete confirm) bubble in
+   on the same spring as cards (.pop-in). .is-closing (useExiting) plays a quick shrink-fade before
+   unmount; keep its duration in sync with EXIT_MS in components/useExiting.js. */
 @keyframes modalFade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes modalPop {
-  from { transform: translateY(16px) scale(0.8); opacity: 0; }
+@keyframes popupIn {
+  from { transform: scale(0.6); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+@keyframes popupOut {
+  from { transform: none; opacity: 1; }
+  to { transform: scale(0.85); opacity: 0; }
+}
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.menu-pop {
+  animation: popupIn 650ms var(--spring) backwards;
 }
 .modal-backdrop {
   animation: modalFade 300ms ease-out backwards;
 }
 .modal-pop {
-  animation: modalPop 650ms var(--spring) backwards;
+  animation: popupIn 750ms var(--spring) backwards;
 }
-
-/* Syntax highlighting (components/HighlightedCode.tsx): Prism token classes → code tokens.
-   Unmatched text keeps the panel's white. */
-.code-highlight .token.comment,
-.code-highlight .token.prolog,
-.code-highlight .token.doctype { color: rgb(var(--code-comment)); font-style: italic; }
-.code-highlight .token.keyword,
-.code-highlight .token.atrule,
-.code-highlight .token.important { color: rgb(var(--code-keyword)); }
-.code-highlight .token.string,
-.code-highlight .token.char,
-.code-highlight .token.template-string,
-.code-highlight .token.attr-value,
-.code-highlight .token.regex { color: rgb(var(--code-string)); }
-.code-highlight .token.number,
-.code-highlight .token.boolean,
-.code-highlight .token.constant,
-.code-highlight .token.symbol { color: rgb(var(--code-number)); }
-.code-highlight .token.function,
-.code-highlight .token.function-variable { color: rgb(var(--code-function)); }
-.code-highlight .token.class-name,
-.code-highlight .token.builtin,
-.code-highlight .token.tag,
-.code-highlight .token.selector { color: rgb(var(--code-type)); }
-.code-highlight .token.operator,
-.code-highlight .token.attr-name,
-.code-highlight .token.property { color: rgb(var(--code-operator)); }
-.code-highlight .token.punctuation { color: rgb(var(--code-punctuation)); }
+.menu-pop.is-closing,
+.is-closing .modal-pop {
+  animation: popupOut 240ms ease-in forwards;
+  pointer-events: none;
+}
+.modal-backdrop.is-closing {
+  animation: modalFadeOut 240ms ease-in forwards;
+  pointer-events: none;
+}
 
 /* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
    Keeps the color fade that Tailwind's transition-colors would otherwise provide. */
@@ -264,7 +258,8 @@
   .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
   .buoyant { transition: transform 200ms ease-out; }
   .pop-in { animation: none; }
-  .modal-pop { animation: modalFade 200ms ease-out backwards; }
+  .modal-pop, .menu-pop { animation: modalFade 200ms ease-out backwards; }
+  .menu-pop.is-closing, .is-closing .modal-pop { animation: modalFadeOut 200ms ease-out forwards; }
 }
 
 /* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.

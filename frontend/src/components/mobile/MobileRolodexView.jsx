@@ -3,6 +3,7 @@ import { itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import ItemEditor from '../ItemEditor';
+import { useExiting } from '../useExiting';
 import CreateItemMenu from '../CreateItemMenu';
 import GlassButton from '../GlassButton';
 import GlassInput from '../GlassInput';
@@ -72,8 +73,9 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
 
   const sizes = board.view.sizes ?? {};
   const items = board.items.filter((item) => itemMatchesQuery(item, query));
-  const editingItem = board.items.find((i) => i.id === editingId);
-  const deletingItem = board.items.find((i) => i.id === deletingId);
+  // Kept through the exit animation (the deleted item is already gone from the board by then).
+  const [editingItem, editorClosing] = useExiting(board.items.find((i) => i.id === editingId));
+  const [deletingItem, deleteClosing] = useExiting(board.items.find((i) => i.id === deletingId));
   const openItem = useCallback((id) => setEditingId(id), []);
   const askDelete = useCallback((id) => setDeletingId(id), []);
   const n = items.length;
@@ -337,10 +339,11 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
         </div>
       )}
 
-      {editingItem && <ItemEditor key={editingItem.id} item={editingItem} onClose={() => setEditingId(null)} />}
+      {editingItem && <ItemEditor key={editingItem.id} item={editingItem} closing={editorClosing} onClose={() => setEditingId(null)} />}
       {deletingItem && (
         <DeleteConfirmModal
           item={deletingItem}
+          closing={deleteClosing}
           onCancel={() => setDeletingId(null)}
           onConfirm={() => {
             deleteItem(deletingItem.id).catch(() => {}); // failure shown by SaveStatus

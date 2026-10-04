@@ -4,7 +4,7 @@ import { useActions } from '../store';
 import PrimitiveForm from './forms/PrimitiveForm';
 
 // Modal for editing one item. Saves once on "Save" (not per keystroke).
-export default function ItemEditor({ item, onClose }) {
+export default function ItemEditor({ item, onClose, closing = false }) {
   const { updateItem } = useActions();
   // Unknown/custom primitive (stale data, removed type): show a notice. Deleting is the card's × (edit mode).
   const primitive = findPrimitive(item.primitiveId);
@@ -19,7 +19,7 @@ export default function ItemEditor({ item, onClose }) {
 
   return (
     // p-4 + max-h-full: a form taller than the screen (or the phone simulator) scrolls inside the card.
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop ${closing ? 'is-closing' : ''} bg-black/20 dark:bg-black/50 backdrop-blur-sm`} onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
         className="w-[28rem] max-w-[calc(100vw-2rem)] max-h-full overflow-y-auto overscroll-contain p-6 apple-glass rounded-sheet modal-pop flex flex-col space-y-5"
