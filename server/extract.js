@@ -63,7 +63,7 @@ export async function extract(body, env) {
         contents: [
           {
             parts: [
-              { inlineData: { mimeType: body.mimeType, data: body.data } },
+              { inline_data: { mime_type: body.mimeType, data: body.data } },
               { text: buildExtractionPrompt(primitives) },
             ],
           },
