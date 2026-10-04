@@ -59,7 +59,6 @@ export default memo(function ItemCard({
   return (
     <div
       {...dragProps}
-      onClick={known && !editMode ? () => onOpen(item.id) : undefined}
       style={wiggleStyle}
       className={`w-full h-full relative buoyant ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.012] hover:-translate-y-1 hover:-rotate-[0.5deg]'} ${
         isFullBleed
@@ -87,7 +86,7 @@ export default memo(function ItemCard({
       {editMode && (
         <div className="absolute top-3 right-3 z-20 flex gap-1.5">
           {known && (
-            <CardButton label="Edit" onClick={onOpen}>
+            <CardButton label="Edit" onClick={() => onOpen(item.id)}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.675-12.688zm0 0L19.5 7.125" />
             </CardButton>
           )}
