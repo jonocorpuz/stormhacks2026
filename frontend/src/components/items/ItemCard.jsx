@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { findPrimitive, getItemIssues } from '../../model';
 import GenericCard from './GenericCard';
+import { Menu } from 'lucide-react';
 import { CARD_COMPONENTS } from './registry';
 import { DEFAULT_SIZE, FIXED_SIZES, SIZE_CLASSES } from './sizes';
 
@@ -76,10 +77,21 @@ export default memo(function ItemCard({
     >
       <Card item={item} primitive={primitive} />
 
+      {/* Widgets draw their own grip; plain glass cards get one here. */}
+      {!isFullBleed && (
+        <span
+          aria-label="Drag to rearrange"
+          title="Drag to rearrange"
+          className="drag-handle absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center text-ink/50 hover:text-ink/80 cursor-grab active:cursor-grabbing touch-none"
+        >
+          <Menu className="w-4 h-4" strokeWidth={2} />
+        </span>
+      )}
+
       {issues.length > 0 && (
         <span
           title={issues.map((i) => `${i.fieldKey}: ${ISSUE_TEXT[i.kind]}`).join('\n')}
-          className="absolute bottom-4 right-4 w-2.5 h-2.5 rounded-full bg-warning shadow"
+          className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-warning shadow"
         />
       )}
 

@@ -356,7 +356,9 @@ export default function BoardGrid({ query, editMode }) {
           rowHeight={rowHeight}
           margin={[24, 24]}
           containerPadding={[0, 0]}
-          isDraggable={editMode}
+          isDraggable
+          // Outside edit mode only the card's grip drags; in edit mode the whole card does.
+          draggableHandle={editMode ? undefined : '.drag-handle'}
           isResizable={false}
           draggableCancel=".card-action-btn"
           compactType="vertical"
@@ -435,7 +437,7 @@ export default function BoardGrid({ query, editMode }) {
         >
           {stableItems.map((item, i) => {
             const layoutPos = layoutMap.get(item.id) || { x: 0, y: i, w: 1, h: 1 };
-            const isDragging = editMode && dragId === item.id;
+            const isDragging = dragId === item.id;
             const isSettling = settlingId === item.id;
 
             return (

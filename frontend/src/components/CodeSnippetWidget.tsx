@@ -1,32 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Copy } from 'lucide-react';
-import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
-import oneDark from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark';
-import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
-import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
-import go from 'react-syntax-highlighter/dist/esm/languages/prism/go';
-import java from 'react-syntax-highlighter/dist/esm/languages/prism/java';
-import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
-import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
-import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
-import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
-import rust from 'react-syntax-highlighter/dist/esm/languages/prism/rust';
-import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
-import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
-import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import type { CodeSnippetData } from '../types/widgets';
-import { FONT, GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
-
-const LANGUAGES = { bash, css, go, java, javascript, json, jsx, python, rust, sql, tsx, typescript };
-Object.entries(LANGUAGES).forEach(([name, grammar]) => SyntaxHighlighter.registerLanguage(name, grammar));
-
-const LANGUAGE_ALIASES: Record<string, string> = {
-  js: 'javascript',
-  ts: 'typescript',
-  py: 'python',
-  sh: 'bash',
-  shell: 'bash',
-};
+import WidgetShell, { ShellIconButton, SolidPanel, Watermark } from './WidgetShell';
+import { FONT, ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface CodeSnippetWidgetProps {
   data?: Partial<CodeSnippetData>;
@@ -40,19 +15,10 @@ const DEFAULT_DATA: CodeSnippetData = {
   date: '02/20/2027',
 };
 
-// Figma "Project Code Snippet" (stormhacks-27, "MacBook Pro 14" - 8", nodes 55:397 / 55:398 / 55:452),
-// designed at 730px wide. All sizes scale with the widget's width (container query units)
-// so it keeps the design's proportions in any bento cell.
+// Figma "Project Code Snippet" (stormhacks-27, nodes 55:397 / 55:398 / 55:452) on the solid-panel
+// shell (node 120:1121). Designed at 730px wide (2x2); sizes scale with the widget's width.
 const DESIGN_WIDTH = 730;
-const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
-
-const CARD_GRADIENT = accentGradient('green', 138.27);
-// Code panel: near-black wash, faint frame + dense fill.
-const codeGradient = (alpha: number) =>
-  `linear-gradient(144.53deg, rgb(var(--code-bg) / ${alpha}) 11.72%, rgb(var(--shadow) / ${alpha}) 50.62%, rgb(var(--code-bg) / ${alpha}) 89.51%)`;
-const CODE_FRAME_GRADIENT = codeGradient(0.1);
-const CODE_FILL_GRADIENT = codeGradient(0.83);
-const CODE_INSET_SHADOW = `inset ${u(3.4)} ${u(3.4)} ${u(21)} 0 rgb(var(--shadow) / 0.11)`;
+const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
 const COPIED_RESET_MS = 1600;
 
@@ -66,12 +32,7 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
   const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
-  const langKey = language.trim().toLowerCase();
-  const highlightLanguage = LANGUAGE_ALIASES[langKey] ?? (langKey in LANGUAGES ? langKey : 'text');
-
-  const handleCopy = async (e: React.MouseEvent) => {
-    // Cards open the item editor on click; copying shouldn't.
-    e.stopPropagation();
+  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
@@ -82,127 +43,61 @@ export default function CodeSnippetWidget({ data, className = '' }: CodeSnippetW
     }
   };
 
+  const footer = (
+    <ShellIconButton
+      designWidth={DESIGN_WIDTH}
+      label={copied ? 'Code copied' : 'Copy code'}
+      text={copied ? 'Copied' : 'Copy Code'}
+      onClick={handleCopy}
+    />
+  );
+
   return (
-    <div className={`w-full h-full [container-type:inline-size] ${className}`}>
-      <div
-        className="relative w-full h-full flex flex-col overflow-hidden border-solid border-accent-green-edge dark:!shadow-none"
-        style={{
-          backgroundImage: CARD_GRADIENT,
-          borderWidth: u(0.86),
-          borderRadius: radius('card'),
-          boxShadow: `${u(3.4)} ${u(3.4)} ${u(21)} 0 rgb(var(--haze) / 0.25)`,
-          backdropFilter: `blur(${u(1.719)})`,
-          paddingTop: cardInset,
-          paddingBottom: cardInset,
-        }}
-      >
+    <WidgetShell
+      designWidth={DESIGN_WIDTH}
+      className={className}
+      footer={footer}
+    >
+      {/* Only the code is inset; header and date sit on the shell surface. */}
+      <div className="absolute inset-0 flex flex-col" style={{ gap: space(3) }}>
         {/* Header */}
         <div
-          className="flex items-center justify-between shrink-0"
-          style={{ paddingLeft: space(7), paddingRight: space(10), gap: space(4) }}
+          className="flex items-baseline justify-between shrink-0"
+          style={{ gap: space(4), paddingLeft: u(SHELL.padX), paddingRight: u(SHELL.padX), paddingTop: u(SHELL.padY / 2) }}
         >
           <h2
-            className="font-bold text-accent-green whitespace-nowrap overflow-hidden text-ellipsis"
-            style={type('title')}
+            className="font-bold text-ink whitespace-nowrap overflow-hidden text-ellipsis"
+            style={type('display')}
           >
             {title}
           </h2>
-          <span
-            className="text-ink-subtle whitespace-nowrap shrink-0"
-            style={type('body')}
-          >
+          <span className="text-ink-subtle whitespace-nowrap shrink-0" style={type('body')}>
             {language}
           </span>
         </div>
 
-        {/* Code Block */}
-        <div
-          className="relative flex-1 min-h-0 border-solid border-accent-green-edge"
-          style={{
-            marginTop: space(3),
-            marginLeft: space(6),
-            marginRight: space(6),
-            borderWidth: u(0.86),
-            borderRadius: radius('card'),
-            backgroundImage: CODE_FRAME_GRADIENT,
-            boxShadow: CODE_INSET_SHADOW,
-          }}
-        >
-          <div
-            className="absolute inset-0 overflow-auto [scrollbar-width:thin] [scrollbar-color:rgb(var(--code-ink)/0.25)_transparent]"
+        {/* Code Block: grey inset panel, plain white mono. */}
+        <SolidPanel designWidth={DESIGN_WIDTH} accent="grey" className="flex-1 min-h-0">
+          <Watermark designWidth={DESIGN_WIDTH} glyph="{i++}" size={200} />
+          <pre
+            className={`absolute inset-0 m-0 overflow-auto whitespace-pre-wrap break-words ${ON_PANEL.primary} [scrollbar-width:thin] [scrollbar-color:rgb(var(--glow)/0.3)_transparent]`}
             style={{
-              borderRadius: radius('control'),
-              backgroundImage: CODE_FILL_GRADIENT,
-              boxShadow: CODE_INSET_SHADOW,
+              padding: space(6),
+              fontFamily: FONT.mono,
+              fontSize: type('body').fontSize,
+              fontWeight: 700,
+              lineHeight: 'normal',
             }}
           >
-            <SyntaxHighlighter
-              language={highlightLanguage}
-              style={oneDark}
-              wrapLongLines
-              customStyle={{
-                margin: 0,
-                padding: `${space(7)} ${space(6)}`,
-                background: 'transparent',
-                fontFamily: FONT.mono,
-                fontSize: type('body').fontSize,
-                fontWeight: 700,
-                lineHeight: 'normal',
-                color: 'rgb(var(--code-ink))',
-                textShadow: 'none',
-              }}
-              codeTagProps={{
-                style: { fontFamily: FONT.mono, fontSize: 'inherit', fontWeight: 'inherit', textShadow: 'none' },
-              }}
-            >
-              {code}
-            </SyntaxHighlighter>
-          </div>
-        </div>
+            <code style={{ fontFamily: 'inherit' }}>{code}</code>
+          </pre>
+        </SolidPanel>
 
-        {/* Footer */}
-        <div
-          className="flex items-center justify-between shrink-0"
-          style={{ marginTop: space(3), paddingLeft: space(7), paddingRight: space(5) }}
-        >
-          <span
-            className="text-ink-subtle whitespace-nowrap"
-            style={type('body')}
-          >
-            {date}
-          </span>
-
-          {/* Copy Button */}
-          <button
-            type="button"
-            onClick={handleCopy}
-            aria-label={copied ? 'Code copied' : 'Copy code'}
-            className={`flex items-center justify-between shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} text-control-ink transition-all duration-200`}
-            style={{
-              width: u(155.596),
-              height: u(47.281),
-              borderRadius: radius('control'),
-              paddingLeft: space(4),
-              paddingRight: space(4),
-              boxShadow: glassShadow,
-            }}
-          >
-            <span
-              className="whitespace-nowrap"
-              style={type('body')}
-              aria-live="polite"
-            >
-              {copied ? 'Copied!' : 'Copy Code'}
-            </span>
-            {copied ? (
-              <Check className="text-accent-green" style={{ width: u(22), height: u(21) }} strokeWidth={2.4} />
-            ) : (
-              <Copy style={{ width: u(22), height: u(21) }} strokeWidth={1.8} />
-            )}
-          </button>
-        </div>
+        <span className="text-ink-subtle whitespace-nowrap shrink-0" style={{ ...type('caption'), paddingLeft: u(SHELL.padX) }}>
+          {date}
+        </span>
       </div>
-    </div>
+    </WidgetShell>
   );
 }
 

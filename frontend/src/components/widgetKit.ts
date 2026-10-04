@@ -1,6 +1,6 @@
 // Design tokens for the Figma-ported widgets. Each widget is drawn at a fixed design width and
 // scales with its container (cqw), so sizes here are design px, converted by `widgetScale`.
-// Colors come from the CSS variables in index.css, so everything follows the theme.
+// Colors come from the CSS variables in index.css. Shell follows the theme; accent panels don't.
 
 // Alte Haas everywhere; mono only for code and figures.
 export const FONT = {
@@ -11,9 +11,12 @@ export const FONT = {
 // [font-size, line-height]
 export const TYPE = {
   caption: [12, 14],
+  detail: [13, 16],
   label: [14, 17],
   body: [16, 19],
   title: [20, 24],
+  lead: [24, 28],
+  display: [34, 38],
 } as const;
 
 export const RADIUS = {
@@ -24,22 +27,49 @@ export const RADIUS = {
 
 // Spacing is a 4px grid: space(4) = 16 design px, like Tailwind's p-4.
 const SPACE_UNIT = 4;
-const CARD_INSET = 28;
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16;
 
-export type Accent = 'blue' | 'green' | 'coral' | 'pink';
+export type Accent = 'blue' | 'green' | 'coral' | 'pink' | 'grey';
 export type Font = keyof typeof FONT;
 export type TypeSize = keyof typeof TYPE;
 
-// Accent wash for cards and panels: 10% → 2% → 10%.
-export const accentGradient = (accent: Accent, angle: number) => {
-  const tint = (alpha: number) => `rgb(var(--${accent}-tint) / ${alpha})`;
-  return `linear-gradient(${angle}deg, ${tint(0.1)} 11.72%, ${tint(0.02)} 50.62%, ${tint(0.1)} 89.51%)`;
+// Widget shell (WidgetShell.tsx), in 1x1 design px: Figma's 773x486 card scaled by ~0.73.
+export const SHELL = {
+  radius: 25,
+  // Figma's bottom-right corner is tighter than the rest.
+  cornerRadius: 7,
+  shadowX: 8,
+  shadowY: 12,
+  inset: 14,
+  panelRadius: 20,
+  // Panel → footer gap, also the gap between footer controls.
+  footerGap: 10,
+  footerBottom: 16,
+  control: 50,
+  pillMinWidth: 88,
+  logo: 32,
+  // Panel content padding.
+  padX: 18,
+  padY: 24,
+} as const;
+
+// Solid accent panels. Literal class names so Tailwind picks them up.
+export const SOLID_PANEL: Record<Accent, string> = {
+  blue: 'bg-accent-blue-solid',
+  green: 'bg-accent-green-solid',
+  coral: 'bg-accent-coral-solid',
+  pink: 'bg-accent-pink-solid',
+  grey: 'bg-accent-grey-solid',
 };
 
-// Frosted control (copy / share / edit buttons). Pair with `glassShadow` from widgetScale.
-export const GLASS_CONTROL = 'bg-control/20';
-export const GLASS_CONTROL_HOVER = 'cursor-pointer hover:bg-control/35 active:scale-95';
+// Text on solid panels: white in both themes (panels don't follow the theme).
+export const ON_PANEL = {
+  primary: 'text-white',
+  secondary: 'text-white/75',
+  faint: 'text-white/55',
+  // Nested well (list area, receipt items, code block).
+  well: 'bg-black/20',
+} as const;
 
 export function widgetScale(designWidth: number) {
   const u = (px: number) => `calc(${px} * 100cqw / ${designWidth})`;
@@ -48,14 +78,11 @@ export function widgetScale(designWidth: number) {
     u,
     space: (step: SpaceStep) => u(step * SPACE_UNIT),
     radius: (r: keyof typeof RADIUS) => u(RADIUS[r]),
-    // Top/bottom padding of every widget card.
-    cardInset: u(CARD_INSET),
     type: (size: TypeSize, font: Font = 'sans') => ({
       fontFamily: FONT[font],
       fontSize: u(TYPE[size][0]),
       lineHeight: u(TYPE[size][1]),
     }),
-    glassShadow: `${u(1.6)} ${u(0.8)} ${u(12.8)} 0 rgb(var(--shadow) / 0.07), inset ${u(-0.8)} 0 ${u(42.6)} ${u(11.2)} rgb(var(--glow) / 0.52)`,
     insetShadow: `inset ${u(4)} ${u(4)} ${u(24)} 0 rgb(var(--haze) / 0.11)`,
   };
 }

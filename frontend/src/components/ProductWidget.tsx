@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Check, Link } from 'lucide-react';
+import { Check, Link } from 'lucide-react';
 import type { ProductWidgetData } from '../types/widgets';
-import linkCircle from '../assets/product-widget/link-circle.svg';
-import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
+import ebayLogo from '../assets/widget-shell/ebay-logo.png';
+import ebayMask from '../assets/widget-shell/ebay-mask.svg';
+import WidgetShell, { LogoBadge, ShellIconButton, ShellPill, Watermark } from './WidgetShell';
+import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface ProductWidgetProps {
   data?: Partial<ProductWidgetData>;
@@ -20,16 +22,20 @@ const DEFAULT_DATA: ProductWidgetData = {
   date: '03 / 10 / 26',
 };
 
-// Figma product card (stormhacks-27, "MacBook Pro 14" - 8", node 55:429 "Frame 2"),
-// laid out at 357px square like the other 1x1 widgets (no image, so the 732x355 frame's
-// details column alone). All sizes scale with the widget's width (container query units).
+// Figma product card (stormhacks-27, node 120:1121 "Group 54"), laid out 1x1 at 357px.
+// All sizes scale with the widget's width (container query units).
 const DESIGN_WIDTH = 357;
-const { u, space, radius, type, glassShadow, cardInset } = widgetScale(DESIGN_WIDTH);
-
-// Figma draws the card flipped horizontally, which mirrors its 156.86deg gradient to 203.14deg.
-const CARD_GRADIENT = accentGradient('pink', 203.14);
+const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
 const COPIED_RESET_MS = 1600;
+
+const isEbay = (url: string) => {
+  try {
+    return /(^|\.)ebay\./i.test(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+};
 
 export default function ProductWidget({ data, className = '' }: ProductWidgetProps) {
   const pick = <K extends keyof ProductWidgetData>(key: K) => data?.[key] || DEFAULT_DATA[key];
@@ -38,8 +44,8 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   const date = pick('date');
   const url = data?.url ?? '';
   const details = [
-    ['Price', pick('price')],
     ['Brand', pick('brand')],
+    ['Price', pick('price')],
     ['Model', pick('model')],
   ] as const;
 
@@ -47,9 +53,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
-  // Cards open the item editor on click; these buttons shouldn't.
-  const handleCopyLink = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyLink = async () => {
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
@@ -61,109 +65,91 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
     }
   };
 
-  return (
-    <div className={`w-full h-full [container-type:inline-size] ${className}`}>
-      <div
-        className="relative w-full h-full overflow-hidden border-solid border-accent-pink-edge select-none"
-        style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: radius('card') }}
+  const footer = (
+    <>
+      <ShellIconButton
+        designWidth={DESIGN_WIDTH}
+        label={copied ? 'Link copied' : 'Copy product link'}
+        onClick={handleCopyLink}
+        disabled={!url}
       >
-        {/* Details */}
-        <div
-          className="absolute flex flex-col items-start"
-          style={{ left: space(6), top: cardInset, right: space(6), bottom: cardInset, gap: space(4) }}
-        >
-          <h2
-            className="font-bold text-accent-pink whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
-            style={type('title')}
-          >
-            {title}
-          </h2>
-          <p
-            className="text-accent-pink line-clamp-2"
-            style={type('body')}
-          >
-            {description}
-          </p>
-
-          <dl
-            className="grid text-ink-muted"
-            style={{
-              ...type('body'),
-              gridTemplateColumns: `${u(89.14)} 1fr`,
-              rowGap: space(3),
-              width: '100%',
-            }}
-          >
-            {details.map(([label, value]) => (
-              <React.Fragment key={label}>
-                <dt className="font-bold dark:text-ink-subtle">{label}</dt>
-                <dd className="whitespace-nowrap overflow-hidden text-ellipsis">{value}</dd>
-              </React.Fragment>
-            ))}
-          </dl>
-
-          {/* Actions */}
-          <div className="mt-auto flex items-center w-full" style={{ gap: space(4) }}>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              disabled={!url}
-              aria-label={copied ? 'Link copied' : 'Copy product link'}
-              className="relative shrink-0 flex items-center justify-center text-control-ink cursor-pointer transition-transform active:scale-95 disabled:cursor-default disabled:opacity-60"
-              style={{ width: u(50.388), height: u(50.388) }}
-            >
+        {copied ? (
+          <Check style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
+        ) : (
+          <Link style={{ width: u(22), height: u(22) }} strokeWidth={1.8} />
+        )}
+      </ShellIconButton>
+      {isEbay(url) ? (
+        <ShellPill
+          designWidth={DESIGN_WIDTH}
+          href={url}
+          label="View listing on eBay"
+          logo={
+            <LogoBadge designWidth={DESIGN_WIDTH}>
+              {/* Figma masks the logo with the badge circle, offset 1.43/7.14 of 44.26. */}
               <img
-                src={linkCircle}
-                alt=""
-                width={77.5314}
-                height={77.5313}
-                className="absolute block max-w-none pointer-events-none"
-                style={{ left: u(-11.85), top: u(-12.71), width: u(77.5314), height: u(77.5313) }}
+                src={ebayLogo}
+                alt="eBay"
+                className="absolute max-w-none object-cover pointer-events-none"
+                style={{
+                  left: u(SHELL.logo * (1.428 / 44.255)),
+                  top: u(SHELL.logo * (7.138 / 44.255)),
+                  width: u(SHELL.logo * (41.921 / 44.255)),
+                  height: u(SHELL.logo * (31.021 / 44.255)),
+                  maskImage: `url("${ebayMask}")`,
+                  maskSize: `${u(SHELL.logo)} ${u(SHELL.logo)}`,
+                  maskPosition: `${u(-SHELL.logo * (1.428 / 44.255))} ${u(-SHELL.logo * (7.138 / 44.255))}`,
+                  maskRepeat: 'no-repeat',
+                }}
               />
-              {copied ? (
-                <Check className="relative text-accent-pink" style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
-              ) : (
-                <Link className="relative" style={{ width: u(22), height: u(22) }} strokeWidth={1.8} />
-              )}
-            </button>
+            </LogoBadge>
+          }
+        />
+      ) : (
+        <ShellPill designWidth={DESIGN_WIDTH} href={url} label="View product listing" text="View listing" />
+      )}
+    </>
+  );
 
-            <a
-              href={url || undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!url) e.preventDefault();
-              }}
-              aria-disabled={!url}
-              className={`flex items-center justify-between flex-1 min-w-0 ${GLASS_CONTROL} text-control-ink transition-all duration-200 ${
-                url ? GLASS_CONTROL_HOVER : 'opacity-60 dark:opacity-80 cursor-default'
-              }`}
-              style={{
-                height: u(50.388),
-                borderRadius: radius('control'),
-                paddingLeft: space(6),
-                paddingRight: space(5),
-                boxShadow: glassShadow,
-              }}
-            >
-              <span className="whitespace-nowrap" style={type('body')}>
-                View Product Listing
-              </span>
-              <ArrowUpRight style={{ width: u(20), height: u(20) }} strokeWidth={1.8} />
-            </a>
-          </div>
+  return (
+    <WidgetShell
+      designWidth={DESIGN_WIDTH}
+      accent="pink"
+      className={className}
+      watermark={<Watermark designWidth={DESIGN_WIDTH} glyph="$" />}
+      footer={footer}
+    >
+      <div
+        className="absolute flex flex-col items-start"
+        style={{ left: u(SHELL.padX), right: u(SHELL.padX), top: u(SHELL.padY), bottom: u(SHELL.padX), gap: space(2) }}
+      >
+        <h2
+          className={`font-bold ${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis max-w-full`}
+          style={type('display')}
+        >
+          {title}
+        </h2>
+        <p className={`${ON_PANEL.primary} line-clamp-2`} style={type('lead')}>
+          {description}
+        </p>
 
-          <span
-            className="text-ink-subtle whitespace-nowrap"
-            style={type('body')}
-          >
-            {date}
-          </span>
-        </div>
+        <dl
+          className="flex flex-wrap items-baseline max-w-full"
+          style={{ ...type('detail'), columnGap: space(2), rowGap: space(1), marginTop: space(1) }}
+        >
+          {details.map(([label, value]) => (
+            <div key={label} className="flex items-baseline min-w-0" style={{ gap: space(1) }}>
+              <dt className={`font-bold ${ON_PANEL.secondary}`}>{label}</dt>
+              <dd className={`${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
 
+        <span className={`${ON_PANEL.faint} whitespace-nowrap`} style={type('caption')}>
+          {date}
+        </span>
       </div>
-    </div>
+    </WidgetShell>
   );
 }
 
