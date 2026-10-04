@@ -150,6 +150,22 @@
   animation: popIn 700ms var(--spring) backwards;
 }
 
+/* Modals (item editor, delete confirm): backdrop fades in, sheet bubbles up on the same spring. */
+@keyframes modalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalPop {
+  from { transform: translateY(16px) scale(0.8); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.modal-backdrop {
+  animation: modalFade 300ms ease-out backwards;
+}
+.modal-pop {
+  animation: modalPop 650ms var(--spring) backwards;
+}
+
 /* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
    Keeps the color fade that Tailwind's transition-colors would otherwise provide. */
 .nav-grow {
@@ -204,6 +220,7 @@
   .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
   .buoyant { transition: transform 200ms ease-out; }
   .pop-in { animation: none; }
+  .modal-pop { animation: modalFade 200ms ease-out backwards; }
 }
 
 /* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.

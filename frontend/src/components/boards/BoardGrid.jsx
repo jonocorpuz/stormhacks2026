@@ -489,11 +489,11 @@ export function DeleteConfirmModal({ item, onCancel, onConfirm }) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop bg-black/40 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
-        className="apple-glass rounded-sheet p-6 max-w-sm w-full mx-4 shadow-2xl flex flex-col gap-4"
+        className="apple-glass rounded-sheet p-6 max-w-sm w-full mx-4 shadow-2xl flex flex-col gap-4 modal-pop"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-ink">Delete {label}?</h3>

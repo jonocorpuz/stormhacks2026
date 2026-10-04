@@ -23,10 +23,11 @@ export default function ItemEditor({ item, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    // p-4 + max-h-full: a form taller than the screen (or the phone simulator) scrolls inside the card.
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-[28rem] max-w-[calc(100vw-2rem)] p-6 apple-glass rounded-sheet animate-slide-down-fade flex flex-col space-y-5"
+        className="w-[28rem] max-w-[calc(100vw-2rem)] max-h-full overflow-y-auto overscroll-contain p-6 apple-glass rounded-sheet modal-pop flex flex-col space-y-5"
       >
         <h3 className="text-ink font-bold text-sm px-1">Edit {primitive?.name ?? 'Item'}</h3>
 
