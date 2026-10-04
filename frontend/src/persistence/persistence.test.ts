@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addItem, createBoard, createItem, renameBoard } from '../model'
-import { LocalStorageRepo, MemoryRepo, type BoardRepository } from './index'
+import { LocalStorageRepo, MemoryRepo, type BoardRepository, type PrefsRepository } from './index'
 
 class FakeStorage implements Storage {
   private data = new Map<string, string>()
@@ -24,7 +24,7 @@ class FakeStorage implements Storage {
   }
 }
 
-const repos: [string, () => BoardRepository][] = [
+const repos: [string, () => BoardRepository & PrefsRepository][] = [
   ['MemoryRepo', () => new MemoryRepo()],
   ['LocalStorageRepo', () => new LocalStorageRepo(new FakeStorage())],
 ]
@@ -66,5 +66,12 @@ describe.each(repos)('%s', (_, makeRepo) => {
     await repo.saveBoard(board)
     board.name = 'mutated'
     expect((await repo.loadBoard(board.id))?.name).toBe('Trip')
+  })
+
+  it('round-trips prefs, null when never saved', async () => {
+    const repo = makeRepo()
+    expect(await repo.loadPrefs()).toBeNull()
+    await repo.savePrefs({ theme: 'light' })
+    expect(await repo.loadPrefs()).toEqual({ theme: 'light' })
   })
 })

@@ -1,6 +1,9 @@
 import React from 'react';
+import { useActions, useApp } from '../store';
 
-export default function ProfileSettingsMenu({ isOpen, isDarkMode, onToggleTheme }) {
+export default function ProfileSettingsMenu({ isOpen }) {
+  const isDarkMode = useApp((s) => s.theme) === 'dark';
+  const { toggleTheme } = useActions();
   if (!isOpen) return null;
 
   return (
@@ -23,7 +26,7 @@ export default function ProfileSettingsMenu({ isOpen, isDarkMode, onToggleTheme 
           className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors text-sm"
           onClick={(e) => {
             e.stopPropagation();
-            onToggleTheme();
+            toggleTheme();
           }}
         >
           <div className="flex items-center gap-3">
