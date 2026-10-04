@@ -1,18 +1,13 @@
 import React from 'react';
 import { useActions, useApp } from '../store';
 
-// placement="up" opens above the trigger (mobile bottom bar).
-export default function ProfileSettingsMenu({ isOpen, placement = 'down', viewMode = 'desktop', onToggleViewMode }) {
+export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
   const { toggleTheme } = useActions();
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`absolute right-0 w-56 p-2 apple-glass rounded-2xl animate-slide-down-fade z-50 ${
-        placement === 'up' ? 'bottom-full mb-4 origin-bottom-right' : 'top-full mt-4 origin-top-right'
-      }`}
-    >
+    <div className="absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right animate-slide-down-fade z-50">
       <ul className="flex flex-col">
         {/* Change Profile Photo */}
         <li className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm">

@@ -4,6 +4,9 @@ import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
+import CreateItemMenu from '../CreateItemMenu';
+import GlassButton from '../GlassButton';
+import GlassInput from '../GlassInput';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
@@ -39,8 +42,13 @@ const FOLLOW_MS = 260; // drawn progress glides toward the scroll position with 
 const FOCUS_Y = 0.38; // focused card centre, fraction of stage height
 const FWD_Y = 0.8; // waiting pile centre
 const MAX_CARD_W = 330;
-const BAR_CLEARANCE = 72; // floating bottom bar height; piles are positioned in the space above it
+const BAR_CLEARANCE = 72; // floating bottom search bar; piles are positioned between it and the top buttons
+const TOP_CLEARANCE = 64; // floating top-right buttons
 const MAX_CARD_H = 0.42; // fraction of stage height, so tall cards (1x2) don't swallow the stack
+
+// Same staggered entrance as the desktop header (App.jsx navPop) and grid cards (BoardGrid).
+const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
+const cardPop = (i) => ({ animationDuration: '850ms', animationDelay: `${Math.min(i * 75, 600)}ms` });
 
 const lerp = (a, b, u) => a + (b - a) * u;
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
@@ -59,7 +67,9 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | null
+  const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
+  const closeMenu = () => setOpenMenu(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const scrollRef = useRef(null);
   const cardRefs = useRef([]);
@@ -99,7 +109,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
   const render = useCallback((p) => {
     const root = scrollRef.current;
     if (!root) return;
-    const H = root.clientHeight - BAR_CLEARANCE;
+    const H = root.clientHeight - BAR_CLEARANCE - TOP_CLEARANCE;
     cardRefs.current.forEach((card, i) => {
       if (!card) return;
       const t = p - i;
@@ -112,7 +122,7 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
         const b = backState(0, H);
         st = { y: lerp(a.y, b.y, u), rx: lerp(a.rx, b.rx, u), s: lerp(a.s, b.s, u), o: 1, dim: lerp(a.dim, b.dim, u) };
       }
-      card.style.transform = `translate3d(-50%, ${st.y.toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
+      card.style.transform = `translate3d(-50%, ${(st.y + TOP_CLEARANCE).toFixed(2)}px, 0) rotateX(${st.rx.toFixed(2)}deg) scale(${st.s.toFixed(4)})`;
       card.style.opacity = st.o;
       card.style.setProperty('--dim', st.dim.toFixed(3));
       // Waiting pile: later cards over earlier. Flipping card: between piles. Flipped pile: newest on top.
@@ -176,12 +186,37 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
 
   return (
     <div className="relative h-full w-full flex flex-col">
-      {menuOpen && <div className="absolute inset-0 z-[3000]" onClick={() => setMenuOpen(false)} />}
+      {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
-      {/* Header */}
-      <div className="px-6 pt-7 pb-2 shrink-0">
-        <p className="text-[13px] text-ink-subtle mb-1">Board</p>
-        <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight truncate">{board.name}</h1>
+      {/* Top-right actions: same glass buttons and pop-in as the desktop header. Menus anchor to the
+          cluster's right edge so they stay inside the phone screen. */}
+      <div className="absolute top-4 right-4 z-[3001] flex items-center gap-2">
+        <div className="pop-in" style={navPop(2)}>
+          <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+          </GlassButton>
+        </div>
+        <div className="pop-in" style={navPop(1)}>
+          <GlassButton
+            onClick={onToggleEditMode}
+            aria-label="Edit board"
+            aria-pressed={editMode}
+            className={`nav-grow ${editMode ? '!bg-primary !text-white' : ''}`}
+          >
+            <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+          </GlassButton>
+        </div>
+        <div className="pop-in" style={navPop(0)}>
+          <div
+            onClick={() => toggleMenu('profile')}
+            aria-label="Settings"
+            className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
+          >
+            <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+          </div>
+        </div>
+        <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} align="right" />
+        <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
       </div>
 
       <div
@@ -211,14 +246,16 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
                       className="absolute inset-px bg-canvas pointer-events-none"
                       style={{ borderRadius: backingRadius(item, sizes, w) }}
                     />
-                    <ItemCard
-                      item={item}
-                      size={sizes[item.id]}
-                      editMode={editMode}
-                      isDragging={false}
-                      onOpen={openItem}
-                      onDelete={askDelete}
-                    />
+                    <div className="pop-in w-full h-full" style={cardPop(i)}>
+                      <ItemCard
+                        item={item}
+                        size={sizes[item.id]}
+                        editMode={editMode}
+                        isDragging={false}
+                        onOpen={openItem}
+                        onDelete={askDelete}
+                      />
+                    </div>
                     {/* Depth dimming: fades deeper cards toward the stage colour. */}
                     <div aria-hidden className="absolute inset-0 bg-canvas pointer-events-none opacity-[var(--dim)]" />
                   </div>
@@ -250,43 +287,10 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
         </div>
       )}
 
-      {/* Bottom search / nav bar, floating over the last card */}
+      {/* Bottom search bar, floating over the waiting pile */}
       <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-canvas to-transparent z-[3001]">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onToggleEditMode}
-            aria-label="Edit board"
-            aria-pressed={editMode}
-            className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center backdrop-blur-md transition-colors ${
-              editMode ? 'bg-primary text-white' : 'bg-black/70 text-white/80 hover:text-white'
-            }`}
-          >
-            <svg className="w-[1.05rem] h-[1.05rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          </button>
-
-          <div className="relative flex-1 min-w-0 z-50">
-            <svg className="w-4 h-4 absolute z-10 left-4 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" /></svg>
-            <input
-              type="search"
-              placeholder="Search"
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-black/70 backdrop-blur-md text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
-            />
-          </div>
-
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label="Settings"
-              className="w-11 h-11 rounded-full flex items-center justify-center bg-black/70 backdrop-blur-md text-white/90 font-bold text-sm"
-            >
-              AN
-            </button>
-            <ProfileSettingsMenu isOpen={menuOpen} placement="up" viewMode={viewMode} onToggleViewMode={onToggleViewMode} />
-          </div>
+        <div className="pop-in buoyant hover:scale-[1.03]" style={navPop(0)}>
+          <GlassInput placeholder="Search" value={query} onChange={(e) => onQueryChange(e.target.value)} className="!w-full" />
         </div>
       </div>
 
