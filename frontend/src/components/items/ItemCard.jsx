@@ -28,7 +28,7 @@ export default function ItemCard({
   const Card = known ? (CARD_COMPONENTS[primitive.id] ?? GenericCard) : UnsupportedCard;
   const issues = known ? getItemIssues(item) : [];
 
-  const isFullBleed = ['recommendation_list', 'code_snippet', 'map_location'].includes(primitive.id);
+  const isFullBleed = ['recommendation_list', 'code_snippet', 'map_location', 'note'].includes(primitive.id);
   const fixedSize = FIXED_SIZES[primitive.id];
   const effectiveSize = fixedSize ?? size;
 

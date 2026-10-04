@@ -14,6 +14,7 @@ export const DEFAULT_SIZE = '1x1';
 export const FIXED_SIZES = {
   code_snippet: '2x2',
   map_location: '1x1',
+  note: '1x1',
 };
 
 const ORDER = Object.keys(SIZE_CLASSES);

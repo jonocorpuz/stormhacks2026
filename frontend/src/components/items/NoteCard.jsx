@@ -1,24 +1,21 @@
 import React from 'react';
-import FieldView from '../blocks/FieldView';
+import NoteWidget from '../NoteWidget';
 
-// Custom card for the Note primitive: big title, body underneath.
-export default function NoteCard({ item, primitive }) {
-  const [titleField, bodyField] = ['title', 'body'].map((k) =>
-    primitive.fields.find((f) => f.key === k),
-  );
+const pad = (n) => String(n).padStart(2, '0');
 
-  return (
-    <div className="flex flex-col h-full min-h-0 gap-2">
-      <FieldView
-        field={titleField}
-        value={item.fields.title}
-        className="text-lg font-semibold text-black dark:text-white"
-      />
-      <FieldView
-        field={bodyField}
-        value={item.fields.body}
-        className="text-sm text-black/70 dark:text-white/70 overflow-hidden"
-      />
-    </div>
-  );
+// Footer date matches the design's MM/DD/YYYY; shows when the note was last edited.
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  const d = new Date(timestamp);
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+}
+
+export default function NoteCard({ item }) {
+  const data = {
+    title: typeof item.fields.title === 'string' ? item.fields.title : '',
+    body: typeof item.fields.body === 'string' ? item.fields.body : '',
+    date: formatDate(item.updatedAt),
+  };
+
+  return <NoteWidget data={data} />;
 }

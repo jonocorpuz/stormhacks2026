@@ -24,3 +24,9 @@ export interface MapWidgetData {
   address: string;
   date: string;
 }
+
+export interface NoteWidgetData {
+  title: string;
+  body: string;
+  date: string;
+}
