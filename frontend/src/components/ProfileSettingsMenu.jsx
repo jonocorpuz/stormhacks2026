@@ -75,7 +75,7 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
           </div>
         </li>
         
-        {/* Device View Toggle: desktop grid vs. phone simulator */}
+        {/* Force Mobile Mode: desktop grid vs. phone simulator. Real phones get mobile automatically (App.jsx). */}
         {onToggleViewMode && (
           <li
             className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm"
@@ -85,12 +85,8 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
             }}
           >
             <div className="flex items-center gap-3">
-              {viewMode === 'mobile' ? (
-                <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" strokeWidth="2" /><path strokeLinecap="round" strokeWidth="2" d="M11 18h2" /></svg>
-              ) : (
-                <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2" strokeWidth="2" /><path strokeLinecap="round" strokeWidth="2" d="M8 21h8M12 17v4" /></svg>
-              )}
-              <span>{viewMode === 'mobile' ? 'Mobile View' : 'Desktop View'}</span>
+              <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" strokeWidth="2" /><path strokeLinecap="round" strokeWidth="2" d="M11 18h2" /></svg>
+              <span>Force Mobile Mode</span>
             </div>
             <div className={`w-8 h-4 rounded-full relative transition-colors ${viewMode === 'mobile' ? 'bg-primary' : 'bg-ink-subtle'}`}>
               <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform ${viewMode === 'mobile' ? 'translate-x-4' : 'translate-x-0'}`}></div>

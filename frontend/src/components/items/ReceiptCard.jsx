@@ -1,7 +1,7 @@
 import React from 'react';
 import ReceiptWidget from '../ReceiptWidget';
 
-export default function ReceiptCard({ item }) {
+export default function ReceiptCard({ item, isCompact }) {
   const data = {
     title: item.fields.title,
     items: item.fields.items,
@@ -9,5 +9,5 @@ export default function ReceiptCard({ item }) {
     date: item.fields.date,
   };
 
-  return <ReceiptWidget data={data} />;
+  return <ReceiptWidget data={data} isCompact={isCompact} />;
 }

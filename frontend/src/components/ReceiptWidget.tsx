@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Share } from 'lucide-react';
 import { receiptTotals } from '../model';
-import type { ReceiptWidgetData } from '../types/widgets';
+import type { ReceiptWidgetData, WidgetDisplayProps } from '../types/widgets';
 import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
-export interface ReceiptWidgetProps {
+export interface ReceiptWidgetProps extends WidgetDisplayProps {
   data?: Partial<ReceiptWidgetData>;
   className?: string;
 }
@@ -29,6 +29,10 @@ const DEFAULT_DATA: ReceiptWidgetData = {
 const DESIGN_WIDTH = 355;
 const { u, space, radius, type } = widgetScale(DESIGN_WIDTH);
 
+// Compact (mobile Rolodex) variant: 1x1 square at the 1x1 design width.
+const COMPACT_WIDTH = 357;
+const compact = widgetScale(COMPACT_WIDTH);
+
 // Scroll thumb: vertical pill, in design px.
 const THUMB_LENGTH = 67.638;
 const THUMB_WIDTH = 6.44171;
@@ -41,7 +45,7 @@ const DIVIDER = 'border-t border-white/30 shrink-0';
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const formatMoney = (n: number) => money.format(n);
 
-export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetProps) {
+export default function ReceiptWidget({ data, className = '', isCompact = false }: ReceiptWidgetProps) {
   // Sample data only for previews (no data). Real items show their own values, even empty ones.
   const source = data ?? DEFAULT_DATA;
   const title = source.title ?? '';
@@ -126,6 +130,89 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
       )}
     </ShellIconButton>
   );
+
+  if (isCompact) {
+    // One-line title, line items (scroll + fade when they overflow), total. Tax row and empty date hidden.
+    // Uses rootRef/scrollRef so the measuring effect above detects overflow here too.
+    return (
+      <div ref={rootRef} className={`w-full h-full aspect-square ${className}`}>
+        <WidgetShell
+          designWidth={COMPACT_WIDTH}
+          accent="blue"
+          watermark={<Watermark designWidth={COMPACT_WIDTH} glyph="%" />}
+          footer={
+            <ShellIconButton designWidth={COMPACT_WIDTH} label={copied ? 'Receipt copied' : 'Share receipt'} onClick={handleShare}>
+              {copied ? (
+                <Check style={{ width: compact.u(22), height: compact.u(22) }} strokeWidth={2.4} />
+              ) : (
+                <Share style={{ width: compact.u(21), height: compact.u(21) }} strokeWidth={1.8} />
+              )}
+            </ShellIconButton>
+          }
+        >
+          <div
+            className="absolute flex flex-col"
+            style={{ left: compact.u(SHELL.padX), right: compact.u(SHELL.padX), top: compact.u(SHELL.padY), bottom: compact.u(SHELL.padX), gap: compact.space(3) }}
+          >
+            <div className="shrink-0">
+              <h2 className={`font-bold ${ON_PANEL.primary} line-clamp-1`} style={compact.type('display')}>
+                {title}
+              </h2>
+              {date && (
+                <span className={`block ${ON_PANEL.faint} whitespace-nowrap`} style={compact.type('caption')}>
+                  {date}
+                </span>
+              )}
+            </div>
+
+            {/* Receipt Well */}
+            <div
+              className={`flex-1 min-h-0 flex flex-col overflow-hidden ${ON_PANEL.well}`}
+              style={{
+                borderRadius: compact.radius('panel'),
+                boxShadow: `inset 0 ${compact.u(3)} ${compact.u(3)} 0 rgb(var(--shadow) / 0.25)`,
+              }}
+            >
+              <ol
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex-1 min-h-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{
+                  padding: `${compact.space(3)} ${compact.space(4)}`,
+                  gap: compact.space(2),
+                  maskImage:
+                    overflowing && scrollProgress < 0.99
+                      ? `linear-gradient(to bottom, black calc(100% - ${compact.space(6)}), transparent)`
+                      : undefined,
+                }}
+              >
+                {items.map((line, i) => (
+                  <li key={line.id ?? i} className={`flex items-center shrink-0 ${ON_PANEL.primary}`} style={{ gap: compact.space(3) }}>
+                    <span className="flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis" style={compact.type('body')}>
+                      {line.name}
+                    </span>
+                    <span className="shrink-0 whitespace-nowrap" style={compact.type('body')}>
+                      {typeof line.price === 'number' ? formatMoney(line.price) : ''}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              {/* Total */}
+              <div className={DIVIDER} />
+              <div
+                className={`flex items-center justify-between shrink-0 ${ON_PANEL.primary}`}
+                style={{ height: compact.u(46), paddingLeft: compact.space(4), paddingRight: compact.space(4) }}
+              >
+                <span className={`font-bold ${ON_PANEL.secondary}`} style={compact.type('detail')}>TOTAL</span>
+                <span className="font-bold whitespace-nowrap" style={compact.type('title')}>{formatMoney(total)}</span>
+              </div>
+            </div>
+          </div>
+        </WidgetShell>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} className={`w-full h-full ${className}`}>
