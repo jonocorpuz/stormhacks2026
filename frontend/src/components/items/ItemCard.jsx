@@ -16,6 +16,7 @@ export default function ItemCard({
   item,
   size = DEFAULT_SIZE,
   editMode,
+  isDragging,
   onOpen,
   onDelete,
   onCycleSize,
@@ -32,16 +33,26 @@ export default function ItemCard({
   const fixedSize = FIXED_SIZES[primitive.id];
   const effectiveSize = fixedSize ?? size;
 
+  const wiggleStyle = editMode && !isDragging ? {
+    animationDelay: `${(item.createdAt % 100) * -0.01}s`,
+    animationDuration: `${0.32 + (item.createdAt % 5) * 0.03}s`
+  } : undefined;
+
   return (
     <div
       {...dragProps}
-      onClick={known ? onOpen : undefined}
-      className={`${SIZE_CLASSES[effectiveSize] ?? SIZE_CLASSES[DEFAULT_SIZE]} relative transition-transform hover:scale-[1.02] cursor-pointer ${
+      onClick={known && !editMode ? onOpen : undefined}
+      style={wiggleStyle}
+      className={`w-full h-full relative transition-transform duration-300 ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.01] hover:-rotate-1'} cursor-pointer ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'
       } ${
-        editMode ? 'ring-2 ring-black/10 dark:ring-white/20 cursor-grab' : ''
+        editMode
+          ? isDragging
+            ? 'cursor-grabbing scale-[1.02] shadow-2xl shadow-black/50 rounded-[2rem]'
+            : 'ios-wiggle cursor-grab'
+          : ''
       }`}
     >
       <Card item={item} primitive={primitive} />
@@ -54,7 +65,7 @@ export default function ItemCard({
       )}
 
       {editMode && (
-        <div className="absolute top-3 right-3 flex gap-1.5">
+        <div className="absolute top-3 right-3 z-20 flex gap-1.5">
           {!fixedSize && (
             <CardButton label="Resize" onClick={onCycleSize}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
@@ -85,11 +96,13 @@ function CardButton({ label, onClick, danger, children }) {
     <button
       aria-label={label}
       title={label}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className={`w-7 h-7 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/15 backdrop-blur-md transition-colors ${
+      className={`card-action-btn !pointer-events-auto w-7 h-7 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/15 backdrop-blur-md transition-colors ${
         danger
           ? 'text-red-500 hover:bg-red-500/20'
           : 'text-black/60 dark:text-white/80 hover:bg-black/10 dark:hover:bg-white/25'
