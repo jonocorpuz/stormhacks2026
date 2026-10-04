@@ -30,13 +30,26 @@ export function prepareHaptics() {
   if (touch() && !canVibrate()) switchLabel();
 }
 
+// DEBUG (temporary): counters for the on-screen haptics overlay.
+export const hapticDebug = { calls: 0, fired: 0, method: 'none' as 'none' | 'vibrate' | 'switch' | 'no-touch' };
+
 export function hapticTick() {
-  if (!touch()) return;
+  hapticDebug.calls++;
+  if (!touch()) {
+    hapticDebug.method = 'no-touch';
+    return;
+  }
   const now = performance.now();
   if (now - last < MIN_GAP_MS) return;
   last = now;
-  if (canVibrate()) navigator.vibrate(8);
-  else switchLabel().click();
+  hapticDebug.fired++;
+  if (canVibrate()) {
+    hapticDebug.method = 'vibrate';
+    navigator.vibrate(8);
+  } else {
+    hapticDebug.method = 'switch';
+    switchLabel().click();
+  }
 }
 
 // Test-only: forget throttle + element between cases.

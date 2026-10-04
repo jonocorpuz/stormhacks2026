@@ -11,7 +11,7 @@ import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import BoardMenu from '../boards/BoardMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
-import { hapticTick, prepareHaptics } from './haptics';
+import { hapticDebug, hapticTick, prepareHaptics } from './haptics';
 
 // Every card is a 1x1 square here: multi-span widgets render their compact variant (isCompact).
 // Widgets draw a 28px corner at ~357px per column and scale with width. The opaque backing uses a
@@ -138,6 +138,13 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
   const cardRefs = useRef([]);
   const dotRefs = useRef([]);
   const hintRef = useRef(null);
+  // DEBUG (temporary): red overlay confirming the haptics build is deployed.
+  const debugRef = useRef(null);
+  const showHapticDebug = useCallback(() => {
+    if (!debugRef.current) return;
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+    debugRef.current.textContent = `calls ${hapticDebug.calls} · fired ${hapticDebug.fired} · ${hapticDebug.method} · coarse ${coarse} · vibrate ${typeof navigator.vibrate}`;
+  }, []);
 
   const sizes = board.view.sizes ?? {};
   const items = board.items.filter((item) => itemMatchesQuery(item, query));
@@ -267,6 +274,7 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
       if (idx !== ticked) {
         ticked = idx;
         if (openRef.current === null) hapticTick();
+        showHapticDebug();
       }
       if (shownRef.current !== target) raf = requestAnimationFrame(tick);
       else {
@@ -306,6 +314,21 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
 
   return (
     <div className="relative h-full w-full flex flex-col">
+      {/* DEBUG (temporary): haptics build marker. Remove before merge. */}
+      <div className="absolute left-4 right-4 bottom-24 z-[9999] rounded-2xl bg-danger text-white p-4 text-sm font-semibold shadow-lg">
+        <div>HAPTICS DEBUG BUILD</div>
+        <div ref={debugRef} className="mt-1 font-mono text-xs break-all">scroll to update</div>
+        <button
+          type="button"
+          onClick={() => {
+            hapticTick();
+            showHapticDebug();
+          }}
+          className="mt-2 px-3 py-1.5 rounded-full bg-white text-danger font-bold"
+        >
+          Test tick (tap)
+        </button>
+      </div>
       {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
       {/* Top bar: same glass buttons and pop-in as the desktop header. Boards + New + Edit left (their
