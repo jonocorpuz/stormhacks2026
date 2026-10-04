@@ -229,6 +229,14 @@ export function createAppStore(
     }
   }
 
+  /** Remember the open board so reload returns to it. Never rejects (savePrefs catches). */
+  const rememberBoard = (id: string | null) => {
+    if ((prefs.lastBoardId ?? null) === id) return
+    const { lastBoardId: _old, ...rest } = prefs
+    prefs = id ? { ...rest, lastBoardId: id } : rest
+    return savePrefs()
+  }
+
   const actions: AppActions = {
     async init() {
       setState({ status: 'loading', error: null })
@@ -236,8 +244,9 @@ export function createAppStore(
         prefs = (await prefsRepo?.loadPrefs()) ?? prefs
         setState({ theme: resolveTheme(prefs, systemDark), name: prefs.name ?? null })
         const boards = await repo.listBoards()
-        // Always land on a board when one exists: open the most recently updated.
-        const latest = [...boards].sort((a, b) => b.updatedAt - a.updatedAt)[0]
+        // Always land on a board when one exists: the last one open, else the most recently updated.
+        const last = boards.find((b) => b.id === prefs.lastBoardId)
+        const latest = last ?? [...boards].sort((a, b) => b.updatedAt - a.updatedAt)[0]
         const currentBoard = latest ? await repo.loadBoard(latest.id) : null
         setState({ boards, currentBoard, status: 'idle' })
       } catch (err) {
@@ -250,6 +259,7 @@ export function createAppStore(
       const board = newBoard(name)
       setState({ currentBoard: board })
       await commit(board)
+      await rememberBoard(board.id)
       return board
     },
 
@@ -260,6 +270,7 @@ export function createAppStore(
       const board = drafts.map((d) => newItem(d.primitiveId, d.fields)).reduce(addItem, newBoard(seed.name))
       setState({ currentBoard: board })
       await commit(board)
+      await rememberBoard(board.id)
       return board
     },
 
@@ -270,6 +281,7 @@ export function createAppStore(
         const board = failedSaves.get(id)?.board ?? (await repo.loadBoard(id))
         if (!board) throw new Error(`Board not found: ${id}`)
         setState({ currentBoard: board, status: 'idle' })
+        await rememberBoard(id)
       } catch (err) {
         fail(err)
       }
@@ -278,6 +290,7 @@ export function createAppStore(
     closeBoard() {
       guardSwitch()
       setState({ currentBoard: null })
+      void rememberBoard(null)
     },
 
     async renameBoard(id, name) {
@@ -294,6 +307,7 @@ export function createAppStore(
         boards: state.boards.filter((b) => b.id !== id),
         currentBoard: state.currentBoard?.id === id ? null : state.currentBoard,
       })
+      if (prefs.lastBoardId === id) await rememberBoard(null)
       try {
         await repo.deleteBoard(id)
       } catch (err) {

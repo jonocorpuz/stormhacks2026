@@ -9,6 +9,7 @@ import GlassButton from '../GlassButton';
 import GlassInput from '../GlassInput';
 import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
+import BoardMenu from '../boards/BoardMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
 // Every card is a 1x1 square here: multi-span widgets render their compact variant (isCompact).
@@ -54,15 +55,81 @@ const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(MAX_B
 // Null-board guard here so the view's hooks stay unconditional (see BoardGrid).
 export default function MobileRolodexView(props) {
   const board = useApp((s) => s.currentBoard);
+  const { swipeHandlers, toast } = useBoardSwipe();
   if (!board) return null;
-  return <RolodexStack board={board} {...props} />;
+  return (
+    <div className="relative h-full w-full">
+      {/* Keyed by board so switching boards resets scroll position and open/editing card state. */}
+      <RolodexStack key={board.id} board={board} swipeHandlers={swipeHandlers} {...props} />
+      {toast && (
+        <div
+          key={toast.key}
+          role="status"
+          className="board-toast absolute left-1/2 top-20 -translate-x-1/2 z-[2600] max-w-[80%] px-4 py-2 rounded-full apple-glass text-sm font-semibold text-ink truncate pointer-events-none"
+        >
+          {toast.text}
+        </div>
+      )}
+    </div>
+  );
 }
 
-function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
+const SWIPE_MIN_DX = 60; // px
+const SWIPE_RATIO = 1.5; // horizontal travel must beat vertical by this much (so card scrolling never triggers it)
+const SWIPE_MAX_MS = 600;
+
+// Horizontal swipe on the card stage steps through boards in the board menu's order:
+// left → next, right → previous, no wrap. Skips touches on fields and horizontally scrollable content.
+function useBoardSwipe() {
+  const boards = useApp((s) => s.boards);
+  const currentId = useApp((s) => s.currentBoard?.id);
+  const extracting = useApp((s) => s.extractions.some((e) => e.status === 'pending'));
+  const { openBoard } = useActions();
+  const [toast, setToast] = useState(null);
+  const start = useRef(null);
+
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    start.current = e.touches.length === 1 && !blocksSwipe(e.target, e.currentTarget)
+      ? { x: t.clientX, y: t.clientY, at: Date.now() }
+      : null;
+  };
+  const onTouchEnd = (e) => {
+    const s = start.current;
+    start.current = null;
+    if (!s) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - s.x;
+    const dy = t.clientY - s.y;
+    if (Math.abs(dx) < SWIPE_MIN_DX || Math.abs(dx) < Math.abs(dy) * SWIPE_RATIO || Date.now() - s.at > SWIPE_MAX_MS) return;
+    const i = boards.findIndex((b) => b.id === currentId);
+    const next = boards[i + (dx < 0 ? 1 : -1)];
+    if (i < 0 || !next) return;
+    const show = (text) => setToast((prev) => ({ text, key: (prev?.key ?? 0) + 1 }));
+    // Store refuses board switches mid-extraction; say so instead of surfacing an error.
+    if (extracting) return show('Extracting… board switching paused');
+    openBoard(next.id);
+    show(`${next.name} · ${boards.indexOf(next) + 1}/${boards.length}`);
+  };
+
+  return { swipeHandlers: { onTouchStart, onTouchEnd, onTouchCancel: () => (start.current = null) }, toast };
+}
+
+// Fields keep their own gestures, as does anything scrolling sideways inside a card (e.g. code).
+const blocksSwipe = (el, stage) => {
+  for (let n = el; n && n !== stage; n = n.parentElement) {
+    if (n.matches('input, textarea, select, [contenteditable="true"]')) return true;
+    const ox = getComputedStyle(n).overflowX;
+    if ((ox === 'auto' || ox === 'scroll') && n.scrollWidth > n.clientWidth) return true;
+  }
+  return false;
+};
+
+function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'boards' | 'create' | 'profile' | null
   const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
   const closeMenu = () => setOpenMenu(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
@@ -230,10 +297,13 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
     <div className="relative h-full w-full flex flex-col">
       {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
-      {/* Top bar: same glass buttons and pop-in as the desktop header. New + Edit left (create menu
-          opens from the left edge), search in the middle, profile right (settings menu from the right). */}
+      {/* Top bar: same glass buttons and pop-in as the desktop header. Boards + New + Edit left (their
+          menus open from the left edge), search in the middle, profile right (settings menu from the right). */}
       <div className="absolute top-4 inset-x-4 z-[3001] flex items-center gap-2">
         <div className="relative shrink-0 flex items-center gap-2">
+          <div className="pop-in" style={navPop(3)}>
+            <BoardMenu compact isOpen={openMenu === 'boards'} onToggle={() => toggleMenu('boards')} onClose={closeMenu} />
+          </div>
           <div className="pop-in" style={navPop(2)}>
             <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
@@ -270,6 +340,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
 
       <div
         ref={scrollRef}
+        {...swipeHandlers}
         onClick={() => openRef.current !== null && setOpen(null)}
         className="flex-1 min-h-0 relative overflow-y-auto overflow-x-hidden hide-scrollbar overscroll-contain snap-y snap-mandatory"
         aria-label="Board cards. Scroll to flip through."

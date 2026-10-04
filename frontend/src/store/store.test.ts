@@ -67,6 +67,26 @@ describe('app store', () => {
     expect(store.getState().currentBoard?.id).toBe(recent.id)
   })
 
+  it('init reopens the last open board, falls back when it is gone', async () => {
+    const repo = new MemoryRepo()
+    const prefsRepo = new MemoryRepo()
+    const store = createAppStore(repo, undefined, { prefsRepo })
+    const first = await store.actions.createBoard('First')
+    await new Promise((r) => setTimeout(r, 2))
+    const second = await store.actions.createBoard('Second')
+    await store.actions.openBoard(first.id)
+
+    const reloaded = createAppStore(repo, undefined, { prefsRepo })
+    await reloaded.actions.init()
+    expect(reloaded.getState().currentBoard?.id).toBe(first.id)
+
+    await reloaded.actions.deleteBoard(first.id)
+    expect((await prefsRepo.loadPrefs())?.lastBoardId).toBeUndefined()
+    const again = createAppStore(repo, undefined, { prefsRepo })
+    await again.actions.init()
+    expect(again.getState().currentBoard?.id).toBe(second.id)
+  })
+
   it('init with no boards leaves none open', async () => {
     const { store } = setup()
     await store.actions.init()
