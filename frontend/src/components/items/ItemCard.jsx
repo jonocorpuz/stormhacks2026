@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { findPrimitive, getItemIssues } from '../../model';
 import GenericCard from './GenericCard';
 import { CARD_COMPONENTS } from './registry';
 import { DEFAULT_SIZE, FIXED_SIZES, SIZE_CLASSES } from './sizes';
+
+// How long the wiggle keeps running after edit mode ends, so it can ease out (matches --wiggle-amp transition).
+const WIGGLE_SETTLE_MS = 350;
 
 const ISSUE_TEXT = {
   missing_required: 'missing required',
@@ -33,9 +36,24 @@ export default function ItemCard({
   const fixedSize = FIXED_SIZES[primitive.id];
   const effectiveSize = fixedSize ?? size;
 
-  const wiggleStyle = editMode && !isDragging ? {
-    animationDelay: `${(item.createdAt % 100) * -0.01}s`,
-    animationDuration: `${0.32 + (item.createdAt % 5) * 0.03}s`
+  // Leaving edit mode: keep wiggling briefly while --wiggle-amp eases to 0, instead of snapping still.
+  const [prevEditMode, setPrevEditMode] = useState(editMode);
+  const [settling, setSettling] = useState(false);
+  if (prevEditMode !== editMode) {
+    setPrevEditMode(editMode);
+    setSettling(!editMode);
+  }
+  useEffect(() => {
+    if (!settling) return;
+    const t = setTimeout(() => setSettling(false), WIGGLE_SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [settling]);
+  const wiggling = (editMode || settling) && !isDragging;
+
+  // Two animations (wiggle, bob): comma lists, varied per card so they don't move in lockstep.
+  const wiggleStyle = wiggling ? {
+    animationDelay: `${(item.createdAt % 100) * -0.01}s, ${(item.createdAt % 160) * -0.01}s`,
+    animationDuration: `${0.4 + (item.createdAt % 5) * 0.03}s, ${1.4 + (item.createdAt % 7) * 0.1}s`
   } : undefined;
 
   return (
@@ -43,16 +61,18 @@ export default function ItemCard({
       {...dragProps}
       onClick={known && !editMode ? onOpen : undefined}
       style={wiggleStyle}
-      className={`w-full h-full relative transition-transform duration-500 ease-in-out ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.005] hover:-rotate-[0.5deg]'} cursor-pointer ${
+      className={`w-full h-full relative buoyant ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.012] hover:-translate-y-1 hover:-rotate-[0.5deg]'} cursor-pointer ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-card p-6 overflow-hidden shadow-2xl'
       } ${
         editMode
           ? isDragging
-            ? 'cursor-grabbing scale-[1.02] shadow-2xl shadow-black/50 rounded-card'
-            : 'ios-wiggle cursor-grab'
-          : ''
+            ? 'cursor-grabbing scale-[1.02] shadow-2xl shadow-black/50 rounded-[2rem]'
+            : 'ios-wiggle wiggle-on cursor-grab'
+          : wiggling
+            ? 'ios-wiggle'
+            : ''
       }`}
     >
       <Card item={item} primitive={primitive} />

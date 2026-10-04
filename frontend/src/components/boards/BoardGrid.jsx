@@ -443,17 +443,20 @@ export default function BoardGrid({ query, editMode }) {
                       : ''
                 }
               >
-                <ItemCard
-                  item={item}
-                  size={sizes[item.id]}
-                  editMode={editMode}
-                  isDragging={isDragging}
-                  onOpen={() => setEditingId(item.id)}
-                  onDelete={() => setDeletingId(item.id)}
-                  onCycleSize={() =>
-                    setView({ sizes: { ...sizes, [item.id]: nextSize(sizes[item.id] ?? DEFAULT_SIZE) } })
-                  }
-                />
+                {/* Inner wrapper: the grid item's own transform is owned by react-grid-layout */}
+                <div className="pop-in w-full h-full" style={{ animationDuration: '850ms', animationDelay: `${Math.min(i * 75, 600)}ms` }}>
+                  <ItemCard
+                    item={item}
+                    size={sizes[item.id]}
+                    editMode={editMode}
+                    isDragging={isDragging}
+                    onOpen={() => setEditingId(item.id)}
+                    onDelete={() => setDeletingId(item.id)}
+                    onCycleSize={() =>
+                      setView({ sizes: { ...sizes, [item.id]: nextSize(sizes[item.id] ?? DEFAULT_SIZE) } })
+                    }
+                  />
+                </div>
               </div>
             );
           })}
