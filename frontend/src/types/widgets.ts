@@ -1,3 +1,5 @@
+import type { LineItem } from '../model';
+
 export interface ListItem {
   id: string;
   title: string;
@@ -41,4 +43,27 @@ export interface ProductWidgetData {
   url: string;
   imageUrl: string;
   date: string;
+}
+
+export interface ReceiptWidgetData {
+  title: string;
+  items: LineItem[];
+  /** Tax as a percentage of the subtotal, e.g. 12 = 12%. Tax and total are derived. */
+  taxRate?: number;
+  date: string;
+}
+
+export interface TicketWidgetData {
+  /** Ticket seller, e.g. "Ticketmaster". */
+  vendor: string;
+  /** Event name. */
+  title: string;
+  eventDate: string;
+  location: string;
+  entryInfo: string;
+  section: string;
+  row: string;
+  seat: string;
+  /** Link to the ticket. */
+  url: string;
 }

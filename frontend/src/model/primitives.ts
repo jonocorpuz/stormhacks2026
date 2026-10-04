@@ -197,7 +197,112 @@ export const PRODUCT: PrimitiveDef = {
   ],
 }
 
-export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION, PRODUCT]
+export const RECEIPT: PrimitiveDef = {
+  id: 'receipt',
+  name: 'Receipt',
+  fields: [
+    {
+      key: 'title',
+      label: 'Title',
+      block: 'text',
+      required: false,
+      description: 'Receipt title, usually the merchant, e.g. "Mcdonald’s Receipt"',
+    },
+    {
+      key: 'items',
+      label: 'Items',
+      block: 'line_items',
+      required: false,
+      description: 'Purchased items, each with its name and pre-tax price as a number (e.g. 5 for $5.00)',
+    },
+    {
+      key: 'taxRate',
+      label: 'Tax Rate (%)',
+      block: 'number',
+      required: false,
+      description: 'Combined sales tax rate as a percentage, e.g. 12 for 12%. Tax and total are calculated from this',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Purchase date',
+    },
+  ],
+}
+
+export const TICKET: PrimitiveDef = {
+  id: 'ticket',
+  name: 'Ticket',
+  fields: [
+    {
+      key: 'vendor',
+      label: 'Vendor',
+      block: 'text',
+      required: false,
+      description: 'Ticket seller, e.g. Ticketmaster',
+    },
+    {
+      key: 'title',
+      label: 'Event',
+      block: 'text',
+      required: false,
+      description: 'Event name, e.g. artist and tour',
+    },
+    {
+      key: 'eventDate',
+      label: 'Event Date',
+      block: 'text',
+      required: false,
+      description: 'Date of the event, e.g. Oct 14, 2026',
+    },
+    {
+      key: 'location',
+      label: 'Location',
+      block: 'text',
+      required: false,
+      description: 'Venue name',
+    },
+    {
+      key: 'entryInfo',
+      label: 'Entry Info',
+      block: 'text',
+      required: false,
+      description: 'Entry instructions, e.g. gate or level',
+    },
+    {
+      key: 'section',
+      label: 'Section',
+      block: 'text',
+      required: false,
+      description: 'Seating section',
+    },
+    {
+      key: 'row',
+      label: 'Row',
+      block: 'text',
+      required: false,
+      description: 'Seating row',
+    },
+    {
+      key: 'seat',
+      label: 'Seat',
+      block: 'text',
+      required: false,
+      description: 'Seat number',
+    },
+    {
+      key: 'url',
+      label: 'Ticket URL',
+      block: 'text',
+      required: false,
+      description: 'Link to view the ticket',
+    },
+  ],
+}
+
+export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION, PRODUCT, RECEIPT, TICKET]
 
 export function findPrimitive(id: string): PrimitiveDef | undefined {
   return PRIMITIVES.find((p) => p.id === id)
