@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { hapticDebug, hapticTick } from './haptics';
+import React, { useEffect, useRef, useState } from 'react';
+import { hapticDebug, hapticLog, hapticTick } from './haptics';
 
 // DEBUG (temporary): on-screen test panel for finding which touch contexts iOS lets the switch haptic
 // fire from. Remove before merge.
@@ -9,8 +9,44 @@ const MODES = [
   ['touchend', 'Stage touchend'],
 ];
 
+const BURST_EVERY_MS = 250;
+const BURST_COUNT = 12; // 3s of ticks: count the buzzes to measure how long iOS keeps the activation window open
+
 export default function HapticDebug() {
   const [, setFrame] = useState(0);
+  const padRef = useRef(null);
+  const burstTimers = useRef([]);
+  // Drag pad: touch-action none + cancelled touchmoves, so iOS can never pan it. On release, tick every
+  // 250ms for 3s. Tells us (a) whether a non-panned drag's touchend opens the window, (b) how long it lasts.
+  useEffect(() => {
+    const pad = padRef.current;
+    if (!pad) return;
+    let sx = 0;
+    let sy = 0;
+    const onStart = (e) => {
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      burstTimers.current.forEach(clearTimeout);
+    };
+    const onMove = (e) => e.cancelable && e.preventDefault();
+    const onEnd = (e) => {
+      const t = e.changedTouches[0];
+      const d = Math.round(Math.hypot(t.clientX - sx, t.clientY - sy));
+      hapticLog(`pad release, moved ${d}px`);
+      burstTimers.current = Array.from({ length: BURST_COUNT }, (_, i) =>
+        setTimeout(() => hapticTick(`burst ${i + 1}/${BURST_COUNT} @${i * BURST_EVERY_MS}ms`), i * BURST_EVERY_MS),
+      );
+    };
+    pad.addEventListener('touchstart', onStart, { passive: true });
+    pad.addEventListener('touchmove', onMove, { passive: false });
+    pad.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      pad.removeEventListener('touchstart', onStart);
+      pad.removeEventListener('touchmove', onMove);
+      pad.removeEventListener('touchend', onEnd);
+      burstTimers.current.forEach(clearTimeout);
+    };
+  }, []);
   const [mode, setMode] = useState(hapticDebug.mode);
   useEffect(() => {
     const id = setInterval(() => setFrame((f) => f + 1), 250);
@@ -56,6 +92,9 @@ export default function HapticDebug() {
         >
           3 Delayed
         </button>
+      </div>
+      <div ref={padRef} className="mt-2 h-16 rounded-xl bg-black/30 touch-none select-none flex items-center justify-center text-center">
+        DRAG PAD: tap it, then drag it. Count the buzzes each time
       </div>
       <div className="mt-2 font-mono text-[10px] leading-tight break-all">
         {hapticDebug.log.map((l, i) => (
