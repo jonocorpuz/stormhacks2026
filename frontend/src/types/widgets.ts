@@ -30,3 +30,15 @@ export interface NoteWidgetData {
   body: string;
   date: string;
 }
+
+export interface ProductWidgetData {
+  title: string;
+  description: string;
+  price: string;
+  brand: string;
+  model: string;
+  /** Product listing page. */
+  url: string;
+  imageUrl: string;
+  date: string;
+}

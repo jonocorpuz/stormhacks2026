@@ -134,7 +134,70 @@ export const MAP_LOCATION: PrimitiveDef = {
   ],
 }
 
-export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION]
+export const PRODUCT: PrimitiveDef = {
+  id: 'product',
+  name: 'Product',
+  fields: [
+    {
+      key: 'title',
+      label: 'Name',
+      block: 'text',
+      required: false,
+      description: 'Product name',
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      block: 'text',
+      required: false,
+      description: 'Short product description, e.g. model number and variant',
+    },
+    {
+      key: 'price',
+      label: 'Price',
+      block: 'text',
+      required: false,
+      description: 'Listed price including currency symbol',
+    },
+    {
+      key: 'brand',
+      label: 'Brand',
+      block: 'text',
+      required: false,
+      description: 'Brand or manufacturer',
+    },
+    {
+      key: 'model',
+      label: 'Model',
+      block: 'text',
+      required: false,
+      description: 'Model name',
+    },
+    {
+      key: 'url',
+      label: 'Listing URL',
+      block: 'text',
+      required: false,
+      description: 'Link to the product listing page',
+    },
+    {
+      key: 'imageUrl',
+      label: 'Image URL',
+      block: 'text',
+      required: false,
+      description: 'Link to a product photo',
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      block: 'text',
+      required: false,
+      description: 'Date the product was saved',
+    },
+  ],
+}
+
+export const PRIMITIVES: readonly PrimitiveDef[] = [NOTE, RECOMMENDATION_LIST, CODE_SNIPPET, MAP_LOCATION, PRODUCT]
 
 export function findPrimitive(id: string): PrimitiveDef | undefined {
   return PRIMITIVES.find((p) => p.id === id)
