@@ -37,7 +37,6 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   const description = pick('description');
   const date = pick('date');
   const url = data?.url ?? '';
-  const imageUrl = data?.imageUrl ?? '';
   const details = [
     ['Price', pick('price')],
     ['Brand', pick('brand')],
@@ -45,7 +44,6 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   ] as const;
 
   const [copied, setCopied] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
@@ -63,8 +61,6 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
     }
   };
 
-  const showImage = imageUrl && !imageFailed;
-
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
@@ -74,7 +70,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
         {/* Details */}
         <div
           className="absolute flex flex-col items-start"
-          style={{ left: space(6), top: cardInset, width: u(333), gap: space(4) }}
+          style={{ left: space(6), top: cardInset, right: space(6), gap: space(4) }}
         >
           <h2
             className="font-bold text-accent-pink whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
@@ -84,7 +80,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </h2>
           <p
             className="text-accent-pink line-clamp-2"
-            style={{ ...type('body'), width: u(267.514) }}
+            style={type('body')}
           >
             {description}
           </p>
@@ -167,24 +163,6 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </span>
         </div>
 
-        {/* Image */}
-        <div
-          className="absolute overflow-hidden bg-sunken flex items-center justify-center"
-          style={{ left: u(377), top: cardInset, right: u(21), bottom: cardInset, borderRadius: radius('control') }}
-        >
-          {showImage ? (
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover"
-              onError={() => setImageFailed(true)}
-            />
-          ) : (
-            <span className="text-ink-subtle" style={type('body')}>
-              IMAGE
-            </span>
-          )}
-        </div>
       </div>
     </div>
   );
