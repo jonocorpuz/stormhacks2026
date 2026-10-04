@@ -22,7 +22,6 @@ export default function ItemCard({
   isDragging,
   onOpen,
   onDelete,
-  onCycleSize,
   dragProps,
 }) {
   // Saved boards can hold items whose primitive this build doesn't know (e.g. created on
@@ -86,11 +85,6 @@ export default function ItemCard({
 
       {editMode && (
         <div className="absolute top-3 right-3 z-20 flex gap-1.5">
-          {!fixedSize && (
-            <CardButton label="Resize" onClick={onCycleSize}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 16v4h-4M4 4l6 6m10 10l-6-6" />
-            </CardButton>
-          )}
           <CardButton label="Delete" onClick={onDelete} danger>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </CardButton>

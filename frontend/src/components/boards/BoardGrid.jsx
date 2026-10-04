@@ -6,7 +6,7 @@ import 'react-resizable/css/styles.css';
 import { findPrimitive, itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
-import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
+import { DEFAULT_SIZE, FIXED_SIZES } from '../items/sizes';
 import ItemEditor from '../ItemEditor';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
@@ -452,9 +452,6 @@ export default function BoardGrid({ query, editMode }) {
                     isDragging={isDragging}
                     onOpen={() => setEditingId(item.id)}
                     onDelete={() => setDeletingId(item.id)}
-                    onCycleSize={() =>
-                      setView({ sizes: { ...sizes, [item.id]: nextSize(sizes[item.id] ?? DEFAULT_SIZE) } })
-                    }
                   />
                 </div>
               </div>
