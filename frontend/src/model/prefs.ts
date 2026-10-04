@@ -7,6 +7,8 @@ export interface Prefs {
   theme: Theme | null
   /** Display name for the profile avatar. Absent → no name set. */
   name?: string
+  /** Board open when last used; reopened on launch if still listed. Absent → most recently updated. */
+  lastBoardId?: string
 }
 
 export const defaultPrefs = (): Prefs => ({ theme: null })
