@@ -45,7 +45,7 @@ export const NOTE: PrimitiveDef = {
 
 export const RECOMMENDATION_LIST: PrimitiveDef = {
   id: 'recommendation_list',
-  name: 'Recommendations',
+  name: 'List',
   fields: [
     {
       key: 'title',

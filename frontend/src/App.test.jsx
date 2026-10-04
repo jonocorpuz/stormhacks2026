@@ -124,7 +124,7 @@ describe('App', () => {
 
     // Confirmation dialog opens; item is not deleted yet
     expect(screen.getByRole('dialog')).toBeTruthy();
-    expect(screen.getByText('Delete Recommendations?')).toBeTruthy();
+    expect(screen.getByText('Delete List?')).toBeTruthy();
     expect(screen.getByText('Temp')).toBeTruthy();
 
     // Cancel keeps the item
