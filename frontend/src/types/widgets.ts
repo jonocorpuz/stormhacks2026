@@ -1,3 +1,5 @@
+import type { LineItem } from '../model';
+
 export interface ListItem {
   id: string;
   title: string;
@@ -45,11 +47,9 @@ export interface ProductWidgetData {
 
 export interface ReceiptWidgetData {
   title: string;
-  /** One line item per line, name then price, e.g. "Hamburger $5.00". */
-  items: string;
-  /** One tax per line, e.g. "GST $1.50". */
-  taxes: string;
-  total: string;
+  items: LineItem[];
+  /** Tax as a percentage of the subtotal, e.g. 12 = 12%. Tax and total are derived. */
+  taxRate?: number;
   date: string;
 }
 

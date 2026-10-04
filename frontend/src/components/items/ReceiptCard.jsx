@@ -5,8 +5,7 @@ export default function ReceiptCard({ item }) {
   const data = {
     title: item.fields.title,
     items: item.fields.items,
-    taxes: item.fields.taxes,
-    total: item.fields.total,
+    taxRate: item.fields.taxRate,
     date: item.fields.date,
   };
 

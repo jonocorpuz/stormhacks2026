@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Share } from 'lucide-react';
+import { receiptTotals } from '../model';
 import type { ReceiptWidgetData } from '../types/widgets';
 import itemCircle from '../assets/receipt-widget/item-circle.svg';
 import scrollThumb from '../assets/receipt-widget/scroll-thumb.svg';
@@ -12,9 +13,15 @@ export interface ReceiptWidgetProps {
 
 const DEFAULT_DATA: ReceiptWidgetData = {
   title: 'Mcdonald’s Receipt',
-  items: 'Hamburger $5.00\nSm Coca Cola $10.00\nL Fries $5.00\nL Poutine $5.00\nM Sprite $5.00\nL Fries $20.00',
-  taxes: 'GST\nPST',
-  total: '$307.00',
+  items: [
+    { id: 'sample-1', name: 'Hamburger', price: 5 },
+    { id: 'sample-2', name: 'Sm Coca Cola', price: 10 },
+    { id: 'sample-3', name: 'L Fries', price: 5 },
+    { id: 'sample-4', name: 'L Poutine', price: 5 },
+    { id: 'sample-5', name: 'M Sprite', price: 5 },
+    { id: 'sample-6', name: 'L Fries', price: 20 },
+  ],
+  taxRate: 12,
   date: '02/20/2027',
 };
 
@@ -40,33 +47,21 @@ const TRACK_INSET = 25.77;
 
 const COPIED_RESET_MS = 1600;
 
-interface Line {
-  name: string;
-  amount: string;
-}
-
-// "Hamburger $5.00", "Hamburger - 5.00", "GST: $1.50" -> { name, amount }. No trailing amount -> name only.
-const AMOUNT_AT_END = /^(.*?)\s*[-–—:]?\s*([$€£¥]?\s?-?\d[\d,]*(?:\.\d{1,2})?)\s*$/;
-function parseLines(text: string): Line[] {
-  return text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const match = line.match(AMOUNT_AT_END);
-      return match && match[1] ? { name: match[1], amount: match[2] } : { name: line, amount: '' };
-    });
-}
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const formatMoney = (n: number) => money.format(n);
 
 export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetProps) {
   // Fall back to the design sample only when the whole receipt is empty, so a real receipt
-  // without taxes doesn't inherit the sample GST/PST rows.
-  const isEmpty = !data?.title && !data?.items && !data?.taxes && !data?.total;
-  const source = isEmpty ? DEFAULT_DATA : { ...DEFAULT_DATA, items: '', taxes: '', total: '', ...data };
-  const title = source.title || DEFAULT_DATA.title;
-  const items = parseLines(source.items ?? '');
-  const taxes = parseLines(source.taxes ?? '');
-  const total = source.total ?? '';
+  // without a tax rate doesn't inherit the sample's 12%.
+  const isEmpty = !data?.title && !data?.items?.length && data?.taxRate === undefined;
+  const source = isEmpty ? DEFAULT_DATA : data;
+  const title = source?.title || DEFAULT_DATA.title;
+  // Skip malformed entries (validation is soft; bad values are flagged, not dropped from storage).
+  const items = (Array.isArray(source?.items) ? source.items : []).filter(
+    (item) => item && typeof item.name === 'string',
+  );
+  const taxRate = typeof source?.taxRate === 'number' ? source.taxRate : 0;
+  const { tax, total } = receiptTotals(items, taxRate);
   const date = data?.date || DEFAULT_DATA.date;
 
   const scrollRef = useRef<HTMLOListElement>(null);
@@ -104,9 +99,9 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
     e.stopPropagation();
     const text = [
       title,
-      ...items.map((l) => [l.name, l.amount].filter(Boolean).join(' ')),
-      ...taxes.filter((l) => l.amount).map((l) => `${l.name} ${l.amount}`),
-      total && `Total ${total}`,
+      ...items.map((item) => `${item.name} ${typeof item.price === 'number' ? formatMoney(item.price) : ''}`.trim()),
+      taxRate > 0 && `Tax (${taxRate}%) ${formatMoney(tax)}`,
+      `Total ${formatMoney(total)}`,
       date,
     ]
       .filter(Boolean)
@@ -171,7 +166,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               style={{ padding: `${u(13.69)} ${u(31)} ${u(13.69)} ${u(24.96)}`, gap: u(14.49) }}
             >
               {items.map((line, i) => (
-                <li key={i} className="flex items-center shrink-0 text-[#646464]" style={{ gap: u(12.89) }}>
+                <li key={line.id ?? i} className="flex items-center shrink-0 text-[#646464]" style={{ gap: u(12.89) }}>
                   <span className="relative shrink-0 flex items-center justify-center" style={{ width: u(31.403), height: u(31.403) }}>
                     <img
                       src={itemCircle}
@@ -189,7 +184,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
                     {line.name}
                   </span>
                   <span className="shrink-0 whitespace-nowrap" style={textStyle}>
-                    {line.amount}
+                    {typeof line.price === 'number' ? formatMoney(line.price) : ''}
                   </span>
                 </li>
               ))}
@@ -218,7 +213,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
           </div>
 
           {/* Taxes */}
-          {taxes.length > 0 && (
+          {taxRate > 0 && (
             <>
               {dividerImg}
               <div
@@ -229,13 +224,9 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
                   padding: `${u(18)} ${u(32)} ${u(23)} ${u(25)}`,
                 }}
               >
-                {taxes.map((line, i) => (
-                  <React.Fragment key={i}>
-                    <span style={smallStyle}>{i === 0 ? 'TAX' : ''}</span>
-                    <span style={smallStyle}>{line.name}</span>
-                    <span className="text-right" style={smallStyle}>{line.amount}</span>
-                  </React.Fragment>
-                ))}
+                <span style={smallStyle}>TAX</span>
+                <span style={smallStyle}>{taxRate}%</span>
+                <span className="text-right" style={smallStyle}>{formatMoney(tax)}</span>
               </div>
             </>
           )}
@@ -247,7 +238,7 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             style={{ height: u(49), paddingLeft: u(25), paddingRight: u(32) }}
           >
             <span style={smallStyle}>TOTAL</span>
-            <span style={textStyle}>{total}</span>
+            <span style={textStyle}>{formatMoney(total)}</span>
           </div>
         </div>
 
