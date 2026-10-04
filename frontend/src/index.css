@@ -109,6 +109,12 @@
     --map-paper: 30 30 30;
   }
 
+  /* Global UI scale: 1rem = 14.4px. Everything is rem-based (Tailwind) or scales with the
+     rem-capped grid (widgets use cqw), so this shrinks the whole app like 90% browser zoom. */
+  html {
+    font-size: 90%;
+  }
+
   html, body {
     @apply bg-surface text-ink overscroll-none transition-colors duration-500 font-sans;
   }
