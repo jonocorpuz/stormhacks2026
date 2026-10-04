@@ -21,6 +21,23 @@ const readBase64 = (file) =>
     reader.readAsDataURL(file);
   });
 
+const THEME_KEY = 'theme';
+
+// Saved choice wins; otherwise follow the OS setting. index.html applies the same rule before
+// React loads so the page doesn't flash the wrong theme.
+function getInitialDarkMode() {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') return saved === 'dark';
+  } catch {
+    // Storage blocked: fall through to the system setting.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+}
+
+// Nav pops in after the cards, rippling outward from the search bar (order = distance from it).
+const navPop = (order) => ({ animationDelay: `${500 + order * 110}ms` });
+
 export default function App() {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
@@ -29,6 +46,7 @@ export default function App() {
   const [query, setQuery] = useState('');
 
   const [isDragging, setIsDragging] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Dropped files → captures → store extracts onto current board (unsupported types flagged there).
   const handleDrop = async (e) => {
@@ -56,6 +74,7 @@ export default function App() {
         if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false);
       }}
       onDrop={handleDrop}
+      onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
     >
       {/* Drag Overlay */}
       {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-primary/60 pointer-events-none" />}
@@ -63,45 +82,56 @@ export default function App() {
       {/* Click-Outside Overlay */}
       {openMenu && <div className="fixed inset-0 z-40 bg-transparent" onClick={closeMenu} />}
 
+      {/* Fog behind the header once content scrolls under it */}
+      <div aria-hidden className={`nav-fog fixed inset-x-0 top-0 h-44 z-40 pointer-events-none ${scrolled ? 'is-on' : ''}`}>
+        {Array.from({ length: 6 }, (_, i) => <div key={i} />)}
+      </div>
+
       {/* Floating Header */}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-50 pointer-events-auto">
 
         {currentBoard && (
           <>
-            <BoardMenu
-              isOpen={openMenu === 'boards'}
-              onToggle={() => toggleMenu('boards')}
-              onClose={closeMenu}
-            />
+            <div className="pop-in" style={navPop(3)}>
+              <BoardMenu
+                isOpen={openMenu === 'boards'}
+                onToggle={() => toggleMenu('boards')}
+                onClose={closeMenu}
+              />
+            </div>
 
             {/* Add Button & Dropdown Container */}
-            <div className="relative">
-              <GlassButton onClick={() => toggleMenu('create')} aria-label="New">
+            <div className="relative pop-in" style={navPop(2)}>
+              <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path></svg>
               </GlassButton>
               <CreateItemMenu isOpen={openMenu === 'create'} onClose={closeMenu} />
             </div>
 
             {/* Edit Mode Toggle */}
-            <GlassButton
-              onClick={() => setEditMode((on) => !on)}
-              aria-label="Edit board"
-              aria-pressed={editMode}
-              className={editMode ? '!bg-primary !text-white' : ''}
-            >
-              <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            </GlassButton>
+            <div className="pop-in" style={navPop(1)}>
+              <GlassButton
+                onClick={() => setEditMode((on) => !on)}
+                aria-label="Edit board"
+                aria-pressed={editMode}
+                className={`nav-grow ${editMode ? '!bg-blue-500 !text-white' : ''}`}
+              >
+                <svg className="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+              </GlassButton>
+            </div>
 
             {/* Search Bar */}
-            <GlassInput placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <div className="pop-in buoyant hover:scale-[1.03]" style={navPop(0)}>
+              <GlassInput placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </div>
           </>
         )}
 
         {/* Avatar & Settings Menu Container */}
-        <div className="relative">
+        <div className="relative pop-in" style={navPop(1)}>
           <div
             onClick={() => toggleMenu('profile')}
-            className="apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-surface dark:hover:bg-ink/20 transition-colors"
+            className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
           >
             <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
           </div>

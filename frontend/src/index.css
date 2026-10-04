@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Underdamped spring (eases in from rest, overshoots ~16%, settles) for linear()-based transitions */
+  --spring: linear(0, 0.069, 0.237, 0.449, 0.662, 0.849, 0.994, 1.092, 1.146, 1.163, 1.153, 1.127, 1.092, 1.057, 1.026, 1.002, 0.986, 0.977, 0.973, 0.975, 0.979, 0.985, 0.99, 0.995, 0.999, 1.002, 1.004, 1.004, 1.004, 1.003, 1);
+}
+
 @font-face {
   font-family: 'Alte Haas Grotesk';
   src: url('/fonts/AlteHaasGroteskRegular.ttf') format('truetype');
@@ -128,6 +133,92 @@
   animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Buoyant hover (cards, nav) */
+.buoyant {
+  transition: transform 900ms var(--spring);
+}
+
+/* Pop in on mount (cards, nav; staggered via inline animation-delay), same spring curve */
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pop-in {
+  animation: popIn 700ms var(--spring) backwards;
+}
+
+/* Nav triggers grow on hover. On the trigger itself (not its wrapper) so open dropdowns don't scale.
+   Keeps the color fade that Tailwind's transition-colors would otherwise provide. */
+.nav-grow {
+  transition: transform 900ms var(--spring), background-color 150ms, color 150ms;
+}
+
+.nav-grow:hover {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-grow { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
+  .buoyant { transition: transform 200ms ease-out; }
+  .pop-in { animation: none; }
+}
+
+/* Header fog: progressive blur. Stacked layers, each blurring more and masked to a band nearer the top.
+   Opacity is faded per layer: opacity < 1 on the container would make it the backdrop root and kill the blur. */
+.nav-fog > * {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms;
+}
+
+.nav-fog.is-on > * {
+  opacity: 1;
+}
+
+.nav-fog > :nth-child(1) {
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+  mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0.0%, black 12.5%, black 25.0%, transparent 37.5%);
+}
+
+.nav-fog > :nth-child(2) {
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 12.5%, black 25.0%, black 37.5%, transparent 50.0%);
+}
+
+.nav-fog > :nth-child(3) {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 25.0%, black 37.5%, black 50.0%, transparent 62.5%);
+}
+
+.nav-fog > :nth-child(4) {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 37.5%, black 50.0%, black 62.5%, transparent 75.0%);
+}
+
+.nav-fog > :nth-child(5) {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
+  -webkit-mask-image: linear-gradient(to top, transparent 50.0%, black 62.5%, black 75.0%, transparent 87.5%);
+}
+
+.nav-fog > :nth-child(6) {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
+  -webkit-mask-image: linear-gradient(to top, transparent 62.5%, black 75.0%);
+}
+
 /* Smooth Sliding Animations for react-grid-layout */
 .react-grid-item.cssTransforms {
   transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
@@ -151,14 +242,35 @@
   opacity: 1 !important;
 }
 
+/* Edit-mode wiggle + a slower float bob. Uses the individual `rotate`/`translate` properties so the two
+   run at different rates without fighting over `transform`. Per-card durations/delays set inline in ItemCard.
+   --wiggle-amp scales both: eases 0→1 on entering edit mode (.wiggle-on) and 1→0 on leaving, while
+   ItemCard keeps .ios-wiggle on briefly (WIGGLE_SETTLE_MS) so the wind-down is visible. */
+@property --wiggle-amp {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @keyframes iosWiggle {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(-0.7deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(0.7deg); }
-  100% { transform: rotate(0deg); }
+  0% { rotate: 0deg; }
+  25% { rotate: calc(var(--wiggle-amp) * -0.5deg); }
+  50% { rotate: 0deg; }
+  75% { rotate: calc(var(--wiggle-amp) * 0.5deg); }
+  100% { rotate: 0deg; }
+}
+
+@keyframes iosBob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 calc(var(--wiggle-amp) * -3px); }
 }
 
 .ios-wiggle {
-  animation: iosWiggle 0.4s infinite ease-in-out;
+  animation: iosWiggle 0.45s infinite ease-in-out, iosBob 1.6s infinite ease-in-out;
+  transition: transform 900ms var(--spring), --wiggle-amp 350ms ease-out;
+}
+
+.ios-wiggle.wiggle-on {
+  --wiggle-amp: 1;
+  transition: transform 900ms var(--spring), --wiggle-amp 500ms ease-in-out;
 }
