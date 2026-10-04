@@ -116,7 +116,11 @@ export default function MobileRolodexView({ query, onQueryChange, editMode, onTo
       card.style.visibility = st.o < 0.02 ? 'hidden' : 'visible';
     });
     const active = Math.max(0, Math.min(cardRefs.current.filter(Boolean).length - 1, Math.round(p)));
-    dotRefs.current.forEach((d, i) => d?.classList.toggle('bg-ink', i === active));
+    // Swap (not stack) the classes: bg-ink/15 comes later in the CSS and would win over bg-ink.
+    dotRefs.current.forEach((d, i) => {
+      d?.classList.toggle('bg-ink', i === active);
+      d?.classList.toggle('bg-ink/15', i !== active);
+    });
     if (hintRef.current) hintRef.current.style.opacity = p > 0.15 ? 0 : 1;
   }, []);
 
