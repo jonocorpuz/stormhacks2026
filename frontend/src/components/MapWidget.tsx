@@ -20,7 +20,7 @@ const DESIGN_WIDTH = 357;
 const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
 
 const PANEL_GRADIENT =
-  'linear-gradient(157.97deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(157.97deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
 const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
@@ -44,7 +44,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border border-[#8AC6FF] bg-[#F2EFE9] select-none"
+        className="relative w-full h-full overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30 bg-[#F2EFE9] dark:bg-[#1E1E1E] select-none"
         style={{ borderRadius: u(23) }}
       >
         {/* Map */}
@@ -55,7 +55,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
           referrerPolicy="no-referrer-when-downgrade"
           tabIndex={-1}
           aria-hidden
-          className="absolute border-0 pointer-events-none"
+          className="absolute border-0 pointer-events-none dark:invert-[90%] dark:hue-rotate-180"
           style={{ width: u(MAP_SIZE), height: u(MAP_SIZE), left: u(MAP_LEFT), top: u(MAP_TOP) }}
         />
 
@@ -65,7 +65,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] text-[#646464] transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+          className="absolute flex items-center justify-between bg-[rgba(220,220,220,0.2)] text-[#646464] dark:text-white transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
           style={{
             left: u(25),
             top: u(28),
@@ -89,7 +89,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
 
         {/* Location Panel */}
         <div
-          className="absolute border-solid border-[#8AC6FF] bg-[rgba(255,255,255,0.83)]"
+          className="absolute border-solid border-[#8AC6FF] dark:border-[#8AC6FF]/30 bg-[rgba(255,255,255,0.83)] dark:bg-[rgba(30,30,30,0.83)]"
           style={{
             left: u(21),
             top: u(187),
@@ -123,7 +123,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
               {address}
             </p>
             <span
-              className="text-[#A2A2A2] whitespace-nowrap"
+              className="text-[#A2A2A2] dark:text-white whitespace-nowrap"
               style={{ fontFamily: SF_FONT, fontSize: u(12.866), lineHeight: u(15) }}
             >
               {date}

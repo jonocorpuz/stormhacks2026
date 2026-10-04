@@ -72,7 +72,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border-solid border-[#FFD7F9] select-none"
+        className="relative w-full h-full overflow-hidden border-solid border-[#FFD7F9] dark:border-[#FFD7F9]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
       >
         {/* Details */}
@@ -94,7 +94,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </p>
 
           <dl
-            className="grid text-[#646464]"
+            className="grid text-[#646464] dark:text-white"
             style={{
               fontFamily: BODY_FONT,
               fontSize: u(18.323),
@@ -166,7 +166,7 @@ export default function ProductWidget({ data, className = '' }: ProductWidgetPro
           </div>
 
           <span
-            className="text-[#A2A2A2] whitespace-nowrap"
+            className="text-[#A2A2A2] dark:text-white whitespace-nowrap"
             style={{ fontFamily: BODY_FONT, fontSize: u(14.658), lineHeight: u(17) }}
           >
             {date}

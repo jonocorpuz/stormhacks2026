@@ -43,7 +43,7 @@ export default function ItemCard({
       {...dragProps}
       onClick={known && !editMode ? onOpen : undefined}
       style={wiggleStyle}
-      className={`w-full h-full relative transition-transform duration-300 ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.01] hover:-rotate-1'} cursor-pointer ${
+      className={`w-full h-full relative transition-transform duration-500 ease-in-out ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.005] hover:-rotate-[0.5deg]'} cursor-pointer ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'

@@ -29,16 +29,16 @@ const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
 
 // Figma draws the card flipped horizontally, which mirrors its 156.86deg gradient to 203.14deg.
 const CARD_GRADIENT =
-  'linear-gradient(203.14deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(203.14deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const PILL_GRADIENT =
-  'linear-gradient(170.01deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(225, 235, 244, 0.1) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
+  'linear-gradient(170.01deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
 const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
 const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
 const GLASS_SHADOW = `${u(1.612)} ${u(0.806)} ${u(12.735)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.806)} 0 ${u(42.639)} ${u(11.175)} rgba(255, 255, 255, 0.52)`;
 
 const BLUE = 'text-[#006CE3]';
-const GREY = 'text-[#646464]';
+const GREY = 'text-[#646464] dark:text-white';
 // Dark mode (Figma "Frame 8", 78:18): labels turn light grey + bold instead of blue.
 const LABEL = `${BLUE} font-[510] dark:text-[#BDBDBD] dark:font-bold`;
 
@@ -62,7 +62,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full overflow-hidden border-solid border-[#8AC6FF] select-none"
+        className="relative w-full h-full overflow-hidden border-solid border-[#8AC6FF] dark:border-[#8AC6FF]/30 select-none"
         style={{ backgroundImage: CARD_GRADIENT, borderWidth: u(0.916), borderRadius: u(27.484) }}
       >
         {/* Vendor Badge */}
