@@ -67,8 +67,14 @@ const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(MAX_B
 // scroll progress (1 card per STEP px, snapped) flips cards from the waiting pile into the
 // flipped pile. Transforms are written straight to the DOM from a scroll-linked rAF, so
 // scrolling never re-renders React.
-export default function MobileRolodexView({ query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
+// Null-board guard here so the view's hooks stay unconditional (see BoardGrid).
+export default function MobileRolodexView(props) {
   const board = useApp((s) => s.currentBoard);
+  if (!board) return null;
+  return <RolodexStack board={board} {...props} />;
+}
+
+function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);

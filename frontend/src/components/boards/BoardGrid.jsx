@@ -183,12 +183,19 @@ export function packDenseLayout(orderedItems, cols, pinnedRect = null, dragDirX 
 // Bento grid of the current board's items.
 // Card sizes live in board.view.sizes (presentation, frontend-owned).
 // Order = board.items order; edit mode enables drag-to-reorder.
-export default function BoardGrid({ query, editMode }) {
+// Guard lives here, not in BoardGridView: hooks there must run unconditionally, and the
+// board can vanish (delete/switch) before this unmounts.
+export default function BoardGrid(props) {
+  const board = useApp((s) => s.currentBoard);
+  if (!board) return null;
+  return <BoardGridView board={board} {...props} />;
+}
+
+function BoardGridView({ board, query, editMode }) {
   if (typeof ResizeObserver !== 'undefined' && !ResizeObserver.prototype.unobserve) {
     ResizeObserver.prototype.unobserve = () => {};
   }
 
-  const board = useApp((s) => s.currentBoard);
   const { deleteItem, reorderItems, setView } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
