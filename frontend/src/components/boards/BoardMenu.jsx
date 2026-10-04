@@ -38,7 +38,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
     <div className="relative">
       <button
         onClick={onToggle}
-        className="apple-glass h-12 px-5 rounded-full flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-colors max-w-[14rem]"
+        className="nav-grow apple-glass h-12 px-5 rounded-full flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-colors max-w-[14rem]"
       >
         <span className="truncate">{currentBoard.name}</span>
         <svg className="w-3.5 h-3.5 shrink-0 opacity-60" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
