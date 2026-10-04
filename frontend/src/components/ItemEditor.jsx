@@ -5,8 +5,8 @@ import PrimitiveForm from './forms/PrimitiveForm';
 
 // Modal for editing one item. Saves once on "Save" (not per keystroke).
 export default function ItemEditor({ item, onClose }) {
-  const { updateItem, deleteItem } = useActions();
-  // Unknown/custom primitive (stale data, removed type): show a notice, still allow delete.
+  const { updateItem } = useActions();
+  // Unknown/custom primitive (stale data, removed type): show a notice. Deleting is the card's × (edit mode).
   const primitive = findPrimitive(item.primitiveId);
   const [values, setValues] = useState(item.fields);
   const issues = primitive ? validateFields(values, primitive) : [];
@@ -14,11 +14,6 @@ export default function ItemEditor({ item, onClose }) {
   const handleSave = async () => {
     // Save failure is shown by SaveStatus; the change stays in state and persists on the next save.
     await updateItem(item.id, values).catch(() => {});
-    onClose();
-  };
-
-  const handleDelete = async () => {
-    await deleteItem(item.id).catch(() => {});
     onClose();
   };
 
@@ -35,17 +30,11 @@ export default function ItemEditor({ item, onClose }) {
           <PrimitiveForm primitive={primitive} values={values} onChange={setValues} issues={issues} />
         ) : (
           <p className="text-sm text-ink/70 px-1">
-            Unknown item type “{item.primitiveId}”. It can’t be edited here, but you can delete it.
+            Unknown item type “{item.primitiveId}”. It can’t be edited here; delete it with the card’s × in edit mode.
           </p>
         )}
 
         <div className="flex gap-2 pt-1">
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2.5 rounded-full text-sm font-semibold text-danger hover:bg-danger/10 transition-colors"
-          >
-            Delete
-          </button>
           <div className="flex-1" />
           <button
             onClick={onClose}

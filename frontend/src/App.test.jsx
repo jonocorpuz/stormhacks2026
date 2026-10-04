@@ -285,7 +285,8 @@ describe('crash guards', () => {
     await renderWith(<ItemEditor item={item} onClose={() => {}} />);
     expect(screen.getByText(/Unknown item type/)).toBeTruthy();
     expect(screen.queryByText('Save')).toBeNull();
-    expect(screen.getByText('Delete')).toBeTruthy();
+    expect(screen.queryByText('Delete')).toBeNull(); // deleting is the card's × in edit mode
+    expect(screen.getByText('Cancel')).toBeTruthy();
   });
 });
 
