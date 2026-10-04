@@ -110,6 +110,7 @@ function useBoardSwipe() {
     // Store refuses board switches mid-extraction; say so instead of surfacing an error.
     if (extracting) return show('Extracting… board switching paused');
     openBoard(next.id);
+    hapticTick(); // inside touchend, a real gesture, so this one should land on iOS too
     show(`${next.name} · ${boards.indexOf(next) + 1}/${boards.length}`);
   };
 
@@ -299,7 +300,7 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
       if (raf !== null) cancelAnimationFrame(raf);
       if (push.raf !== null) cancelAnimationFrame(push.raf);
     };
-  }, [render, setOpen]);
+  }, [render, setOpen, showHapticDebug]);
 
   // Tap a card to open it: it scrolls into focus (flat, vertically centred) and the rest are pushed off-screen.
   // Tapping it again or the empty stage closes it. Controls inside the card still work.
