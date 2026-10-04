@@ -3,7 +3,7 @@ import { verticalCompactor } from 'react-grid-layout';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { itemMatchesQuery } from '../../model';
+import { findPrimitive, itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
@@ -477,12 +477,7 @@ export default function BoardGrid({ query, editMode }) {
 }
 
 function DeleteConfirmModal({ item, onCancel, onConfirm }) {
-  const label = item.primitiveId
-    ? item.primitiveId
-        .split('_')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ')
-    : 'Item';
+  const label = findPrimitive(item.primitiveId)?.name ?? 'Item';
   return (
     <div
       role="dialog"
