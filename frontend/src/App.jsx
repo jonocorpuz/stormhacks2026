@@ -21,20 +21,6 @@ const readBase64 = (file) =>
     reader.readAsDataURL(file);
   });
 
-const THEME_KEY = 'theme';
-
-// Saved choice wins; otherwise follow the OS setting. index.html applies the same rule before
-// React loads so the page doesn't flash the wrong theme.
-function getInitialDarkMode() {
-  try {
-    const saved = localStorage.getItem(THEME_KEY);
-    if (saved === 'dark' || saved === 'light') return saved === 'dark';
-  } catch {
-    // Storage blocked: fall through to the system setting.
-  }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
-}
-
 export default function App() {
   const currentBoard = useApp((s) => s.currentBoard);
   const { ingestCaptures } = useActions();
