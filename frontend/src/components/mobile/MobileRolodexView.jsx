@@ -11,6 +11,7 @@ import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import BoardMenu from '../boards/BoardMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
+import { hapticTick, prepareHaptics } from './haptics';
 
 // Every card is a 1x1 square here: multi-span widgets render their compact variant (isCompact).
 // Widgets draw a 28px corner at ~357px per column and scale with width. The opaque backing uses a
@@ -249,6 +250,11 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let raf = null;
     let last = 0;
+    // Haptic detent each time a new card becomes the focused one, in step with the drawn flip.
+    // Skipped while a card is open: the tap's own smooth scroll would otherwise ripple ticks.
+    const focusedIdx = (p) => Math.max(0, Math.min(cardRefs.current.filter(Boolean).length - 1, Math.round(p)));
+    let ticked = focusedIdx(shownRef.current ?? root.scrollTop / STEP);
+    prepareHaptics();
     const tick = (now) => {
       const target = root.scrollTop / STEP;
       const dt = last ? now - last : 16;
@@ -257,6 +263,11 @@ function RolodexStack({ board, swipeHandlers, query, onQueryChange, editMode, on
       const next = reduce ? target : cur + (target - cur) * (1 - Math.exp(-dt / FOLLOW_MS));
       shownRef.current = Math.abs(target - next) < 0.001 ? target : next;
       render(shownRef.current);
+      const idx = focusedIdx(shownRef.current);
+      if (idx !== ticked) {
+        ticked = idx;
+        if (openRef.current === null) hapticTick();
+      }
       if (shownRef.current !== target) raf = requestAnimationFrame(tick);
       else {
         raf = null;
