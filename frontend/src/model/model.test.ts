@@ -4,6 +4,7 @@ import {
   createBoard,
   createItem,
   getItemIssues,
+  initials,
   itemMatchesQuery,
   removeItem,
   reorderItems,
@@ -150,5 +151,15 @@ describe('itemMatchesQuery', () => {
     expect(itemMatchesQuery(receipt, '6.5')).toBe(true)
     expect(itemMatchesQuery(receipt, '12')).toBe(true)
     expect(itemMatchesQuery(list, 'abc123')).toBe(false)
+  })
+})
+
+describe('initials', () => {
+  it('first + last word, single word → one letter, blank → empty', () => {
+    expect(initials('ada lovelace')).toBe('AL')
+    expect(initials('  Grace  Brewster Hopper ')).toBe('GH')
+    expect(initials('Prince')).toBe('P')
+    expect(initials('   ')).toBe('')
+    expect(initials(null)).toBe('')
   })
 })

@@ -1,26 +1,58 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useActions, useApp } from '../store';
 
 export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onToggleViewMode }) {
   const isDarkMode = useApp((s) => s.theme) === 'dark';
-  const { toggleTheme } = useActions();
-  if (!isOpen) return null;
+  const name = useApp((s) => s.name);
+  const { toggleTheme, setName } = useActions();
+  const [editingName, setEditingName] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  if (!isOpen) {
+    if (editingName) setEditingName(false); // reopening starts from the menu, not a stale field
+    return null;
+  }
+
+  const saveName = (e) => {
+    e.preventDefault();
+    setName(draftName);
+    setEditingName(false);
+  };
 
   return (
     <div className="absolute top-full right-0 mt-4 w-56 p-2 apple-glass rounded-2xl origin-top-right animate-slide-down-fade z-50">
       <ul className="flex flex-col">
-        {/* Change Profile Photo */}
-        <li className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm">
-          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          <span>Change Profile Photo</span>
-        </li>
-        
-        {/* Change Name */}
-        <li className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm">
-          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-          <span>Change Name</span>
-        </li>
-        
+        {/* Change Name: inline field; the avatar shows its initials */}
+        {editingName ? (
+          <li className="px-2 py-1.5">
+            <form onSubmit={saveName} className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && setEditingName(false)}
+                placeholder="Your name"
+                aria-label="Name"
+                className="flex-1 min-w-0 px-3 py-1.5 rounded-lg bg-ink/5 dark:bg-ink/10 text-sm text-ink outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <button type="submit" className="px-3 py-1.5 rounded-lg bg-primary/90 text-white text-xs font-semibold hover:bg-primary-strong/90 transition-colors">
+                Save
+              </button>
+            </form>
+          </li>
+        ) : (
+          <li
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDraftName(name ?? '');
+              setEditingName(true);
+            }}
+          >
+            <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <span>{name ? 'Change Name' : 'Set Name'}</span>
+          </li>
+        )}
+
         {/* Theme Toggle */}
         <li 
           className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 cursor-pointer transition-colors text-sm"
@@ -68,8 +100,13 @@ export default function ProfileSettingsMenu({ isOpen, viewMode = 'desktop', onTo
 
         <hr className="border-ink/10 my-1 mx-2" />
         
-        {/* Logout */}
-        <li className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-danger/10 cursor-pointer transition-colors text-sm text-danger">
+        {/* Logout: no accounts yet, so it clears the local profile (name → default avatar) */}
+        <li
+          onClick={(e) => {
+            e.stopPropagation();
+            setName(null);
+          }}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-danger/10 cursor-pointer transition-colors text-sm text-danger">
           <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
           <span>Logout</span>
         </li>

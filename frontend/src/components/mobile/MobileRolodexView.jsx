@@ -7,6 +7,7 @@ import ItemEditor from '../ItemEditor';
 import CreateItemMenu from '../CreateItemMenu';
 import GlassButton from '../GlassButton';
 import GlassInput from '../GlassInput';
+import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
@@ -280,7 +281,7 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
               aria-label="Settings"
               className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
             >
-              <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+              <ProfileAvatar />
             </div>
           </div>
           <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={onToggleViewMode} />

@@ -10,6 +10,25 @@ const setup = () => {
 }
 
 describe('app store', () => {
+  it('profile name: saved to prefs, restored on init, cleared by null/blank', async () => {
+    const prefsRepo = new MemoryRepo()
+    const store = createAppStore(new MemoryRepo(), undefined, { prefsRepo })
+    await store.actions.init()
+    expect(store.getState().name).toBeNull()
+
+    await store.actions.setName('  Ada Lovelace ')
+    expect(store.getState().name).toBe('Ada Lovelace')
+    const again = createAppStore(new MemoryRepo(), undefined, { prefsRepo })
+    await again.actions.init()
+    expect(again.getState().name).toBe('Ada Lovelace')
+
+    await store.actions.setName(null)
+    expect(store.getState().name).toBeNull()
+    expect(await prefsRepo.loadPrefs()).toEqual({ theme: null })
+    await store.actions.setName('   ')
+    expect(store.getState().name).toBeNull()
+  })
+
   it('theme follows browser until toggled, then saves choice', async () => {
     const prefsRepo = new MemoryRepo()
     const store = createAppStore(new MemoryRepo(), undefined, { prefsRepo, systemDark: true })

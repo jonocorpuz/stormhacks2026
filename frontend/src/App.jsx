@@ -4,6 +4,7 @@ import { useActions, useApp } from './store';
 import GlassButton from './components/GlassButton';
 import GlassInput from './components/GlassInput';
 import CreateItemMenu from './components/CreateItemMenu';
+import ProfileAvatar from './components/ProfileAvatar';
 import ProfileSettingsMenu from './components/ProfileSettingsMenu';
 
 import BoardMenu from './components/boards/BoardMenu';
@@ -165,9 +166,10 @@ export default function App() {
         <div className="relative pop-in" style={navPop(1)}>
           <div
             onClick={() => toggleMenu('profile')}
+            aria-label="Settings"
             className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
           >
-            <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
+            <ProfileAvatar />
           </div>
           <ProfileSettingsMenu isOpen={openMenu === 'profile'} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
         </div>

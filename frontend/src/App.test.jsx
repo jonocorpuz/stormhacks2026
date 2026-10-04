@@ -288,3 +288,27 @@ describe('crash guards', () => {
     expect(screen.getByText('Delete')).toBeTruthy();
   });
 });
+
+describe('profile menu', () => {
+  it('sets a name shown as avatar initials; logout clears it', async () => {
+    const store = await mount(new MemoryRepo());
+    await act(async () => store.actions.createBoard('B'));
+    const avatar = () => screen.getByLabelText('Settings');
+
+    await click(avatar());
+    expect(screen.queryByText('Change Profile Photo')).toBeNull();
+    await click(screen.getByText('Set Name'));
+    await type(screen.getByLabelText('Name'), 'Ada Lovelace');
+    await act(async () => fireEvent.submit(screen.getByLabelText('Name').closest('form')));
+    expect(avatar().textContent).toBe('AL');
+
+    await click(screen.getByText('Change Name'));
+    await type(screen.getByLabelText('Name'), 'Prince');
+    await act(async () => fireEvent.submit(screen.getByLabelText('Name').closest('form')));
+    expect(avatar().textContent).toBe('P');
+
+    await click(screen.getByText('Logout'));
+    expect(avatar().textContent).toBe('');
+    expect(store.getState().name).toBeNull();
+  });
+});

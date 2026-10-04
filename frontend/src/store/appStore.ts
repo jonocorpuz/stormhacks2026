@@ -49,6 +49,8 @@ export interface AppState {
   extractions: Extraction[]
   /** Resolved (saved choice or browser). null until init loads prefs. */
   theme: Theme | null
+  /** Profile display name; null → none set. */
+  name: string | null
 }
 
 export interface AppActions {
@@ -77,6 +79,8 @@ export interface AppActions {
   dismissExtraction(id: string): void
   /** Saves the choice; from then on browser setting is ignored. */
   toggleTheme(): Promise<void>
+  /** Blank or null clears it (e.g. logout). */
+  setName(name: string | null): Promise<void>
 }
 
 export interface AppStore {
@@ -97,7 +101,7 @@ export function createAppStore(
   extractor?: Extractor,
   { prefsRepo, systemDark = false }: StoreEnv = {},
 ): AppStore {
-  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null, extractions: [], theme: null }
+  let state: AppState = { boards: [], currentBoard: null, status: 'idle', error: null, extractions: [], theme: null, name: null }
   let prefs: Prefs = defaultPrefs()
   const listeners = new Set<() => void>()
   let saveQueue: Promise<void> = Promise.resolve()
@@ -209,12 +213,20 @@ export function createAppStore(
     }
   }
 
+  const savePrefs = async () => {
+    try {
+      await prefsRepo?.savePrefs(prefs)
+    } catch (err) {
+      fail(err)
+    }
+  }
+
   const actions: AppActions = {
     async init() {
       setState({ status: 'loading', error: null })
       try {
         prefs = (await prefsRepo?.loadPrefs()) ?? prefs
-        setState({ theme: resolveTheme(prefs, systemDark) })
+        setState({ theme: resolveTheme(prefs, systemDark), name: prefs.name ?? null })
         const boards = await repo.listBoards()
         // Always land on a board when one exists: open the most recently updated.
         const latest = [...boards].sort((a, b) => b.updatedAt - a.updatedAt)[0]
@@ -316,11 +328,15 @@ export function createAppStore(
     async toggleTheme() {
       prefs = { ...prefs, theme: otherTheme(state.theme ?? resolveTheme(prefs, systemDark)) }
       setState({ theme: prefs.theme })
-      try {
-        await prefsRepo?.savePrefs(prefs)
-      } catch (err) {
-        fail(err)
-      }
+      await savePrefs()
+    },
+
+    async setName(name) {
+      const trimmed = name?.trim() || null
+      const { name: _old, ...rest } = prefs
+      prefs = trimmed ? { ...rest, name: trimmed } : rest
+      setState({ name: trimmed })
+      await savePrefs()
     },
   }
 
