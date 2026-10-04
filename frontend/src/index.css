@@ -129,8 +129,8 @@
 @layer components {
   .apple-glass {
     @apply backdrop-blur-2xl 
-           bg-surface/80 border border-line shadow-md shadow-black/[0.03] text-ink-subtle
-           dark:bg-glass/75 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
+           bg-surface/65 border border-line shadow-md shadow-black/[0.03] text-ink-subtle
+           dark:bg-glass/65 dark:border-ink/20 dark:shadow-2xl dark:shadow-[inset_0_1px_1px_rgb(var(--glow)/0.2)]
            transition-colors duration-500;
   }
 
