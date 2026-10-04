@@ -54,21 +54,16 @@
     --danger-strong: 220 38 38;
     --warning: 245 158 11;
 
-    /* Widget accents: edge = border, base = title/icon, deep = emphasis, tint = gradient wash */
-    --edge-alpha: 1;
-    --blue-edge: 138 198 255;
-    --blue: 34 148 254;
-    --blue-deep: 0 108 227;
-    --blue-tint: 34 148 254;
-    --green-edge: 124 249 139;
-    --green: 57 175 13;
-    --green-tint: 8 226 34;
-    --coral-edge: 255 217 204;
-    --coral: 245 92 92;
-    --coral-tint: 254 89 34;
-    --pink-edge: 255 215 249;
-    --pink: 247 111 225;
-    --pink-tint: 255 158 240;
+    /* Widget shell (outer card + footer controls) follows the theme. */
+    --shell: 255 255 255;
+    --shell-control: 238 238 238;
+    --shell-control-ink: 60 60 60;
+
+    /* Solid accent panels: theme-independent, deep enough for white text. */
+    --blue-solid: 42 123 240;
+    --green-solid: 46 158 30;
+    --coral-solid: 240 83 58;
+    --pink-solid: 225 48 198;
 
     /* One-offs */
     --map-paper: 242 239 233;
@@ -93,20 +88,11 @@
     --danger: 248 113 113;
     --warning: 252 211 77;
 
-    --edge-alpha: 0.3;
-    /* Accent text lifted toward its edge pastel so titles stay readable on the dark canvas. */
-    --blue: 102 181 255;
-    --blue-deep: 102 181 255;
-    --green: 103 244 80;
-    --coral: 252 140 140;
-    --pink: 251 153 235;
-    /* Washes: same hue + lightness, ~89% saturation so cards read vivid. */
-    --blue-tint: 45 148 242;
-    --green-tint: 18 216 41;
-    --coral-tint: 242 96 45;
-    --pink-tint: 250 163 237;
-
     --map-paper: 30 30 30;
+
+    --shell: 42 42 42;
+    --shell-control: 26 25 25;
+    --shell-control-ink: 200 200 200;
   }
 
   /* Global UI scale: 1rem = 14.4px. Everything is rem-based (Tailwind) or scales with the

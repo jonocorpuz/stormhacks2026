@@ -2,10 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Check, Share } from 'lucide-react';
 import { receiptTotals } from '../model';
 import type { ReceiptWidgetData } from '../types/widgets';
-import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
-
-import scrollThumb from '../assets/receipt-widget/scroll-thumb.svg';
-import divider from '../assets/receipt-widget/divider.svg';
+import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
+import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface ReceiptWidgetProps {
   data?: Partial<ReceiptWidgetData>;
@@ -26,21 +24,19 @@ const DEFAULT_DATA: ReceiptWidgetData = {
   date: '02/20/2027',
 };
 
-// Figma receipt (stormhacks-27, "MacBook Pro 14" - 8", node 76:663 "Frame 10"),
-// designed at 355x734. All sizes scale with the widget's width (container query units)
-// so it keeps the design's proportions in a 1x2 bento cell.
+// Receipt on the solid-panel shell (Figma node 120:1121), 1x2 at 355 wide.
+// All sizes scale with the widget's width (container query units).
 const DESIGN_WIDTH = 355;
-const { u, space, radius, type, glassShadow, insetShadow, cardInset } = widgetScale(DESIGN_WIDTH);
+const { u, space, radius, type } = widgetScale(DESIGN_WIDTH);
 
-const CARD_GRADIENT = accentGradient('blue', 118.76);
-const PANEL_GRADIENT = accentGradient('blue', 122.32);
-
-// Scroll thumb asset is 67.638 x 6.44 horizontal; rotated to vertical.
+// Scroll thumb: vertical pill, in design px.
 const THUMB_LENGTH = 67.638;
 const THUMB_WIDTH = 6.44171;
 const TRACK_INSET = 25.77;
 
 const COPIED_RESET_MS = 1600;
+
+const DIVIDER = 'border-t border-white/30 shrink-0';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const formatMoney = (n: number) => money.format(n);
@@ -91,9 +87,8 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
     setScrollProgress(max > 0 ? el.scrollTop / max : 0);
   };
 
-  // Cards open the item editor on click; sharing shouldn't.
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // ShellIconButton stops propagation, so sharing doesn't open the item editor.
+  const handleShare = async () => {
     const text = [
       title,
       ...items.map((item) => `${item.name} ${typeof item.price === 'number' ? formatMoney(item.price) : ''}`.trim()),
@@ -118,154 +113,124 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
   };
 
   const textStyle = type('body');
-  const smallStyle = type('caption');
-  const dividerImg = (
-    <img src={divider} alt="" width={321} height={1} className="block max-w-none shrink-0" style={{ width: u(321), height: u(1), marginLeft: u(-0.5) }} />
+  const smallStyle = type('detail');
+
+  const footer = (
+    <ShellIconButton
+      designWidth={DESIGN_WIDTH}
+      label={copied ? 'Receipt copied' : 'Share receipt'}
+      onClick={handleShare}
+    >
+      {copied ? (
+        <Check style={{ width: u(22), height: u(22) }} strokeWidth={2.4} />
+      ) : (
+        <Share style={{ width: u(21), height: u(21) }} strokeWidth={1.8} />
+      )}
+    </ShellIconButton>
   );
 
   return (
-    <div ref={rootRef} className={`w-full h-full [container-type:inline-size] ${className}`}>
-      <div
-        className="relative w-full h-full flex flex-col overflow-hidden border border-accent-blue-edge select-none"
-        style={{
-          backgroundImage: CARD_GRADIENT,
-          borderRadius: radius('card'),
-          paddingTop: cardInset,
-          paddingLeft: space(4),
-          paddingRight: space(4),
-          paddingBottom: cardInset,
-        }}
+    <div ref={rootRef} className={`w-full h-full ${className}`}>
+      <WidgetShell
+        designWidth={DESIGN_WIDTH}
+        accent="blue"
+        watermark={<Watermark designWidth={DESIGN_WIDTH} glyph="%" />}
+        footer={footer}
       >
-        {/* Header */}
-        <h2
-          className="font-bold text-accent-blue whitespace-nowrap overflow-hidden text-ellipsis shrink-0"
-          style={type('title')}
-        >
-          {title}
-        </h2>
-
-        {/* Receipt Panel */}
         <div
-          className="relative flex-1 min-h-0 flex flex-col overflow-hidden border border-accent-blue-edge"
-          style={{
-            marginTop: space(5),
-            borderRadius: radius('panel'),
-            backgroundImage: PANEL_GRADIENT,
-            boxShadow: insetShadow,
-          }}
+          className="absolute flex flex-col"
+          style={{ left: u(SHELL.padX), right: u(SHELL.padX), top: u(SHELL.padY), bottom: u(SHELL.padX), gap: space(4) }}
         >
-          {/* Line items */}
-          <div className="relative flex-1 min-h-0">
-            <ol
-              ref={scrollRef}
-              onScroll={handleScroll}
-              className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              // Row pitch snapped to whole px so every number circle lands on the same subpixel offset (else some blur).
-              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: `round(${space(4)}, 1px)` }}
-            >
-              {items.map((line, i) => (
-                <li key={line.id ?? i} className="flex items-center shrink-0 text-ink-muted" style={{ gap: space(3) }}>
-                  <span className="relative shrink-0 flex items-center justify-center" style={{ width: `round(${u(31.403)}, 1px)`, height: `round(${u(31.403)}, 1px)` }}>
-                    <div
-                      className="absolute inset-0 rounded-full bg-control/20 dark:bg-ink/10"
-                      style={{
-                        boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgb(var(--shadow) / 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgb(var(--glow) / 0.52)`
-                      }}
-                    />
-                    <span className="relative" style={type('body', 'mono')}>
-                      {i + 1}
-                    </span>
-                  </span>
-                  <span className="flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis" style={textStyle}>
-                    {line.name}
-                  </span>
-                  <span className="shrink-0 whitespace-nowrap" style={textStyle}>
-                    {typeof line.price === 'number' ? formatMoney(line.price) : ''}
-                  </span>
-                </li>
-              ))}
-            </ol>
+          <h2 className={`font-bold ${ON_PANEL.primary} line-clamp-2 shrink-0`} style={type('display')}>
+            {title}
+          </h2>
 
-            {/* Scroll Thumb: only when the list overflows */}
-            {overflowing && (
-              <div
-                aria-hidden
-                className="absolute pointer-events-none"
-                style={{
-                  right: u(9.19),
-                  width: u(THUMB_WIDTH),
-                  height: u(THUMB_LENGTH),
-                  top: `calc(${u(TRACK_INSET)} + ${scrollProgress * trackLength}px)`,
-                }}
-              >
-                <img
-                  src={scrollThumb}
-                  alt=""
-                  width={THUMB_LENGTH}
-                  height={THUMB_WIDTH}
-                  className="absolute block max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90"
-                  style={{ width: u(THUMB_LENGTH), height: u(THUMB_WIDTH) }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Taxes */}
-          {taxRate > 0 && (
-            <>
-              {dividerImg}
-              <div
-                className="grid shrink-0 text-ink-muted"
-                style={{
-                  gridTemplateColumns: `${u(159)} 1fr auto`,
-                  rowGap: space(4),
-                  padding: `${space(4)} ${space(8)} ${space(6)} ${space(6)}`,
-                }}
-              >
-                <span style={smallStyle}>TAX</span>
-                <span style={smallStyle}>{taxRate}%</span>
-                <span className="text-right" style={smallStyle}>{formatMoney(tax)}</span>
-              </div>
-            </>
-          )}
-
-          {/* Total */}
-          {dividerImg}
+          {/* Receipt Well */}
           <div
-            className="flex items-center justify-between shrink-0 text-ink-muted"
-            style={{ height: u(49), paddingLeft: space(6), paddingRight: space(8) }}
-          >
-            <span style={smallStyle}>TOTAL</span>
-            <span style={textStyle}>{formatMoney(total)}</span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between shrink-0" style={{ marginTop: space(5) }}>
-          <span className="text-ink-subtle whitespace-nowrap" style={type('body')}>
-            {date}
-          </span>
-
-          <button
-            type="button"
-            onClick={handleShare}
-            aria-label={copied ? 'Receipt copied' : 'Share receipt'}
-            className={`flex items-center justify-center shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} text-control-ink transition-all duration-200`}
+            className={`relative flex-1 min-h-0 flex flex-col overflow-hidden ${ON_PANEL.well}`}
             style={{
-              width: u(49.923),
-              height: u(44.287),
-              borderRadius: radius('control'),
-              boxShadow: glassShadow,
+              borderRadius: radius('panel'),
+              boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)`,
             }}
           >
-            {copied ? (
-              <Check className="text-accent-blue" style={{ width: u(20), height: u(20) }} strokeWidth={2.4} />
-            ) : (
-              <Share style={{ width: u(20), height: u(20) }} strokeWidth={2} />
+            {/* Line items */}
+            <div className="relative flex-1 min-h-0">
+              <ol
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                // Row pitch snapped to whole px so every number circle lands on the same subpixel offset (else some blur).
+                style={{ padding: `${space(3)} ${space(6)} ${space(3)} ${space(3)}`, gap: `round(${space(3)}, 1px)` }}
+              >
+                {items.map((line, i) => (
+                  <li key={line.id ?? i} className={`flex items-center shrink-0 ${ON_PANEL.primary}`} style={{ gap: space(3) }}>
+                    <span
+                      className="relative shrink-0 flex items-center justify-center rounded-full bg-white/20"
+                      style={{ width: `round(${u(28)}, 1px)`, height: `round(${u(28)}, 1px)` }}
+                    >
+                      <span className="relative" style={type('label', 'mono')}>
+                        {i + 1}
+                      </span>
+                    </span>
+                    <span className="flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis" style={textStyle}>
+                      {line.name}
+                    </span>
+                    <span className="shrink-0 whitespace-nowrap" style={textStyle}>
+                      {typeof line.price === 'number' ? formatMoney(line.price) : ''}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              {/* Scroll Thumb: only when the list overflows */}
+              {overflowing && (
+                <div
+                  aria-hidden
+                  className="absolute pointer-events-none rounded-full bg-white/60"
+                  style={{
+                    right: u(7),
+                    width: u(THUMB_WIDTH),
+                    height: u(THUMB_LENGTH),
+                    top: `calc(${u(TRACK_INSET)} + ${scrollProgress * trackLength}px)`,
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Taxes */}
+            {taxRate > 0 && (
+              <>
+                <div className={DIVIDER} />
+                <div
+                  className={`grid shrink-0 ${ON_PANEL.secondary}`}
+                  style={{
+                    gridTemplateColumns: `${u(150)} 1fr auto`,
+                    padding: `${space(3)} ${space(6)} ${space(3)} ${space(4)}`,
+                  }}
+                >
+                  <span className="font-bold" style={smallStyle}>TAX</span>
+                  <span style={smallStyle}>{taxRate}%</span>
+                  <span className="text-right" style={smallStyle}>{formatMoney(tax)}</span>
+                </div>
+              </>
             )}
-          </button>
+
+            {/* Total */}
+            <div className={DIVIDER} />
+            <div
+              className={`flex items-center justify-between shrink-0 ${ON_PANEL.primary}`}
+              style={{ height: u(46), paddingLeft: space(4), paddingRight: space(6) }}
+            >
+              <span className={`font-bold ${ON_PANEL.secondary}`} style={smallStyle}>TOTAL</span>
+              <span className="font-bold" style={type('title')}>{formatMoney(total)}</span>
+            </div>
+          </div>
+
+          <span className={`${ON_PANEL.faint} whitespace-nowrap shrink-0`} style={type('caption')}>
+            {date}
+          </span>
         </div>
-      </div>
+      </WidgetShell>
     </div>
   );
 }

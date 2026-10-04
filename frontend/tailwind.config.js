@@ -1,8 +1,7 @@
 // Color tokens live as CSS variables in src/index.css; this maps them to Tailwind names.
 const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
-// Accent borders fade in dark mode via --edge-alpha, so they need no `dark:` twin.
-const edge = (name) => `rgb(var(--${name}-edge) / var(--edge-alpha))`;
-const accent = (name) => ({ DEFAULT: token(name), edge: edge(name) });
+// Widget accents: solid panel fills only (theme-independent).
+const accent = (name) => ({ solid: token(`${name}-solid`) });
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -33,10 +32,15 @@ export default {
         },
         warning: token('warning'),
         accent: {
-          blue: { ...accent('blue'), deep: token('blue-deep') },
+          blue: accent('blue'),
           green: accent('green'),
           coral: accent('coral'),
           pink: accent('pink'),
+        },
+        shell: {
+          DEFAULT: token('shell'),
+          control: token('shell-control'),
+          'control-ink': token('shell-control-ink'),
         },
         'map-paper': token('map-paper'),
         code: {
