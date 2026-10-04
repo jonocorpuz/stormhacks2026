@@ -4,7 +4,7 @@ services:
     name: stormhacks2026
     runtime: node
     plan: free
-    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix server install
+    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix server ci
     startCommand: npm --prefix server start
     envVars:
       - key: NODE_VERSION

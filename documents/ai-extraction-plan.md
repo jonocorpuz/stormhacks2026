@@ -17,7 +17,7 @@ Thinnest end-to-end vertical slice: drop image(s) → Gemini → real model item
 | Output strictness | Gemini `responseJsonSchema` generated from primitives (primitiveId enum, field keys locked, blocks → string). Values stored as-is, empty omitted, soft validation on read. Unknown primitiveId = hard error. |
 | Mocks | None. Works or errors. Missing key → clear error. Tests use inline test doubles only. |
 | Model | `gemini-3.6-flash`, hardcoded in `server/extract.js`. (3.8-flash preferred but 503 overloaded at build time.) |
-| Server | Vite dev middleware only (`/api/extract`). Keeps key out of bundle. No prod backend this slice — needs serverless fn later. |
+| Server | `server/extract.js` (Gemini proxy) shared by Vite dev middleware + Express prod server (`server/index.js`, Render single web service). Keeps key out of bundle. |
 | Target board | Always current board. No board open → creates "Untitled" first. |
 | Board switching | Blocked while any extraction pending: store guards `createBoard`/`openBoard`/`closeBoard`/`deleteBoard`(current); BoardMenu disables controls. Rename + item edits allowed. |
 | Placement | Append to end (`addItem`); CSS `grid-flow-dense` backfills holes. |
@@ -43,5 +43,4 @@ App.jsx drop ─▶ createCapture (model) ─▶ store.ingestCaptures ─▶ Ext
 - PDFs, text, URLs.
 - 0..N items per capture.
 - Per-primitive preferred card size; smart fitting/placement algorithm.
-- Production backend for `/api/extract`.
 - Placeholder cards while extracting.
