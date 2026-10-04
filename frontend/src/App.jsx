@@ -65,7 +65,7 @@ export default function App() {
 
   return (
     <div 
-      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-[#fafafa] dark:bg-[#1E1E1E] font-sans relative overscroll-none transition-colors duration-500`}
+      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas font-sans relative overscroll-none transition-colors duration-500`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -77,7 +77,7 @@ export default function App() {
       onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
     >
       {/* Drag Overlay */}
-      {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-blue-400/60 pointer-events-none" />}
+      {isDragging && <div className="absolute inset-0 z-50 ring-4 ring-primary/60 pointer-events-none" />}
 
       {/* Click-Outside Overlay */}
       {openMenu && <div className="fixed inset-0 z-40 bg-transparent" onClick={closeMenu} />}
@@ -133,7 +133,7 @@ export default function App() {
             onClick={() => toggleMenu('profile')}
             className="nav-grow apple-glass w-12 h-12 rounded-full flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-colors"
           >
-            <span className="text-gray-400 dark:text-white font-bold text-lg transition-colors">AN</span>
+            <span className="text-ink-subtle font-bold text-lg transition-colors">AN</span>
           </div>
           <ProfileSettingsMenu isOpen={openMenu === 'profile'} />
         </div>

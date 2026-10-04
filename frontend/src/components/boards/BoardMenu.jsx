@@ -60,8 +60,8 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
                     if (b.id !== currentBoard.id) openBoard(b.id);
                     onClose();
                   }}
-                  className={`w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed ${
-                    b.id === currentBoard.id ? 'font-semibold text-black dark:text-white' : ''
+                  className={`w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+                    b.id === currentBoard.id ? 'font-semibold text-ink' : ''
                   }`}
                 >
                   <span className="truncate">{b.name}</span>
@@ -71,7 +71,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
             ))}
           </ul>
 
-          <hr className="border-black/10 dark:border-white/10 my-1 mx-2" />
+          <hr className="border-ink/10 my-1 mx-2" />
 
           <form onSubmit={handleCreate} className="p-2">
             <input
@@ -86,7 +86,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
           {renaming === null ? (
             <button
               onClick={() => setRenaming(currentBoard.name)}
-              className="px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-sm text-left"
+              className="px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 transition-colors text-sm text-left"
             >
               Rename board
             </button>
@@ -105,7 +105,7 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
           <button
             onClick={handleDelete}
             disabled={extracting}
-            className="px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors text-sm text-left text-red-500 dark:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2.5 rounded-xl hover:bg-danger/10 transition-colors text-sm text-left text-danger disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Delete board
           </button>

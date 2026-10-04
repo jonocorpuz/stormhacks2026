@@ -20,8 +20,8 @@ export default function BoardGate() {
 
   return (
     <div className="w-full max-w-md mx-auto pt-40 px-8">
-      <form onSubmit={handleCreate} className="apple-glass rounded-[2rem] p-8 shadow-2xl flex flex-col space-y-5">
-        <h2 className="text-black dark:text-white font-bold text-xl">
+      <form onSubmit={handleCreate} className="apple-glass rounded-card p-8 shadow-2xl flex flex-col space-y-5">
+        <h2 className="text-ink font-bold text-xl">
           {boards.length ? 'Open a board' : 'Create your first board'}
         </h2>
         <input
@@ -34,22 +34,22 @@ export default function BoardGate() {
         <button
           type="submit"
           disabled={!name.trim()}
-          className="w-full py-2.5 bg-blue-500/90 backdrop-blur-md border border-blue-400/50 text-white rounded-full hover:bg-blue-600/90 text-sm font-semibold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 bg-primary/90 backdrop-blur-md border border-primary/50 text-white rounded-full hover:bg-primary-strong/90 text-sm font-semibold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Create board
         </button>
 
         {boards.length > 0 && (
-          <ul className="flex flex-col pt-2 border-t border-black/10 dark:border-white/10">
+          <ul className="flex flex-col pt-2 border-t border-ink/10">
             {boards.map((b) => (
               <li key={b.id}>
                 <button
                   type="button"
                   onClick={() => openBoard(b.id)}
-                  className="w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-sm text-black dark:text-white"
+                  className="w-full flex justify-between px-4 py-2.5 rounded-xl hover:bg-ink/5 dark:hover:bg-ink/10 transition-colors text-sm text-ink"
                 >
                   <span>{b.name}</span>
-                  <span className="text-black/40 dark:text-white/40">{b.itemCount}</span>
+                  <span className="text-ink/40">{b.itemCount}</span>
                 </button>
               </li>
             ))}

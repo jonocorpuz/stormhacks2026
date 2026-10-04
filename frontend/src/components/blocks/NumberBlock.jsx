@@ -35,7 +35,7 @@ export function NumberInput({ value, onChange, placeholder, autoFocus, flagged }
       onChange={onChange}
       placeholder={placeholder}
       autoFocus={autoFocus}
-      className={`px-4 h-10 rounded-full ${flagged ? 'ring-2 ring-amber-400/70' : ''}`}
+      className={`px-4 h-10 rounded-full ${flagged ? 'ring-2 ring-warning/70' : ''}`}
     />
   );
 }

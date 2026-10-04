@@ -18,6 +18,7 @@ export const FIXED_SIZES = {
   product: '2x1',
   receipt: '1x2',
   ticket: '2x1',
+  music_track: '1x1',
 };
 
 const ORDER = Object.keys(SIZE_CLASSES);

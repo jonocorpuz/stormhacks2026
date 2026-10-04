@@ -22,5 +22,6 @@ References: (Don't create unecessary context - you don't need to read the linked
 - Concrete repo + extractor injected in `main.jsx` only.
 - AI extraction derives from model. New block → add its JSON Schema (storage shape) to `BLOCK_JSON_SCHEMA` in `model/extract.ts` (typecheck enforces). New primitive/field → write a clear `description`; it's what the AI maps by. Primitives w/ no fields aren't extractable.
 - New semantic types = data in `model/primitives.ts`, not React logic. Presentation (cards, layout, `board.view`) owned by frontend.
+- Styling: token colors only — never hex/`rgba()`/Tailwind palette (`gray-400`, `blue-500`) in components. `white`/`black` only when theme-independent (text on colored button, scrims). Tokens = CSS vars in `index.css` (light + `.dark`) → names in `tailwind.config.js`; new color → add token there. Widgets: `components/widgetKit.ts` for spacing/radius/type/shadows. `tokens.test.ts` enforces hex/rgba ban.
 - Validation soft + computed on read; never block saves, never drop/coerce values.
 - Boundaries enforced by `npm run lint`. Run `npm test`, `npm run typecheck`, `npm run lint` before committing.

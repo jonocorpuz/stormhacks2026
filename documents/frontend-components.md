@@ -126,13 +126,15 @@ Write a container like `BoardGrid` that reads `currentBoard` and renders items d
 
 ## Styling
 
-Reuse existing look — don't invent new surfaces:
+Design tokens. Colors = CSS vars (RGB channels) in `index.css` `:root` / `.dark` → Tailwind names in `tailwind.config.js`. Use tokens, never hex/`rgba(`. Tokens switch theme themselves → no `dark:` twin unless design differs per theme.
 
-- Surfaces: `apple-glass` + `rounded-[2rem]` (cards), `rounded-3xl` (menus/modals), `rounded-full` (buttons/inputs).
-- Inputs: `INPUT_CLASS` from `blocks/styles.js`.
-- Primary button: `bg-blue-500/90 … rounded-full` (see `CreateItemMenu`).
-- Dropdowns: `absolute top-full mt-4 … animate-slide-down-fade z-50`.
-- Always pair light + `dark:` variants.
+- Neutrals: `canvas` (app bg), `surface`, `ink` (text; use alpha `text-ink/60`, `bg-ink/5`), `ink-muted`, `ink-subtle`, `control` (frosted control bg, w/ alpha), `control-ink`.
+- Status: `primary` / `primary-strong`, `danger` / `danger-strong`, `warning`.
+- Accents (widgets): `accent-{blue,green,coral,pink}`; `-edge` = border variant (fades in dark itself).
+- Plain `white`/`black` only when theme-independent: on-color text (`text-white` on `bg-primary`), shadows (`shadow-black/50`), scrims.
+- Radius: `rounded-card` (cards), `rounded-sheet` (menus/modals), `rounded-full` (buttons/inputs).
+- Surfaces: `apple-glass` (index.css). Inputs: `INPUT_CLASS` from `blocks/styles.js`. Primary button: `bg-primary/90 … rounded-full` (see `CreateItemMenu`). Dropdowns: `absolute top-full mt-4 … animate-slide-down-fade z-50`.
+- Widgets: use `components/widgetKit.ts`. `widgetScale(designWidth)` → `u` (raw px → container-scaled), `space(step)` (4px grid), `radius('control'|'panel'|'card')`, `type('caption'|'label'|'body'|'title', font?)` (font: `sans` default = Alte Haas, `mono` for code), `cardInset` (card top/bottom padding — use it, don't hand-pick), `glassShadow`, `insetShadow`. Also `accentGradient(accent, angle)`, `GLASS_CONTROL` / `GLASS_CONTROL_HOVER`.
 - Bento size classes must be literal strings (Tailwind JIT) — add new sizes in `items/sizes.js`.
 
 ## Don'ts

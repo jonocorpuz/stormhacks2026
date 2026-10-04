@@ -67,3 +67,12 @@ export interface TicketWidgetData {
   /** Link to the ticket. */
   url: string;
 }
+
+export interface MusicWidgetData {
+  /** Song title. */
+  title: string;
+  artist: string;
+  /** Link to the song, e.g. on Spotify. */
+  url: string;
+  date: string;
+}

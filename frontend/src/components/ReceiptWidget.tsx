@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Check, Share } from 'lucide-react';
 import { receiptTotals } from '../model';
 import type { ReceiptWidgetData } from '../types/widgets';
+import { GLASS_CONTROL, GLASS_CONTROL_HOVER, accentGradient, widgetScale } from './widgetKit';
 
 import scrollThumb from '../assets/receipt-widget/scroll-thumb.svg';
 import divider from '../assets/receipt-widget/divider.svg';
@@ -29,16 +30,10 @@ const DEFAULT_DATA: ReceiptWidgetData = {
 // designed at 355x734. All sizes scale with the widget's width (container query units)
 // so it keeps the design's proportions in a 1x2 bento cell.
 const DESIGN_WIDTH = 355;
-const u = (px: number) => `calc(${px} * 100cqw / ${DESIGN_WIDTH})`;
+const { u, space, radius, type, glassShadow, insetShadow, cardInset } = widgetScale(DESIGN_WIDTH);
 
-const CARD_GRADIENT =
-  'linear-gradient(118.76deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
-const PANEL_GRADIENT =
-  'linear-gradient(122.32deg, rgba(34, 148, 254, 0.1) 11.72%, rgba(34, 148, 254, 0.02) 50.62%, rgba(34, 148, 254, 0.1) 89.51%)';
-const TITLE_FONT = "'Alte Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const BODY_FONT = "Helvetica, 'Helvetica Neue', Arial, sans-serif";
-const SF_FONT = "'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif";
-const MONO_FONT = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const CARD_GRADIENT = accentGradient('blue', 118.76);
+const PANEL_GRADIENT = accentGradient('blue', 122.32);
 
 // Scroll thumb asset is 67.638 x 6.44 horizontal; rotated to vertical.
 const THUMB_LENGTH = 67.638;
@@ -120,8 +115,8 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
     }
   };
 
-  const textStyle = { fontFamily: SF_FONT, fontSize: u(16.104), lineHeight: u(19) };
-  const smallStyle = { fontFamily: SF_FONT, fontSize: u(12), lineHeight: u(14) };
+  const textStyle = type('body');
+  const smallStyle = type('caption');
   const dividerImg = (
     <img src={divider} alt="" width={321} height={1} className="block max-w-none shrink-0" style={{ width: u(321), height: u(1), marginLeft: u(-0.5) }} />
   );
@@ -129,32 +124,32 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
   return (
     <div ref={rootRef} className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
-        className="relative w-full h-full flex flex-col overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30 select-none"
+        className="relative w-full h-full flex flex-col overflow-hidden border border-accent-blue-edge select-none"
         style={{
           backgroundImage: CARD_GRADIENT,
-          borderRadius: u(30),
-          paddingTop: u(29),
-          paddingLeft: u(18),
-          paddingRight: u(17),
-          paddingBottom: u(20.71),
+          borderRadius: radius('card'),
+          paddingTop: cardInset,
+          paddingLeft: space(4),
+          paddingRight: space(4),
+          paddingBottom: cardInset,
         }}
       >
         {/* Header */}
         <h2
-          className="font-bold text-[#2294FE] whitespace-nowrap overflow-hidden text-ellipsis shrink-0"
-          style={{ fontFamily: TITLE_FONT, fontSize: u(20), lineHeight: u(24) }}
+          className="font-bold text-accent-blue whitespace-nowrap overflow-hidden text-ellipsis shrink-0"
+          style={type('title')}
         >
           {title}
         </h2>
 
         {/* Receipt Panel */}
         <div
-          className="relative flex-1 min-h-0 flex flex-col overflow-hidden border border-[#8AC6FF] dark:border-[#8AC6FF]/30"
+          className="relative flex-1 min-h-0 flex flex-col overflow-hidden border border-accent-blue-edge"
           style={{
-            marginTop: u(21),
-            borderRadius: u(16),
+            marginTop: space(5),
+            borderRadius: radius('panel'),
             backgroundImage: PANEL_GRADIENT,
-            boxShadow: `inset ${u(4)} ${u(4)} ${u(24.4)} 0 rgba(144, 144, 144, 0.11)`,
+            boxShadow: insetShadow,
           }}
         >
           {/* Line items */}
@@ -163,18 +158,18 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
               ref={scrollRef}
               onScroll={handleScroll}
               className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ padding: `${u(13.69)} ${u(31)} ${u(13.69)} ${u(24.96)}`, gap: u(14.49) }}
+              style={{ padding: `${space(3)} ${space(8)} ${space(3)} ${space(6)}`, gap: space(4) }}
             >
               {items.map((line, i) => (
-                <li key={line.id ?? i} className="flex items-center shrink-0 receipt-text-primary" style={{ gap: u(12.89) }}>
+                <li key={line.id ?? i} className="flex items-center shrink-0 text-ink-muted" style={{ gap: space(3) }}>
                   <span className="relative shrink-0 flex items-center justify-center" style={{ width: u(31.403), height: u(31.403) }}>
                     <div
-                      className="absolute inset-0 rounded-full bg-[#DCDCDC]/20 dark:bg-white/10"
+                      className="absolute inset-0 rounded-full bg-control/20 dark:bg-ink/10"
                       style={{
-                        boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgba(255, 255, 255, 0.52)`
+                        boxShadow: `${u(1.07)} ${u(0.53)} ${u(4.23)} 0 rgb(var(--shadow) / 0.07), inset ${u(-0.53)} 0 ${u(14.16)} ${u(7.42)} rgb(var(--glow) / 0.52)`
                       }}
                     />
-                    <span className="relative" style={{ fontFamily: MONO_FONT, fontSize: u(16.104), lineHeight: u(21) }}>
+                    <span className="relative" style={type('body', 'mono')}>
                       {i + 1}
                     </span>
                   </span>
@@ -215,11 +210,11 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             <>
               {dividerImg}
               <div
-                className="grid shrink-0 receipt-text-primary"
+                className="grid shrink-0 text-ink-muted"
                 style={{
                   gridTemplateColumns: `${u(159)} 1fr auto`,
-                  rowGap: u(15),
-                  padding: `${u(18)} ${u(32)} ${u(23)} ${u(25)}`,
+                  rowGap: space(4),
+                  padding: `${space(4)} ${space(8)} ${space(6)} ${space(6)}`,
                 }}
               >
                 <span style={smallStyle}>TAX</span>
@@ -232,8 +227,8 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
           {/* Total */}
           {dividerImg}
           <div
-            className="flex items-center justify-between shrink-0 receipt-text-primary"
-            style={{ height: u(49), paddingLeft: u(25), paddingRight: u(32) }}
+            className="flex items-center justify-between shrink-0 text-ink-muted"
+            style={{ height: u(49), paddingLeft: space(6), paddingRight: space(8) }}
           >
             <span style={smallStyle}>TOTAL</span>
             <span style={textStyle}>{formatMoney(total)}</span>
@@ -241,8 +236,8 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between shrink-0" style={{ marginTop: u(21) }}>
-          <span className="receipt-text-secondary whitespace-nowrap" style={{ fontFamily: BODY_FONT, fontSize: u(16.104), lineHeight: u(19) }}>
+        <div className="flex items-center justify-between shrink-0" style={{ marginTop: space(5) }}>
+          <span className="text-ink-subtle whitespace-nowrap" style={type('body')}>
             {date}
           </span>
 
@@ -250,16 +245,16 @@ export default function ReceiptWidget({ data, className = '' }: ReceiptWidgetPro
             type="button"
             onClick={handleShare}
             aria-label={copied ? 'Receipt copied' : 'Share receipt'}
-            className="flex items-center justify-center shrink-0 bg-[rgba(220,220,220,0.2)] text-[#8E8E8E] dark:text-[#3F3F3F] cursor-pointer transition-all duration-200 hover:bg-[rgba(220,220,220,0.35)] active:scale-95"
+            className={`flex items-center justify-center shrink-0 ${GLASS_CONTROL} ${GLASS_CONTROL_HOVER} text-control-ink transition-all duration-200`}
             style={{
               width: u(49.923),
               height: u(44.287),
-              borderRadius: u(15.099),
-              boxShadow: `${u(1.51)} ${u(0.755)} ${u(11.928)} 0 rgba(0, 0, 0, 0.07), inset ${u(-0.755)} 0 ${u(39.939)} ${u(10.468)} rgba(255, 255, 255, 0.52)`,
+              borderRadius: radius('control'),
+              boxShadow: glassShadow,
             }}
           >
             {copied ? (
-              <Check className="text-[#2294FE]" style={{ width: u(20), height: u(20) }} strokeWidth={2.4} />
+              <Check className="text-accent-blue" style={{ width: u(20), height: u(20) }} strokeWidth={2.4} />
             ) : (
               <Share style={{ width: u(20), height: u(20) }} strokeWidth={2} />
             )}

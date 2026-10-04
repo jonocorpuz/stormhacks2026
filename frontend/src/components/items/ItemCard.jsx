@@ -32,7 +32,7 @@ export default function ItemCard({
   const Card = known ? (CARD_COMPONENTS[primitive.id] ?? GenericCard) : UnsupportedCard;
   const issues = known ? getItemIssues(item) : [];
 
-  const isFullBleed = ['recommendation_list', 'code_snippet', 'map_location', 'note', 'product', 'receipt', 'ticket'].includes(primitive.id);
+  const isFullBleed = ['recommendation_list', 'code_snippet', 'map_location', 'note', 'product', 'receipt', 'ticket', 'music_track'].includes(primitive.id);
   const fixedSize = FIXED_SIZES[primitive.id];
   const effectiveSize = fixedSize ?? size;
 
@@ -64,7 +64,7 @@ export default function ItemCard({
       className={`w-full h-full relative buoyant ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.012] hover:-translate-y-1 hover:-rotate-[0.5deg]'} cursor-pointer ${
         isFullBleed
           ? 'flex'
-          : 'apple-glass rounded-[2rem] p-6 overflow-hidden shadow-2xl'
+          : 'apple-glass rounded-card p-6 overflow-hidden shadow-2xl'
       } ${
         editMode
           ? isDragging
@@ -80,7 +80,7 @@ export default function ItemCard({
       {issues.length > 0 && (
         <span
           title={issues.map((i) => `${i.fieldKey}: ${ISSUE_TEXT[i.kind]}`).join('\n')}
-          className="absolute bottom-4 right-4 w-2.5 h-2.5 rounded-full bg-amber-400 shadow"
+          className="absolute bottom-4 right-4 w-2.5 h-2.5 rounded-full bg-warning shadow"
         />
       )}
 
@@ -102,7 +102,7 @@ export default function ItemCard({
 
 function UnsupportedCard({ primitive }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full gap-1 text-center text-black/50 dark:text-white/50">
+    <div className="flex flex-col items-center justify-center h-full w-full gap-1 text-center text-ink/50">
       <span className="text-sm font-semibold">Unsupported item</span>
       <span className="text-xs">
         &ldquo;{primitive.id}&rdquo; isn&rsquo;t available in this version. Delete it from edit mode.
@@ -122,10 +122,10 @@ function CardButton({ label, onClick, danger, children }) {
         e.stopPropagation();
         onClick();
       }}
-      className={`card-action-btn !pointer-events-auto w-7 h-7 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/15 backdrop-blur-md transition-colors ${
+      className={`card-action-btn !pointer-events-auto w-7 h-7 rounded-full flex items-center justify-center bg-ink/5 dark:bg-ink/15 backdrop-blur-md transition-colors ${
         danger
-          ? 'text-red-500 hover:bg-red-500/20'
-          : 'text-black/60 dark:text-white/80 hover:bg-black/10 dark:hover:bg-white/25'
+          ? 'text-danger hover:bg-danger/20'
+          : 'text-ink/60 dark:text-ink/80 hover:bg-ink/10 dark:hover:bg-ink/25'
       }`}
     >
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

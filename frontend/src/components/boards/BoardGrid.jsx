@@ -3,7 +3,7 @@ import { verticalCompactor } from 'react-grid-layout';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { itemMatchesQuery } from '../../model';
+import { findPrimitive, itemMatchesQuery } from '../../model';
 import { useActions, useApp } from '../../store';
 import ItemCard from '../items/ItemCard';
 import { DEFAULT_SIZE, FIXED_SIZES, nextSize } from '../items/sizes';
@@ -332,12 +332,12 @@ export default function BoardGrid({ query, editMode }) {
   return (
     <div ref={gridRef} className="w-full max-w-7xl mx-auto pt-32 pb-10 px-8 overflow-visible">
       {board.items.length === 0 && (
-        <p className="text-center text-black/40 dark:text-white/40 pt-24 text-sm">
+        <p className="text-center text-ink/40 pt-24 text-sm">
           Nothing here yet — hit + to add something.
         </p>
       )}
       {board.items.length > 0 && items.length === 0 && (
-        <p className="text-center text-black/40 dark:text-white/40 pt-24 text-sm">No matches for “{query}”.</p>
+        <p className="text-center text-ink/40 pt-24 text-sm">No matches for “{query}”.</p>
       )}
 
       {items.length > 0 && (
@@ -437,7 +437,7 @@ export default function BoardGrid({ query, editMode }) {
                 data-grid={{ x: layoutPos.x, y: layoutPos.y, w: layoutPos.w, h: layoutPos.h }}
                 className={
                   isDragging
-                    ? '!z-50 shadow-2xl shadow-black/50 rounded-[2rem]'
+                    ? '!z-50 shadow-2xl shadow-black/50 rounded-card'
                     : isSettling
                       ? '!z-40'
                       : ''
@@ -480,12 +480,7 @@ export default function BoardGrid({ query, editMode }) {
 }
 
 function DeleteConfirmModal({ item, onCancel, onConfirm }) {
-  const label = item.primitiveId
-    ? item.primitiveId
-        .split('_')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ')
-    : 'Item';
+  const label = findPrimitive(item.primitiveId)?.name ?? 'Item';
   return (
     <div
       role="dialog"
@@ -494,25 +489,25 @@ function DeleteConfirmModal({ item, onCancel, onConfirm }) {
       onClick={onCancel}
     >
       <div
-        className="apple-glass rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl flex flex-col gap-4"
+        className="apple-glass rounded-sheet p-6 max-w-sm w-full mx-4 shadow-2xl flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold text-black dark:text-white">Delete {label}?</h3>
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <h3 className="text-base font-semibold text-ink">Delete {label}?</h3>
+        <p className="text-sm text-ink/60">
           This item will be permanently removed from your board.
         </p>
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-full text-sm font-medium bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
+            className="px-4 py-2 rounded-full text-sm font-medium bg-ink/5 dark:bg-ink/10 hover:bg-ink/10 dark:hover:bg-ink/20 transition-colors"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 rounded-full text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+            className="px-4 py-2 rounded-full text-sm font-medium bg-danger text-white hover:bg-danger-strong transition-colors"
           >
             Delete
           </button>

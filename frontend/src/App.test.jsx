@@ -114,7 +114,7 @@ describe('App', () => {
 
     // Confirmation dialog opens; item is not deleted yet
     expect(screen.getByRole('dialog')).toBeTruthy();
-    expect(screen.getByText('Delete Note?')).toBeTruthy();
+    expect(screen.getByText('Delete Recommendations?')).toBeTruthy();
     expect(screen.getByText('Temp')).toBeTruthy();
 
     // Cancel keeps the item
@@ -138,6 +138,7 @@ describe('App', () => {
 
     await act(async () => {
       await store.actions.createBoard('Physics Board');
+      await store.actions.createItem('note', { title: 'Task' }); // occupies (0,0); boards start empty
       await store.actions.createItem('code_snippet', {
         title: 'borrow_checker.rs',
         language: 'rust',
@@ -151,7 +152,7 @@ describe('App', () => {
     await click(screen.getByLabelText('Edit board'));
 
     const gridItems = Array.from(document.querySelectorAll('.react-grid-item'));
-    expect(gridItems.length).toBeGreaterThanOrEqual(4);
+    expect(gridItems.length).toBe(4);
 
     // Every grid item must use hardware-accelerated CSS transforms
     gridItems.forEach((el) => {
