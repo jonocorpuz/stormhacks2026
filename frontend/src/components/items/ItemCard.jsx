@@ -61,7 +61,7 @@ export default memo(function ItemCard({
     <div
       {...dragProps}
       style={wiggleStyle}
-      className={`w-full h-full relative buoyant ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none' : 'hover:scale-[1.012] hover:-translate-y-1 hover:-rotate-[0.5deg]'} ${
+      className={`w-full h-full relative buoyant ${editMode ? '[&_button:not(.card-action-btn)]:pointer-events-none [&_a]:pointer-events-none [&_input]:pointer-events-none [&_textarea]:pointer-events-none' : 'hover:scale-[1.012] hover:-translate-y-1 hover:-rotate-[0.5deg]'} ${
         isFullBleed
           ? 'flex'
           : 'apple-glass rounded-card p-6 overflow-hidden shadow-2xl'

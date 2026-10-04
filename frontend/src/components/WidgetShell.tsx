@@ -16,6 +16,8 @@ export interface WidgetShellProps {
   watermark?: React.ReactNode;
   // Footer controls (ShellIconButton / ShellPill). Omit to let the panel fill the shell.
   footer?: React.ReactNode;
+  // Keep the footer row (just the drag grip) even when there are no controls.
+  keepFooter?: boolean;
   // Panel content. Positioned freely: the panel is `relative` and clips.
   children: React.ReactNode;
   panelClassName?: string;
@@ -28,12 +30,14 @@ export default function WidgetShell({
   accent,
   watermark,
   footer,
+  keepFooter = false,
   children,
   panelClassName = '',
   panelStyle,
   className = '',
 }: WidgetShellProps) {
   const { u } = widgetScale(designWidth);
+  const hasFooter = Boolean(footer) || keepFooter;
   return (
     <div className={`w-full h-full [container-type:inline-size] ${className}`}>
       <div
@@ -42,7 +46,7 @@ export default function WidgetShell({
           borderRadius: `${u(SHELL.radius)} ${u(SHELL.radius)} ${u(SHELL.cornerRadius)} ${u(SHELL.radius)}`,
           boxShadow: `${u(SHELL.shadowX)} ${u(SHELL.shadowY)} 0 0 rgb(var(--shadow) / 0.25)`,
           padding: u(SHELL.inset),
-          paddingBottom: footer ? u(SHELL.footerBottom) : u(SHELL.inset),
+          paddingBottom: hasFooter ? u(SHELL.footerBottom) : u(SHELL.inset),
           gap: u(SHELL.footerGap),
         }}
       >
@@ -62,7 +66,7 @@ export default function WidgetShell({
           </div>
         )}
 
-        {footer ? (
+        {hasFooter ? (
           <div className="flex items-center shrink-0" style={{ height: u(SHELL.control), gap: u(SHELL.footerGap) }}>
             {footer}
             <DragHandle designWidth={designWidth} className="ml-auto text-shell-control-ink" />
@@ -134,23 +138,68 @@ export function DragHandle({
 
 // ---- Watermark -------------------------------------------------------------------------------
 
+// Figma icon used as a watermark: its silhouette (SVG alpha) tinted like the other marks.
+// `hole` cuts a circle the SVG paints rather than cuts (e.g. the map pin's centre).
+export interface WatermarkShape {
+  src: string;
+  width: number;
+  height: number;
+  hole?: { cx: number; cy: number; r: number };
+}
+
 export function Watermark({
   designWidth,
   glyph,
   icon: Icon,
+  shape,
   size = 260,
+  right,
+  top,
 }: {
   designWidth: number;
   glyph?: string;
   icon?: LucideIcon;
+  shape?: WatermarkShape;
+  // Longest side, in design px.
   size?: number;
+  // Distance from the panel's top-right, in design px. Defaults hang it off the corner.
+  right?: number;
+  top?: number;
 }) {
   const { u } = widgetScale(designWidth);
+  const pos = { right: u(right ?? -size * 0.12), top: u(top ?? -size * 0.14) };
+  if (shape) {
+    const k = size / Math.max(shape.width, shape.height);
+    const { hole } = shape;
+    const masks = [`url("${shape.src}")`];
+    if (hole) {
+      masks.push(`radial-gradient(circle ${u(hole.r * k)} at ${u(hole.cx * k)} ${u(hole.cy * k)}, black 98%, transparent 100%)`);
+    }
+    return (
+      <div
+        aria-hidden
+        className="absolute pointer-events-none bg-black opacity-[0.05]"
+        style={{
+          ...pos,
+          width: u(shape.width * k),
+          height: u(shape.height * k),
+          maskImage: masks.join(', '),
+          maskSize: '100% 100%, auto',
+          maskRepeat: 'no-repeat',
+          maskComposite: 'subtract',
+          WebkitMaskImage: masks.join(', '),
+          WebkitMaskSize: '100% 100%, auto',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskComposite: 'source-out',
+        }}
+      />
+    );
+  }
   return (
     <div
       aria-hidden
       className="absolute pointer-events-none text-black opacity-[0.05] leading-none whitespace-nowrap font-sans"
-      style={{ right: u(-size * 0.12), top: u(-size * 0.14) }}
+      style={pos}
     >
       {Icon ? (
         <Icon style={{ width: u(size), height: u(size) }} strokeWidth={2} />
@@ -168,7 +217,8 @@ export function Watermark({
 const CONTROL_CLASS =
   'relative shrink-0 flex items-center bg-shell-control text-shell-control-ink rounded-full transition-all duration-200';
 const CONTROL_ACTIVE = 'cursor-pointer hover:brightness-125 active:scale-95';
-const CONTROL_DISABLED = 'opacity-60 cursor-default';
+// Dim only the contents: the dark fill matches every other footer control.
+const CONTROL_DISABLED = 'cursor-default [&>*]:opacity-60';
 
 const controlShadow = (u: (px: number) => string) => `${u(1.7)} ${u(0.85)} ${u(6.7)} 0 rgb(var(--shadow) / 0.07)`;
 

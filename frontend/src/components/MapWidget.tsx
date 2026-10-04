@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import pin from '../assets/map-widget/pin.svg';
 import type { MapWidgetData } from '../types/widgets';
 import WidgetShell, { ShellPill, Watermark } from './WidgetShell';
 import { ON_PANEL, widgetScale } from './widgetKit';
@@ -27,6 +27,9 @@ const MAP_SIZE = 600;
 const MAP_LEFT = -136;
 const MAP_TOP = -200;
 const MAP_ZOOM = 17;
+
+// Figma pin icon (node 144:123 "Frame 62"); its centre dot is painted, so the mask cuts it.
+const PIN_WATERMARK = { src: pin, width: 50, height: 71.9812, hole: { cx: 24.5, cy: 24.5, r: 13.5 } };
 
 export default function MapWidget({ data, className = '' }: MapWidgetProps) {
   const title = data?.title || DEFAULT_DATA.title;
@@ -69,7 +72,7 @@ export default function MapWidget({ data, className = '' }: MapWidgetProps) {
           gap: space(1),
         }}
       >
-        <Watermark designWidth={DESIGN_WIDTH} icon={MapPin} size={120} />
+        <Watermark designWidth={DESIGN_WIDTH} shape={PIN_WATERMARK} size={120} />
         <h2
           className={`relative font-bold ${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`}
           style={type('title')}

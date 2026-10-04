@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Pencil, SquareCheck } from 'lucide-react';
+import { Check, Pencil } from 'lucide-react';
 import type { ListItem, ListWidgetData } from '../types/widgets';
-import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
+import WidgetShell, { ShellIconButton } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface ListWidgetProps {
@@ -24,9 +24,9 @@ const DEFAULT_ITEMS: ListItem[] = [
 // List on the solid-shell card (stormhacks-27, node 120:1121 "Group 54"), laid out 1x1 at 357px.
 // All sizes scale with the widget's width (container query units).
 const DESIGN_WIDTH = 357;
-const { u, space, radius, type } = widgetScale(DESIGN_WIDTH);
+const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
-// Vertical scroll thumb inside the well.
+// Vertical scroll thumb beside the items.
 const THUMB_LENGTH = 48;
 const THUMB_WIDTH = 5;
 const TRACK_INSET = 14;
@@ -101,8 +101,9 @@ export default function ListWidget({
         designWidth={DESIGN_WIDTH}
         accent="green"
         className={className}
-        watermark={<Watermark designWidth={DESIGN_WIDTH} icon={SquareCheck} />}
+        watermark={<CheckWatermark />}
         footer={footer}
+        keepFooter
       >
         <div
           className="absolute flex flex-col"
@@ -116,16 +117,22 @@ export default function ListWidget({
             {title}
           </h2>
 
-          {/* List well */}
-          <div
-            className={`relative flex-1 min-h-0 overflow-hidden ${ON_PANEL.well}`}
-            style={{ borderRadius: radius('panel'), marginTop: space(3), boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)` }}
-          >
+          {/* Items, straight on the panel (Figma node 142:1322) */}
+          <div className="relative flex-1 min-h-0" style={{ marginTop: space(3) }}>
             <div
               ref={scrollRef}
               onScroll={handleScroll}
               className="absolute inset-0 overflow-y-auto flex flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ padding: `${space(3)} ${space(6)} ${space(3)} ${space(3)}`, gap: space(2) }}
+              style={{
+                paddingRight: space(6),
+                paddingBottom: space(3),
+                gap: space(3),
+                // Rows fade out at the edge instead of being sliced; gone once scrolled to the end.
+                maskImage:
+                  overflowing && scrollProgress < 0.99
+                    ? `linear-gradient(to bottom, black calc(100% - ${space(8)}), transparent)`
+                    : undefined,
+              }}
             >
               {items.map((item) => (
                 <button
@@ -138,14 +145,18 @@ export default function ListWidget({
                   style={{ gap: space(3) }}
                 >
                   {/* Checkbox */}
+                  {/* Inset well, like the other card insets */}
                   <span
-                    className={`relative shrink-0 flex items-center justify-center border-solid border-white ${
-                      item.isChecked ? 'bg-white' : ''
-                    }`}
-                    style={{ width: u(22), height: u(22), borderWidth: u(2), borderRadius: u(6) }}
+                    className={`relative shrink-0 flex items-center justify-center ${ON_PANEL.well}`}
+                    style={{
+                      width: u(28),
+                      height: u(28),
+                      borderRadius: u(8),
+                      boxShadow: `inset 0 ${u(3)} ${u(3)} 0 rgb(var(--shadow) / 0.25)`,
+                    }}
                   >
                     {item.isChecked && (
-                      <Check className="text-accent-green-solid" style={{ width: u(15), height: u(15) }} strokeWidth={3} />
+                      <Check className={ON_PANEL.primary} style={{ width: u(18), height: u(18) }} strokeWidth={3.5} />
                     )}
                   </span>
 
@@ -184,6 +195,22 @@ export default function ListWidget({
         </div>
       </WidgetShell>
     </div>
+  );
+}
+
+// Figma "SF-Pro-Display • checkmark" (node 142:1357): huge faint tick, long arm running off the
+// top-right. Drawn in panel units (panel ≈ 329 wide, ~270 tall on the board) so it sits inside it.
+function CheckWatermark() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 329 329"
+      fill="none"
+      className="absolute left-0 top-0 pointer-events-none overflow-visible text-black opacity-[0.1]"
+      style={{ width: u(329), height: u(329) }}
+    >
+      <path d="M115 135 L185 220 L330 -15" stroke="currentColor" strokeWidth={36} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

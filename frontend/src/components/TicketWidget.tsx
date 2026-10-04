@@ -1,7 +1,7 @@
 import React from 'react';
-import { Ticket } from 'lucide-react';
 import type { TicketWidgetData } from '../types/widgets';
 import ticketmasterLogo from '../assets/ticket-widget/ticketmaster-logo.png';
+import ticketShape from '../assets/ticket-widget/ticket-watermark.svg';
 import { ticketHref } from './ticketHref';
 import WidgetShell, { ShellPill, Watermark } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
@@ -31,6 +31,9 @@ const { u, space, radius, type } = widgetScale(DESIGN_WIDTH);
 // Wordmark crop from the design's "image 1" layer (109 x 17.06), shrunk to fit the pill.
 const LOGO_WIDTH = 92;
 const LOGO_HEIGHT = LOGO_WIDTH * (17.06 / 109);
+
+// Figma ticket icon (node 123:66 "Subtract"): notches are real cut-outs.
+const TICKET_WATERMARK = { src: ticketShape, width: 71, height: 40 };
 
 const LABEL = `${ON_PANEL.secondary} font-bold`;
 const VALUE = `${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis`;
@@ -83,7 +86,7 @@ export default function TicketWidget({ data, className = '' }: TicketWidgetProps
       designWidth={DESIGN_WIDTH}
       accent="yellow"
       className={className}
-      watermark={<Watermark designWidth={DESIGN_WIDTH} icon={Ticket} />}
+      watermark={<Watermark designWidth={DESIGN_WIDTH} shape={TICKET_WATERMARK} right={20} top={15} />}
       footer={footer}
     >
       <div

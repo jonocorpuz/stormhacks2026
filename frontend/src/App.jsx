@@ -74,7 +74,7 @@ export default function App() {
 
   return (
     <div 
-      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas font-sans relative overscroll-none transition-colors duration-500`}
+      className={`h-screen w-full overflow-y-auto overflow-x-hidden bg-canvas dot-grid font-sans relative overscroll-none transition-colors duration-500`}
       onDragOver={(e) => {
         // Only OS file drags, not text/link drags from inside the page.
         if (!e.dataTransfer.types.includes('Files')) return;
@@ -96,7 +96,7 @@ export default function App() {
         // Phone simulator. translateZ makes it the containing block for fixed-position modals
         // (editor, delete confirm), so they stay inside the "screen" instead of covering the monitor.
         <div className="min-h-full flex items-center justify-center py-8 px-4">
-          <div className="w-full max-w-[400px] h-[min(850px,calc(100vh-4rem))] mx-auto relative overflow-hidden rounded-[3rem] border-8 border-black shadow-2xl bg-canvas [transform:translateZ(0)]">
+          <div className="w-full max-w-[400px] h-[min(850px,calc(100vh-4rem))] mx-auto relative overflow-hidden rounded-[3rem] border-8 border-black shadow-2xl bg-canvas dot-grid [transform:translateZ(0)]">
             {currentBoard ? (
               <MobileRolodexView
                 query={query}

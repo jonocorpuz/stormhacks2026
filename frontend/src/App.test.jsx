@@ -78,27 +78,33 @@ describe('App', () => {
     await type(screen.getByPlaceholderText(/Short headline/), 'Ramen spots');
     await type(screen.getByPlaceholderText(/Free-form content/), 'Ichiran, Afuri');
     await click(screen.getByText('Create Note'));
-    expect(screen.getByText('Ramen spots')).toBeTruthy();
-    expect(screen.getByText('Ichiran, Afuri')).toBeTruthy();
+    // Notes are typable in place: their text lives in inputs.
+    expect(screen.getByDisplayValue('Ramen spots')).toBeTruthy();
+    expect(screen.getByDisplayValue('Ichiran, Afuri')).toBeTruthy();
 
     // Search filters
     await type(screen.getByPlaceholderText('Search'), 'pizza');
-    expect(screen.queryByText('Ramen spots')).toBeNull();
+    expect(screen.queryByDisplayValue('Ramen spots')).toBeNull();
     await type(screen.getByPlaceholderText('Search'), '');
 
     // Edit via modal
     await click(screen.getByLabelText('Edit board'));
     await click(screen.getByLabelText('Edit'));
-    await type(screen.getByDisplayValue('Ramen spots'), 'Best ramen');
+    await type(screen.getByPlaceholderText(/Short headline/), 'Best ramen');
     await click(screen.getByText('Save'));
     await click(screen.getByLabelText('Edit board'));
-    expect(screen.getByText('Best ramen')).toBeTruthy();
+    expect(screen.getByDisplayValue('Best ramen')).toBeTruthy();
+
+    // Typing straight into the card saves too
+    await type(screen.getByLabelText('Note'), 'Ichiran, Afuri, Fuunji');
+    await act(() => new Promise((r) => setTimeout(r, 500)));
 
     // Reload: fresh store on same repo lands back on the board w/ the note
     cleanup();
     await mount(repo);
     expect(screen.getByText('Japan trip')).toBeTruthy();
-    expect(screen.getByText('Best ramen')).toBeTruthy();
+    expect(screen.getByDisplayValue('Best ramen')).toBeTruthy();
+    expect(screen.getByDisplayValue('Ichiran, Afuri, Fuunji')).toBeTruthy();
   });
 
   it('edit mode asks for confirmation before deleting items', async () => {

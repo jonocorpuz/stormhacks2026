@@ -1,8 +1,9 @@
 import React from 'react';
 import { FastForward, Pause, Play, Rewind } from 'lucide-react';
 import type { MusicWidgetData } from '../types/widgets';
+import { spotifyUri } from '../model';
 import { useMusicPlayback } from './useMusicPlayback';
-import WidgetShell from './WidgetShell';
+import WidgetShell, { ShellPill } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface MusicWidgetProps {
@@ -32,6 +33,10 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   const artist = data?.artist || DEFAULT_DATA.artist;
   const date = data?.date || DEFAULT_DATA.date;
   const url = data?.url ?? '';
+  // The song's own Spotify link, else a Spotify search for it.
+  const spotifyUrl = spotifyUri(url)
+    ? url
+    : `https://open.spotify.com/search/${encodeURIComponent([title, artist].filter(Boolean).join(' '))}`;
 
   const { status, isPlaying, position, duration, toggle, seekBy, embedRef } = useMusicPlayback({ title, artist, url });
   const progress = duration > 0 ? Math.min(1, position / duration) : 0;
@@ -48,7 +53,12 @@ export default function MusicWidget({ data, className = '' }: MusicWidgetProps) 
   const skipStyle = { width: u(22), height: u(22) };
 
   return (
-    <WidgetShell designWidth={DESIGN_WIDTH} accent="red" className={className}>
+    <WidgetShell
+      designWidth={DESIGN_WIDTH}
+      accent="red"
+      className={className}
+      footer={<ShellPill designWidth={DESIGN_WIDTH} href={spotifyUrl} label="Open in Spotify" text="Open in Spotify" />}
+    >
       {/* Flat record (Figma node 120:1169): panel-tinted disc + label ring, cropped top-right. */}
       <div
         aria-hidden

@@ -116,7 +116,13 @@
            transition-colors duration-500;
   }
 
+  /* Very faint dotted grid behind the board; scrolls with it. */
+  .dot-grid {
+    background-image: radial-gradient(circle, rgb(var(--ink) / 0.09) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    background-attachment: local;
   }
+}
 
 @keyframes slideDownFade {
   from { opacity: 0; transform: translateY(-10px) scale(0.95); }

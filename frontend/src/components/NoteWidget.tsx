@@ -1,12 +1,15 @@
 import React from 'react';
 import { Pencil } from 'lucide-react';
 import type { NoteWidgetData } from '../types/widgets';
-import WidgetShell, { ShellIconButton, Watermark } from './WidgetShell';
+import pencilWatermark from '../assets/note-widget/pencil-watermark.svg';
+import WidgetShell, { ShellIconButton } from './WidgetShell';
 import { ON_PANEL, SHELL, widgetScale } from './widgetKit';
 
 export interface NoteWidgetProps {
   data?: Partial<NoteWidgetData>;
   onEdit?: () => void;
+  // Wired → title and body are typed straight into the card.
+  onChange?: (patch: { title?: string; body?: string }) => void;
   className?: string;
 }
 
@@ -17,7 +20,11 @@ const DEFAULT_TITLE = 'General Notes';
 const DESIGN_WIDTH = 357;
 const { u, space, type } = widgetScale(DESIGN_WIDTH);
 
-export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetProps) {
+// Typing in the card shouldn't open the editor or start a drag.
+const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+const FIELD = `block w-full bg-transparent border-0 outline-none p-0 m-0 ${ON_PANEL.primary} placeholder:text-white/55`;
+
+export default function NoteWidget({ data, onEdit, onChange, className = '' }: NoteWidgetProps) {
   const title = data?.title || DEFAULT_TITLE;
   const body = data?.body ?? '';
   const date = data?.date ?? '';
@@ -34,36 +41,97 @@ export default function NoteWidget({ data, onEdit, className = '' }: NoteWidgetP
       designWidth={DESIGN_WIDTH}
       accent="orange"
       className={className}
-      watermark={<Watermark designWidth={DESIGN_WIDTH} icon={Pencil} />}
+      watermark={<PencilWatermark />}
       footer={footer}
+      keepFooter
     >
       <div
         className="absolute flex flex-col"
         style={{ left: u(SHELL.padX), right: u(SHELL.padX), top: u(SHELL.padY), bottom: u(SHELL.padX) }}
       >
-        <h2
-          className={`font-bold ${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis shrink-0`}
-          style={type('display')}
-        >
-          {title}
-        </h2>
+        {onChange ? (
+          <>
+            <input
+              value={data?.title ?? ''}
+              placeholder={DEFAULT_TITLE}
+              aria-label="Note title"
+              onChange={(e) => onChange({ title: e.target.value })}
+              onClick={stop}
+              onPointerDown={stop}
+              className={`${FIELD} font-bold text-ellipsis shrink-0`}
+              style={type('display')}
+            />
+            <textarea
+              value={body}
+              placeholder="Start typing…"
+              aria-label="Note"
+              onChange={(e) => onChange({ body: e.target.value })}
+              onClick={stop}
+              onPointerDown={stop}
+              className={`${FIELD} flex-1 min-h-0 resize-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+              style={{ ...type('title'), marginTop: space(3) }}
+            />
+          </>
+        ) : (
+          <>
+            <h2
+              className={`font-bold ${ON_PANEL.primary} whitespace-nowrap overflow-hidden text-ellipsis shrink-0`}
+              style={type('display')}
+            >
+              {title}
+            </h2>
 
-        <p
-          className={`flex-1 min-h-0 overflow-hidden ${ON_PANEL.primary} whitespace-pre-wrap break-words`}
-          style={{
-            ...type('title'),
-            marginTop: space(3),
-            maskImage: 'linear-gradient(to bottom, black calc(100% - 1.5em), transparent)',
-          }}
-        >
-          {body}
-        </p>
+            <p
+              className={`flex-1 min-h-0 overflow-hidden ${ON_PANEL.primary} whitespace-pre-wrap break-words`}
+              style={{
+                ...type('title'),
+                marginTop: space(3),
+                maskImage: 'linear-gradient(to bottom, black calc(100% - 1.5em), transparent)',
+              }}
+            >
+              {body}
+            </p>
+          </>
+        )}
 
         <span className={`${ON_PANEL.faint} whitespace-nowrap shrink-0`} style={{ ...type('caption'), marginTop: space(2) }}>
           {date}
         </span>
       </div>
     </WidgetShell>
+  );
+}
+
+// Figma "Group 68" (node 130:392): tilted pencil, soft-lit into the panel. Panel clips it.
+// Placed by its eraser end, near the panel's top-right; the tip points down-left.
+const PENCIL_SCALE = 0.7;
+const PENCIL = { width: 317.316, height: 75.8863, angle: -69.34 } as const;
+const ERASER = { x: 300, y: 24 };
+function PencilWatermark() {
+  // Image centre → eraser end, after rotation and scale.
+  const half = (PENCIL.width / 2) * PENCIL_SCALE;
+  const rad = (PENCIL.angle * Math.PI) / 180;
+  const cx = ERASER.x - half * Math.cos(rad);
+  const cy = ERASER.y - half * Math.sin(rad);
+  return (
+    <div
+      aria-hidden
+      className="absolute pointer-events-none flex items-center justify-center"
+      style={{ left: u(cx), top: u(cy), width: 0, height: 0 }}
+    >
+      <img
+        src={pencilWatermark}
+        alt=""
+        width={PENCIL.width}
+        height={PENCIL.height}
+        className="block max-w-none flex-none mix-blend-soft-light"
+        style={{
+          width: u(PENCIL.width),
+          height: u(PENCIL.height),
+          transform: `rotate(${PENCIL.angle}deg) scale(${PENCIL_SCALE})`,
+        }}
+      />
+    </div>
   );
 }
 
