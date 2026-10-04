@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useActions, useApp } from '../../store';
 import { INPUT_CLASS } from '../blocks/styles';
 import { useExiting } from '../useExiting';
+import GlassButton from '../GlassButton';
 
 // Header pill showing the current board; dropdown to switch, create, rename, delete.
-export default function BoardMenu({ isOpen, onToggle, onClose }) {
+// compact: icon button instead of the name pill (mobile bar has no room); current board is bolded in the list.
+export default function BoardMenu({ isOpen, onToggle, onClose, compact = false }) {
   const boards = useApp((s) => s.boards);
   const currentBoard = useApp((s) => s.currentBoard);
   // Store refuses board switches mid-extraction; mirror that here.
@@ -39,6 +41,16 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
 
   return (
     <div className="relative">
+      {compact ? (
+        <GlassButton onClick={onToggle} aria-label="Boards" aria-expanded={isOpen} className="nav-grow">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="7" height="7" rx="1.5" />
+            <rect x="13" y="4" width="7" height="7" rx="1.5" />
+            <rect x="4" y="13" width="7" height="7" rx="1.5" />
+            <rect x="13" y="13" width="7" height="7" rx="1.5" />
+          </svg>
+        </GlassButton>
+      ) : (
       <button
         onClick={onToggle}
         className="nav-grow apple-glass h-12 px-5 rounded-full flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-colors max-w-[14rem]"
@@ -48,9 +60,11 @@ export default function BoardMenu({ isOpen, onToggle, onClose }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
+      )}
 
       {shown && (
         <div className={`absolute top-full mt-4 left-0 w-64 p-2 apple-glass rounded-2xl origin-top menu-pop ${closing ? 'is-closing' : ''} z-50 flex flex-col`}>
+          {compact && <p className="px-4 pt-2 pb-1 text-xs font-semibold opacity-60 truncate">Boards</p>}
           {extracting && (
             <p className="px-4 py-2 text-xs opacity-60">Extracting… board switching paused</p>
           )}

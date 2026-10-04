@@ -9,6 +9,7 @@ import GlassButton from '../GlassButton';
 import GlassInput from '../GlassInput';
 import ProfileAvatar from '../ProfileAvatar';
 import ProfileSettingsMenu from '../ProfileSettingsMenu';
+import BoardMenu from '../boards/BoardMenu';
 import { DeleteConfirmModal } from '../boards/BoardGrid';
 
 // Every card is a 1x1 square here: multi-span widgets render their compact variant (isCompact).
@@ -55,14 +56,15 @@ const backState = (k, H) => ({ y: H * FOCUS_Y - k * BACK_GAP, rx: Math.min(MAX_B
 export default function MobileRolodexView(props) {
   const board = useApp((s) => s.currentBoard);
   if (!board) return null;
-  return <RolodexStack board={board} {...props} />;
+  // Keyed by board so switching boards resets scroll position and open/editing card state.
+  return <RolodexStack key={board.id} board={board} {...props} />;
 }
 
 function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode, viewMode, onToggleViewMode, onSignOut }) {
   const { deleteItem } = useActions();
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [openMenu, setOpenMenu] = useState(null); // 'create' | 'profile' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'boards' | 'create' | 'profile' | null
   const toggleMenu = (name) => setOpenMenu((open) => (open === name ? null : name));
   const closeMenu = () => setOpenMenu(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
@@ -230,10 +232,13 @@ function RolodexStack({ board, query, onQueryChange, editMode, onToggleEditMode,
     <div className="relative h-full w-full flex flex-col">
       {openMenu && <div className="absolute inset-0 z-[3000]" onClick={closeMenu} />}
 
-      {/* Top bar: same glass buttons and pop-in as the desktop header. New + Edit left (create menu
-          opens from the left edge), search in the middle, profile right (settings menu from the right). */}
+      {/* Top bar: same glass buttons and pop-in as the desktop header. Boards + New + Edit left (their
+          menus open from the left edge), search in the middle, profile right (settings menu from the right). */}
       <div className="absolute top-4 inset-x-4 z-[3001] flex items-center gap-2">
         <div className="relative shrink-0 flex items-center gap-2">
+          <div className="pop-in" style={navPop(3)}>
+            <BoardMenu compact isOpen={openMenu === 'boards'} onToggle={() => toggleMenu('boards')} onClose={closeMenu} />
+          </div>
           <div className="pop-in" style={navPop(2)}>
             <GlassButton onClick={() => toggleMenu('create')} aria-label="New" className="nav-grow">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
