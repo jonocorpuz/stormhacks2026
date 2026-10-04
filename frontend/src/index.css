@@ -60,14 +60,14 @@
     --blue: 34 148 254;
     --blue-deep: 0 108 227;
     --blue-tint: 34 148 254;
-    --green-edge: 142 231 153;
-    --green: 75 135 53;
-    --green-tint: 31 203 52;
+    --green-edge: 124 249 139;
+    --green: 57 175 13;
+    --green-tint: 8 226 34;
     --coral-edge: 255 217 204;
-    --coral: 218 119 119;
+    --coral: 245 92 92;
     --coral-tint: 254 89 34;
     --pink-edge: 255 215 249;
-    --pink: 220 138 207;
+    --pink: 247 111 225;
     --pink-tint: 255 158 240;
 
     /* One-offs */
@@ -97,14 +97,14 @@
     /* Accent text lifted toward its edge pastel so titles stay readable on the dark canvas. */
     --blue: 102 181 255;
     --blue-deep: 102 181 255;
-    --green: 128 208 116;
-    --coral: 240 152 152;
-    --pink: 236 166 225;
-    /* Washes: same hue + lightness, ~55% saturation so cards read tinted, not neon. */
-    --blue-tint: 83 146 204;
-    --green-tint: 70 164 81;
-    --coral-tint: 204 114 83;
-    --pink-tint: 233 180 225;
+    --green: 103 244 80;
+    --coral: 252 140 140;
+    --pink: 251 153 235;
+    /* Washes: same hue + lightness, ~89% saturation so cards read vivid. */
+    --blue-tint: 45 148 242;
+    --green-tint: 18 216 41;
+    --coral-tint: 242 96 45;
+    --pink-tint: 250 163 237;
 
     --map-paper: 30 30 30;
   }
